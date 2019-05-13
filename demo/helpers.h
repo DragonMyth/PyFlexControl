@@ -80,23 +80,42 @@ void CreateParticleGrid(Vec3 lower, int dimx, int dimy, int dimz, float radius, 
 	if (rigid && g_buffers->rigidIndices.empty())
 		g_buffers->rigidOffsets.push_back(0);
 
-	for (int x = 0; x < dimx; ++x)
-	{
-		for (int y = 0; y < dimy; ++y)
-		{
-			for (int z=0; z < dimz; ++z)
-			{
-				if (rigid)
-					g_buffers->rigidIndices.push_back(int(g_buffers->positions.size()));
+//	for (int x = 0; x < dimx; ++x)
+//	{
+//		for (int y = 0; y < dimy; ++y)
+//		{
+//			for (int z=0; z < dimz; ++z)
+//			{
+//				if (rigid)
+//					g_buffers->rigidIndices.push_back(int(g_buffers->positions.size()));
+//
+//				Vec3 position = lower + Vec3(float(x), float(y), float(z))*radius + RandomUnitVector()*jitter;
+//
+//				g_buffers->positions.push_back(Vec4(position.x, position.y, position.z, invMass));
+//				g_buffers->velocities.push_back(velocity);
+//				g_buffers->phases.push_back(phase);
+//			}
+//		}
+//	}
 
-				Vec3 position = lower + Vec3(float(x), float(y), float(z))*radius + RandomUnitVector()*jitter;
+    for (int x = 0; x < dimx; ++x)
+    {
+        for (int y = 0; y < dimy; ++y)
+        {
+            for (int z=0; z < dimz; ++z)
+            {
+                if (rigid)
+                    g_buffers->rigidIndices.push_back(int(g_buffers->positions.size()));
 
-				g_buffers->positions.push_back(Vec4(position.x, position.y, position.z, invMass));
-				g_buffers->velocities.push_back(velocity);
-				g_buffers->phases.push_back(phase);
-			}
-		}
-	}
+                Vec3 position = lower + Vec3(float(x-dimx/2), float(y-dimy/2), float(z-dimz/2))*radius + RandomUnitVector()*jitter;
+//                float invMassPart = invMass*pow((1+y/dimy),100);
+                float invMassPart = invMass;
+                g_buffers->positions.push_back(Vec4(position.x, position.y, position.z, invMassPart));
+                g_buffers->velocities.push_back(velocity);
+                g_buffers->phases.push_back(phase);
+            }
+        }
+    }
 
 	if (rigid)
 	{

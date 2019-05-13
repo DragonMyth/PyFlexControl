@@ -3,7 +3,7 @@ project(bindings)
 
 
 if (NOT DEFINED FleX_ROOT)
-    set(FleX_ROOT ~/git/FleX_PyBind11)
+    set(FleX_ROOT ~/FleX_PyBind11)
 endif()
 if (NOT DEFINED CUDA_ROOT)
     set(CUDA_ROOT /usr/local/cuda-9.2)
@@ -34,7 +34,8 @@ link_directories(${FleX_LIB_DIR})
 ######################################### Link via Pybind ############################################
 add_subdirectory(pybind11)
 pybind11_add_module(bindings src/pythonBindings.cpp ${FleX_INCLUDE_SOURCE} ${FleX_INCLUDE_HEADER})
-target_compile_options(bindings PRIVATE -I/usr/local/include/python2.7)
+##target_compile_options(bindings PRIVATE -I/usr/local/include/python2.7)
+target_compile_options(bindings PRIVATE -I~/anaconda3/envs/deformableManip/include/python3.6m)
 target_include_directories(bindings PRIVATE "${PYTHON_INCLUDE_DIRS}" -fPIC)
 target_link_libraries(bindings PRIVATE ${FleX_DEPENDENCIES} -fPIC)
 

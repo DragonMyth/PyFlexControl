@@ -37,13 +37,14 @@ class Scene
 public:
 
 	Scene(const char* name) : mName(name) {}
-	
-	virtual void Initialize() = 0;
+	virtual void Initialize(){};
+	virtual Eigen::MatrixXd Initialize(int placeholder=0) {};
 	virtual void PostInitialize() {}
 	
 	// update any buffers (all guaranteed to be mapped here)
 	virtual void Update() {}	
-
+	virtual Eigen::MatrixXd Update(Eigen::VectorXd act){}
+	virtual Eigen::MatrixXd getState(){}
 	// send any changes to flex (all buffers guaranteed to be unmapped here)
 	virtual void Sync() {}
 	
@@ -51,6 +52,7 @@ public:
 	virtual void KeyDown(int key) {}
 	virtual void DoGui() {}
 	virtual void CenterCamera() {}
+	virtual void setSceneSeed(int seed){}
 
 	virtual Matrix44 GetBasis() { return Matrix44::kIdentity; }	
 
@@ -113,3 +115,5 @@ public:
 #include "scenes/triggervolume.h"
 #include "scenes/viscosity.h"
 #include "scenes/waterballoon.h"
+#include "scenes/granularsweep.h"
+#include "scenes/fluidsweep.h"

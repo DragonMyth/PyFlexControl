@@ -1,4 +1,4 @@
-
+#include "../helpers.h"
 class Melting : public Scene
 {
 public:

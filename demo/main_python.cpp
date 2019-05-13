@@ -46,7 +46,6 @@
 #include "../include/NvFlexExt.h"
 #include "../include/NvFlexDevice.h"
 
-
 #include <iostream>
 #include <map>
 
@@ -54,11 +53,6 @@
 #include "imgui.h"
 
 #include "shadersDemoContext.h"
-
-#if FLEX_DX
-#include "d3d\appGraphCtx.h"
-#endif
-
 
 #if ENABLE_AFTERMATH_SUPPORT
 #include <external/GFSDK_Aftermath_v1.21/include/GFSDK_Aftermath.h>
@@ -70,26 +64,53 @@ unsigned int g_windowId;		// window id
 #define SDL_CONTROLLER_BUTTON_LEFT_TRIGGER (SDL_CONTROLLER_BUTTON_MAX + 1)
 #define SDL_CONTROLLER_BUTTON_RIGHT_TRIGGER (SDL_CONTROLLER_BUTTON_MAX + 2)
 
-int GetKeyFromGameControllerButton(SDL_GameControllerButton button)
-{
-	switch (button)
-	{
-	case SDL_CONTROLLER_BUTTON_DPAD_UP:			{	return SDLK_q;		} // -- camera translate up
-	case SDL_CONTROLLER_BUTTON_DPAD_DOWN:		{	return SDLK_z;		} // -- camera translate down
-	case SDL_CONTROLLER_BUTTON_DPAD_LEFT:		{	return SDLK_h;		} // -- hide GUI
-	case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:		{	return -1;			} // -- unassigned
-	case SDL_CONTROLLER_BUTTON_START:			{	return SDLK_RETURN;	} // -- start selected scene
-	case SDL_CONTROLLER_BUTTON_BACK:			{	return SDLK_ESCAPE;	} // -- quit
-	case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:	{	return SDLK_UP;		} // -- select prev scene
-	case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:	{	return SDLK_DOWN;	} // -- select next scene
-	case SDL_CONTROLLER_BUTTON_A:				{	return SDLK_g;		} // -- toggle gravity
-	case SDL_CONTROLLER_BUTTON_B:				{	return SDLK_p;		} // -- pause
-	case SDL_CONTROLLER_BUTTON_X:				{	return SDLK_r;		} // -- reset
-	case SDL_CONTROLLER_BUTTON_Y:				{	return SDLK_o;		} // -- step sim
-	case SDL_CONTROLLER_BUTTON_RIGHT_TRIGGER:	{	return SDLK_SPACE;	} // -- emit particles
-	default:									{	return -1;			} // -- nop
+int GetKeyFromGameControllerButton(SDL_GameControllerButton button) {
+	switch (button) {
+	case SDL_CONTROLLER_BUTTON_DPAD_UP: {
+		return SDLK_q;
+	} // -- camera translate up
+	case SDL_CONTROLLER_BUTTON_DPAD_DOWN: {
+		return SDLK_z;
+	} // -- camera translate down
+	case SDL_CONTROLLER_BUTTON_DPAD_LEFT: {
+		return SDLK_h;
+	} // -- hide GUI
+	case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: {
+		return -1;
+	} // -- unassigned
+	case SDL_CONTROLLER_BUTTON_START: {
+		return SDLK_RETURN;
+	} // -- start selected scene
+	case SDL_CONTROLLER_BUTTON_BACK: {
+		return SDLK_ESCAPE;
+	} // -- quit
+	case SDL_CONTROLLER_BUTTON_LEFTSHOULDER: {
+		return SDLK_UP;
+	} // -- select prev scene
+	case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: {
+		return SDLK_DOWN;
+	} // -- select next scene
+	case SDL_CONTROLLER_BUTTON_A: {
+		return SDLK_g;
+	} // -- toggle gravity
+	case SDL_CONTROLLER_BUTTON_B: {
+		return SDLK_p;
+	} // -- pause
+	case SDL_CONTROLLER_BUTTON_X: {
+		return SDLK_r;
+	} // -- reset
+	case SDL_CONTROLLER_BUTTON_Y: {
+		return SDLK_o;
+	} // -- step sim
+	case SDL_CONTROLLER_BUTTON_RIGHT_TRIGGER: {
+		return SDLK_SPACE;
+	} // -- emit particles
+	default: {
+		return -1;
+	} // -- nop
 	};
-};
+}
+;
 
 //
 // Gamepad thresholds taken from XINPUT API
@@ -98,10 +119,10 @@ int GetKeyFromGameControllerButton(SDL_GameControllerButton button)
 #define XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE 8689
 #define XINPUT_GAMEPAD_TRIGGER_THRESHOLD    30
 
-int deadzones[3] = { XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE, XINPUT_GAMEPAD_TRIGGER_THRESHOLD };
+int deadzones[3] = { XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE,
+XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE, XINPUT_GAMEPAD_TRIGGER_THRESHOLD };
 
-inline float joyAxisFilter(int value, int stick)
-{
+inline float joyAxisFilter(int value, int stick) {
 	//clamp values in deadzone to zero, and remap rest of range so that it linearly rises in value from edge of deadzone toward max value.
 	if (value < -deadzones[stick])
 		return (value + deadzones[stick]) / (32768.0f - deadzones[stick]);
@@ -124,14 +145,16 @@ int g_numSubsteps;
 // a setting of -1 means Flex will use the device specified in the NVIDIA control panel
 int g_device = -1;
 char g_deviceName[256];
-bool g_vsync = true;
+
+//This should unconstraint the frame rate
+bool g_vsync = false;
 
 bool g_benchmark = false;
 bool g_extensions = true;
 bool g_teamCity = false;
 bool g_interop = true;
 bool g_d3d12 = false;
-bool g_useAsyncCompute = true;		
+bool g_useAsyncCompute = true;
 bool g_increaseGfxLoadForAsyncComputeTesting = false;
 int g_graphics = 0;	// 0=ogl, 1=DX11, 2=DX12
 
@@ -169,20 +192,12 @@ std::map<NvFlexDistanceFieldId, GpuMesh*> g_fields;
 bool g_shapesChanged = false;
 
 /* Note that this array of colors is altered by demo code, and is also read from global by graphics API impls */
-Colour g_colors[] =
-{
-	Colour(0.0f, 0.5f, 1.0f),
-	Colour(0.797f, 0.354f, 0.000f),
-	Colour(0.092f, 0.465f, 0.820f),
-	Colour(0.000f, 0.349f, 0.173f),
-	Colour(0.875f, 0.782f, 0.051f),
-	Colour(0.000f, 0.170f, 0.453f),
-	Colour(0.673f, 0.111f, 0.000f),
-	Colour(0.612f, 0.194f, 0.394f)
-};
+Colour g_colors[] = { Colour(0.0f, 0.5f, 1.0f), Colour(0.797f, 0.354f, 0.000f),
+		Colour(0.092f, 0.465f, 0.820f), Colour(0.000f, 0.349f, 0.173f), Colour(
+				0.875f, 0.782f, 0.051f), Colour(0.000f, 0.170f, 0.453f), Colour(
+				0.673f, 0.111f, 0.000f), Colour(0.612f, 0.194f, 0.394f) };
 
-struct SimBuffers
-{
+struct SimBuffers {
 	NvFlexVector<Vec4> positions;
 	NvFlexVector<Vec4> restPositions;
 	NvFlexVector<Vec3> velocities;
@@ -236,23 +251,24 @@ struct SimBuffers
 	NvFlexVector<Vec3> uvs;
 
 	SimBuffers(NvFlexLibrary* l) :
-		positions(l), restPositions(l), velocities(l), phases(l), densities(l),
-		anisotropy1(l), anisotropy2(l), anisotropy3(l), normals(l), smoothPositions(l),
-		diffusePositions(l), diffuseVelocities(l), diffuseCount(l), activeIndices(l),
-		shapeGeometry(l), shapePositions(l), shapeRotations(l), shapePrevPositions(l),
-		shapePrevRotations(l),	shapeFlags(l), rigidOffsets(l), rigidIndices(l), rigidMeshSize(l),
-		rigidCoefficients(l), rigidPlasticThresholds(l), rigidPlasticCreeps(l), rigidRotations(l), rigidTranslations(l),
-		rigidLocalPositions(l), rigidLocalNormals(l), inflatableTriOffsets(l),
-		inflatableTriCounts(l), inflatableVolumes(l), inflatableCoefficients(l),
-		inflatablePressures(l), springIndices(l), springLengths(l),
-		springStiffness(l), triangles(l), triangleNormals(l), uvs(l)
-	{}
+			positions(l), restPositions(l), velocities(l), phases(l), densities(
+					l), anisotropy1(l), anisotropy2(l), anisotropy3(l), normals(
+					l), smoothPositions(l), diffusePositions(l), diffuseVelocities(
+					l), diffuseCount(l), activeIndices(l), shapeGeometry(l), shapePositions(
+					l), shapeRotations(l), shapePrevPositions(l), shapePrevRotations(
+					l), shapeFlags(l), rigidOffsets(l), rigidIndices(l), rigidMeshSize(
+					l), rigidCoefficients(l), rigidPlasticThresholds(l), rigidPlasticCreeps(
+					l), rigidRotations(l), rigidTranslations(l), rigidLocalPositions(
+					l), rigidLocalNormals(l), inflatableTriOffsets(l), inflatableTriCounts(
+					l), inflatableVolumes(l), inflatableCoefficients(l), inflatablePressures(
+					l), springIndices(l), springLengths(l), springStiffness(l), triangles(
+					l), triangleNormals(l), uvs(l) {
+	}
 };
 
 SimBuffers* g_buffers;
 
-void MapBuffers(SimBuffers* buffers)
-{
+void MapBuffers(SimBuffers* buffers) {
 	buffers->positions.map();
 	buffers->restPositions.map();
 	buffers->velocities.map();
@@ -303,8 +319,7 @@ void MapBuffers(SimBuffers* buffers)
 	buffers->uvs.map();
 }
 
-void UnmapBuffers(SimBuffers* buffers)
-{
+void UnmapBuffers(SimBuffers* buffers) {
 	// particles
 	buffers->positions.unmap();
 	buffers->restPositions.unmap();
@@ -360,13 +375,11 @@ void UnmapBuffers(SimBuffers* buffers)
 
 }
 
-SimBuffers* AllocBuffers(NvFlexLibrary* lib)
-{
+SimBuffers* AllocBuffers(NvFlexLibrary* lib) {
 	return new SimBuffers(lib);
 }
 
-void DestroyBuffers(SimBuffers* buffers)
-{
+void DestroyBuffers(SimBuffers* buffers) {
 	// particles
 	buffers->positions.destroy();
 	buffers->restPositions.destroy();
@@ -439,7 +452,7 @@ Vec3 g_lightTarget;
 bool g_pause = false;
 bool g_step = false;
 bool g_capture = false;
-bool g_showHelp = true;
+bool g_showHelp = false;
 bool g_tweakPanel = true;
 bool g_fullscreen = false;
 bool g_wireframe = false;
@@ -468,7 +481,7 @@ bool g_drawEllipsoids;
 bool g_drawPoints;
 bool g_drawMesh;
 bool g_drawCloth;
-float g_expandCloth;	// amount to expand cloth along normal (to account for particle radius)
+float g_expandCloth;// amount to expand cloth along normal (to account for particle radius)
 
 bool g_drawOpaque;
 int g_drawSprings;		// 0: no draw, 1: draw stretch 2: draw tether
@@ -495,13 +508,13 @@ float g_realdt;				// the real world time delta between updates
 float g_waitTime;		// the CPU time spent waiting for the GPU
 float g_updateTime;     // the CPU time spent on Flex
 float g_renderTime;		// the CPU time spent calling OpenGL to render the scene
-                        // the above times don't include waiting for vsync
-float g_simLatency;     // the time the GPU spent between the first and last NvFlexUpdateSolver() operation. Because some GPUs context switch, this can include graphics time.
+// the above times don't include waiting for vsync
+float g_simLatency; // the time the GPU spent between the first and last NvFlexUpdateSolver() operation. Because some GPUs context switch, this can include graphics time.
 
 int g_scene = 0;
 int g_selectedScene = g_scene;
 int g_levelScroll;			// offset for level selection scroll area
-bool g_resetScene = false;  //if the user clicks the reset button or presses the reset key this is set to true;
+bool g_resetScene = false; //if the user clicks the reset button or presses the reset key this is set to true;
 
 int g_frame = 0;
 int g_numSolidParticles = 0;
@@ -515,6 +528,8 @@ bool g_mousePicked = false;
 float z_pos_array[3548];
 float y_pos_array[3548];
 float x_pos_array[3548];
+
+Eigen::MatrixXd curr_state;
 
 // mouse
 int g_lastx;
@@ -530,7 +545,7 @@ ShadowMap* g_shadowMap;
 Vec4 g_fluidColor;
 Vec4 g_diffuseColor;
 Vec3 g_meshColor;
-Vec3  g_clearColor;
+Vec3 g_clearColor;
 float g_lightDistance;
 float g_fogDistance;
 
@@ -541,9 +556,10 @@ void DrawShapes();
 class Scene;
 vector<Scene*> g_scenes;
 
-struct Emitter
-{
-	Emitter() : mSpeed(0.0f), mEnabled(false), mLeftOver(0.0f), mWidth(8)   {}
+struct Emitter {
+	Emitter() :
+			mSpeed(0.0f), mEnabled(false), mLeftOver(0.0f), mWidth(8) {
+	}
 
 	Vec3 mPos;
 	Vec3 mDir;
@@ -556,14 +572,15 @@ struct Emitter
 
 vector<Emitter> g_emitters(1);	// first emitter is the camera 'gun'
 
-struct Rope
-{
+struct Rope {
 	std::vector<int> mIndices;
 };
 
 vector<Rope> g_ropes;
 
-inline float sqr(float x) { return x*x; }
+inline float sqr(float x) {
+	return x * x;
+}
 
 #include "helpers.h"
 #include "scenes.h"
@@ -571,42 +588,41 @@ inline float sqr(float x) { return x*x; }
 
 SDL_Event e;
 
+void setSceneRandSeed(int seed) {
+	g_scenes[g_scene]->setSceneSeed(seed);
+}
 
-
-
-void Init(int scene, bool centerCamera = true)
-{
-
-
+float getDt() {
+	return g_dt;
+}
+void setDt(float dt) {
+	g_dt = dt;
+}
+void Init(int scene, bool centerCamera = true) {
 
 	RandInit();
 
-	if (g_solver)
-	{
+	if (g_solver) {
 		if (g_buffers)
 			DestroyBuffers(g_buffers);
 
 		DestroyFluidRenderBuffers(g_fluidRenderBuffers);
 		DestroyDiffuseRenderBuffers(g_diffuseRenderBuffers);
 
-		for (auto& iter : g_meshes)
-		{
+		for (auto& iter : g_meshes) {
 			NvFlexDestroyTriangleMesh(g_flexLib, iter.first);
 			DestroyGpuMesh(iter.second);
 		}
 
-		for (auto& iter : g_fields)
-		{
+		for (auto& iter : g_fields) {
 			NvFlexDestroyDistanceField(g_flexLib, iter.first);
 			DestroyGpuMesh(iter.second);
 		}
 
-		for (auto& iter : g_convexes)
-		{
+		for (auto& iter : g_convexes) {
 			NvFlexDestroyConvexMesh(g_flexLib, iter.first);
 			DestroyGpuMesh(iter.second);
 		}
-
 
 		g_fields.clear();
 		g_meshes.clear();
@@ -663,12 +679,13 @@ void Init(int scene, bool centerCamera = true)
 	g_ropes.resize(0);
 
 	// remove collision shapes
-	delete g_mesh; g_mesh = NULL;
+	delete g_mesh;
+	g_mesh = NULL;
 
 	g_frame = 0;
 	g_pause = false;
 
-	g_dt = 1.0f / 60.0f;
+//	g_dt = 1.0f / 60.0f;
 	g_waveTime = 0.0f;
 	g_windTime = 0.0f;
 	g_windStrength = 1.0f;
@@ -778,7 +795,7 @@ void Init(int scene, bool centerCamera = true)
 
 	g_maxDiffuseParticles = 0;	// number of diffuse particles
 	g_maxNeighborsPerParticle = 96;
-	g_numExtraParticles = 0;	// number of particles allocated but not made active	
+	g_numExtraParticles = 0;// number of particles allocated but not made active
 	g_maxContactsPerParticle = 6;
 
 	g_sceneLower = FLT_MAX;
@@ -789,12 +806,13 @@ void Init(int scene, bool centerCamera = true)
 
 	// create scene
 	StartGpuWork();
-	g_scenes[g_scene]->Initialize();
+	curr_state = g_scenes[g_scene]->Initialize(0);
 	EndGpuWork();
 
 	uint32_t numParticles = g_buffers->positions.size();
-	uint32_t maxParticles = numParticles + g_numExtraParticles*g_numExtraMultiplier;
-	
+	uint32_t maxParticles = numParticles
+			+ g_numExtraParticles * g_numExtraMultiplier;
+
 	if (g_params.solidRestDistance == 0.0f)
 		g_params.solidRestDistance = g_params.radius;
 
@@ -804,15 +822,16 @@ void Init(int scene, bool centerCamera = true)
 
 	// set collision distance automatically based on rest distance if not alraedy set
 	if (g_params.collisionDistance == 0.0f)
-		g_params.collisionDistance = Max(g_params.solidRestDistance, g_params.fluidRestDistance)*0.5f;
+		g_params.collisionDistance = Max(g_params.solidRestDistance,
+				g_params.fluidRestDistance) * 0.5f;
 
 	// default particle friction to 10% of shape friction
 	if (g_params.particleFriction == 0.0f)
-		g_params.particleFriction = g_params.dynamicFriction*0.1f;
+		g_params.particleFriction = g_params.dynamicFriction * 0.1f;
 
 	// add a margin for detecting contacts between particles and shapes
 	if (g_params.shapeCollisionMargin == 0.0f)
-		g_params.shapeCollisionMargin = g_params.collisionDistance*0.5f;
+		g_params.shapeCollisionMargin = g_params.collisionDistance * 0.5f;
 
 	// calculate particle bounds
 	Vec3 particleLower, particleUpper;
@@ -824,7 +843,7 @@ void Init(int scene, bool centerCamera = true)
 
 	// update bounds
 	g_sceneLower = Min(Min(g_sceneLower, particleLower), shapeLower);
-	g_sceneUpper = Max(Max(g_sceneUpper, particleUpper), shapeUpper); 
+	g_sceneUpper = Max(Max(g_sceneUpper, particleUpper), shapeUpper);
 
 	g_sceneLower -= g_params.collisionDistance;
 	g_sceneUpper += g_params.collisionDistance;
@@ -832,12 +851,12 @@ void Init(int scene, bool centerCamera = true)
 	// update collision planes to match flexs
 	Vec3 up = Normalize(Vec3(-g_waveFloorTilt, 1.0f, 0.0f));
 
-	(Vec4&)g_params.planes[0] = Vec4(up.x, up.y, up.z, 0.0f);
-	(Vec4&)g_params.planes[1] = Vec4(0.0f, 0.0f, 1.0f, -g_sceneLower.z);
-	(Vec4&)g_params.planes[2] = Vec4(1.0f, 0.0f, 0.0f, -g_sceneLower.x);
-	(Vec4&)g_params.planes[3] = Vec4(-1.0f, 0.0f, 0.0f, g_sceneUpper.x);
-	(Vec4&)g_params.planes[4] = Vec4(0.0f, 0.0f, -1.0f, g_sceneUpper.z);
-	(Vec4&)g_params.planes[5] = Vec4(0.0f, -1.0f, 0.0f, g_sceneUpper.y);
+	(Vec4&) g_params.planes[0] = Vec4(up.x, up.y, up.z, 0.0f);
+	(Vec4&) g_params.planes[1] = Vec4(0.0f, 0.0f, 1.0f, -g_sceneLower.z);
+	(Vec4&) g_params.planes[2] = Vec4(1.0f, 0.0f, 0.0f, -g_sceneLower.x);
+	(Vec4&) g_params.planes[3] = Vec4(-1.0f, 0.0f, 0.0f, g_sceneUpper.x);
+	(Vec4&) g_params.planes[4] = Vec4(0.0f, 0.0f, -1.0f, g_sceneUpper.z);
+	(Vec4&) g_params.planes[5] = Vec4(0.0f, -1.0f, 0.0f, g_sceneUpper.y);
 
 	g_wavePlane = g_params.planes[2][3];
 
@@ -853,8 +872,7 @@ void Init(int scene, bool centerCamera = true)
 
 	// initialize normals (just for rendering before simulation starts)
 	int numTris = g_buffers->triangles.size() / 3;
-	for (int i = 0; i < numTris; ++i)
-	{
+	for (int i = 0; i < numTris; ++i) {
 		Vec3 v0 = Vec3(g_buffers->positions[g_buffers->triangles[i * 3 + 0]]);
 		Vec3 v1 = Vec3(g_buffers->positions[g_buffers->triangles[i * 3 + 1]]);
 		Vec3 v2 = Vec3(g_buffers->positions[g_buffers->triangles[i * 3 + 2]]);
@@ -867,16 +885,14 @@ void Init(int scene, bool centerCamera = true)
 	}
 
 	for (int i = 0; i < int(maxParticles); ++i)
-		g_buffers->normals[i] = Vec4(SafeNormalize(Vec3(g_buffers->normals[i]), Vec3(0.0f, 1.0f, 0.0f)), 0.0f);
-
+		g_buffers->normals[i] = Vec4(
+				SafeNormalize(Vec3(g_buffers->normals[i]),
+						Vec3(0.0f, 1.0f, 0.0f)), 0.0f);
 
 	// save mesh positions for skinning
-	if (g_mesh)
-	{
+	if (g_mesh) {
 		g_meshRestPositions = g_mesh->m_positions;
-	}
-	else
-	{
+	} else {
 		g_meshRestPositions.resize(0);
 	}
 
@@ -892,9 +908,10 @@ void Init(int scene, bool centerCamera = true)
 	g_scenes[g_scene]->PostInitialize();
 
 	// center camera on particles
-	if (centerCamera)
-	{
-		g_camPos = Vec3((g_sceneLower.x + g_sceneUpper.x)*0.5f, min(g_sceneUpper.y*1.25f, 6.0f), g_sceneUpper.z + min(g_sceneUpper.y, 6.0f)*2.0f);
+	if (centerCamera) {
+		g_camPos = Vec3((g_sceneLower.x + g_sceneUpper.x) * 0.5f,
+				min(g_sceneUpper.y * 1.25f, 6.0f),
+				g_sceneUpper.z + min(g_sceneUpper.y, 6.0f) * 2.0f);
 		g_camAngle = Vec3(0.0f, -DegToRad(15.0f), 0.0f);
 
 		// give scene a chance to modify camera position
@@ -922,26 +939,32 @@ void Init(int scene, bool centerCamera = true)
 		g_buffers->restPositions[i] = g_buffers->positions[i];
 
 	// builds rigids constraints
-	if (g_buffers->rigidOffsets.size())
-	{
+	if (g_buffers->rigidOffsets.size()) {
 		assert(g_buffers->rigidOffsets.size() > 1);
 
 		const int numRigids = g_buffers->rigidOffsets.size() - 1;
 
 		// If the centers of mass for the rigids are not yet computed, this is done here
 		// (If the CreateParticleShape method is used instead of the NvFlexExt methods, the centers of mass will be calculated here)
-		if (g_buffers->rigidTranslations.size() == 0) 
-		{
-			g_buffers->rigidTranslations.resize(g_buffers->rigidOffsets.size() - 1, Vec3());
-			CalculateRigidCentersOfMass(&g_buffers->positions[0], g_buffers->positions.size(), &g_buffers->rigidOffsets[0], &g_buffers->rigidTranslations[0], &g_buffers->rigidIndices[0], numRigids);
+		if (g_buffers->rigidTranslations.size() == 0) {
+			g_buffers->rigidTranslations.resize(
+					g_buffers->rigidOffsets.size() - 1, Vec3());
+			CalculateRigidCentersOfMass(&g_buffers->positions[0],
+					g_buffers->positions.size(), &g_buffers->rigidOffsets[0],
+					&g_buffers->rigidTranslations[0],
+					&g_buffers->rigidIndices[0], numRigids);
 		}
 
 		// calculate local rest space positions
 		g_buffers->rigidLocalPositions.resize(g_buffers->rigidOffsets.back());
-		CalculateRigidLocalPositions(&g_buffers->positions[0], &g_buffers->rigidOffsets[0], &g_buffers->rigidTranslations[0], &g_buffers->rigidIndices[0], numRigids, &g_buffers->rigidLocalPositions[0]);
+		CalculateRigidLocalPositions(&g_buffers->positions[0],
+				&g_buffers->rigidOffsets[0], &g_buffers->rigidTranslations[0],
+				&g_buffers->rigidIndices[0], numRigids,
+				&g_buffers->rigidLocalPositions[0]);
 
 		// set rigidRotations to correct length, probably NULL up until here
-		g_buffers->rigidRotations.resize(g_buffers->rigidOffsets.size() - 1, Quat());
+		g_buffers->rigidRotations.resize(g_buffers->rigidOffsets.size() - 1,
+				Quat());
 	}
 
 	// unmap so we can start transferring data to GPU
@@ -960,59 +983,75 @@ void Init(int scene, bool centerCamera = true)
 	NvFlexSetVelocities(g_solver, g_buffers->velocities.buffer, &copyDesc);
 	NvFlexSetNormals(g_solver, g_buffers->normals.buffer, &copyDesc);
 	NvFlexSetPhases(g_solver, g_buffers->phases.buffer, &copyDesc);
-	NvFlexSetRestParticles(g_solver, g_buffers->restPositions.buffer, &copyDesc);
+	NvFlexSetRestParticles(g_solver, g_buffers->restPositions.buffer,
+			&copyDesc);
 
 	NvFlexSetActive(g_solver, g_buffers->activeIndices.buffer, &copyDesc);
 	NvFlexSetActiveCount(g_solver, numParticles);
-	
-	// springs
-	if (g_buffers->springIndices.size())
-	{
-		assert((g_buffers->springIndices.size() & 1) == 0);
-		assert((g_buffers->springIndices.size() / 2) == g_buffers->springLengths.size());
 
-		NvFlexSetSprings(g_solver, g_buffers->springIndices.buffer, g_buffers->springLengths.buffer, g_buffers->springStiffness.buffer, g_buffers->springLengths.size());
+	// springs
+	if (g_buffers->springIndices.size()) {
+		assert((g_buffers->springIndices.size() & 1) == 0);
+		assert(
+				(g_buffers->springIndices.size() / 2)
+						== g_buffers->springLengths.size());
+
+		NvFlexSetSprings(g_solver, g_buffers->springIndices.buffer,
+				g_buffers->springLengths.buffer,
+				g_buffers->springStiffness.buffer,
+				g_buffers->springLengths.size());
 	}
 
 	// rigids
-	if (g_buffers->rigidOffsets.size())
-	{
-		NvFlexSetRigids(g_solver, g_buffers->rigidOffsets.buffer, g_buffers->rigidIndices.buffer, g_buffers->rigidLocalPositions.buffer, g_buffers->rigidLocalNormals.buffer, g_buffers->rigidCoefficients.buffer, g_buffers->rigidPlasticThresholds.buffer, g_buffers->rigidPlasticCreeps.buffer, g_buffers->rigidRotations.buffer, g_buffers->rigidTranslations.buffer, g_buffers->rigidOffsets.size() - 1, g_buffers->rigidIndices.size());
+	if (g_buffers->rigidOffsets.size()) {
+		NvFlexSetRigids(g_solver, g_buffers->rigidOffsets.buffer,
+				g_buffers->rigidIndices.buffer,
+				g_buffers->rigidLocalPositions.buffer,
+				g_buffers->rigidLocalNormals.buffer,
+				g_buffers->rigidCoefficients.buffer,
+				g_buffers->rigidPlasticThresholds.buffer,
+				g_buffers->rigidPlasticCreeps.buffer,
+				g_buffers->rigidRotations.buffer,
+				g_buffers->rigidTranslations.buffer,
+				g_buffers->rigidOffsets.size() - 1,
+				g_buffers->rigidIndices.size());
 	}
 
 	// inflatables
-	if (g_buffers->inflatableTriOffsets.size())
-	{
-		NvFlexSetInflatables(g_solver, g_buffers->inflatableTriOffsets.buffer, g_buffers->inflatableTriCounts.buffer, g_buffers->inflatableVolumes.buffer, g_buffers->inflatablePressures.buffer, g_buffers->inflatableCoefficients.buffer, g_buffers->inflatableTriOffsets.size());
+	if (g_buffers->inflatableTriOffsets.size()) {
+		NvFlexSetInflatables(g_solver, g_buffers->inflatableTriOffsets.buffer,
+				g_buffers->inflatableTriCounts.buffer,
+				g_buffers->inflatableVolumes.buffer,
+				g_buffers->inflatablePressures.buffer,
+				g_buffers->inflatableCoefficients.buffer,
+				g_buffers->inflatableTriOffsets.size());
 	}
 
 	// dynamic triangles
-	if (g_buffers->triangles.size())
-	{
-		NvFlexSetDynamicTriangles(g_solver, g_buffers->triangles.buffer, g_buffers->triangleNormals.buffer, g_buffers->triangles.size() / 3);
+	if (g_buffers->triangles.size()) {
+		NvFlexSetDynamicTriangles(g_solver, g_buffers->triangles.buffer,
+				g_buffers->triangleNormals.buffer,
+				g_buffers->triangles.size() / 3);
 	}
 
 	// collision shapes
-	if (g_buffers->shapeFlags.size())
-	{
-		NvFlexSetShapes(
-			g_solver,
-			g_buffers->shapeGeometry.buffer,
-			g_buffers->shapePositions.buffer,
-			g_buffers->shapeRotations.buffer,
-			g_buffers->shapePrevPositions.buffer,
-			g_buffers->shapePrevRotations.buffer,
-			g_buffers->shapeFlags.buffer,
-			int(g_buffers->shapeFlags.size()));
+	if (g_buffers->shapeFlags.size()) {
+		NvFlexSetShapes(g_solver, g_buffers->shapeGeometry.buffer,
+				g_buffers->shapePositions.buffer,
+				g_buffers->shapeRotations.buffer,
+				g_buffers->shapePrevPositions.buffer,
+				g_buffers->shapePrevRotations.buffer,
+				g_buffers->shapeFlags.buffer,
+				int(g_buffers->shapeFlags.size()));
 	}
 
 	// create render buffers
 	g_fluidRenderBuffers = CreateFluidRenderBuffers(maxParticles, g_interop);
-	g_diffuseRenderBuffers = CreateDiffuseRenderBuffers(g_maxDiffuseParticles, g_interop);
+	g_diffuseRenderBuffers = CreateDiffuseRenderBuffers(g_maxDiffuseParticles,
+			g_interop);
 
 	// perform initial sim warm up
-	if (g_warmup)
-	{
+	if (g_warmup) {
 		printf("Warming up sim..\n");
 
 		// warm it up (relax positions to reach rest density without affecting velocity)
@@ -1023,45 +1062,43 @@ void Init(int scene, bool centerCamera = true)
 
 		const int kWarmupIterations = 100;
 
-		for (int i = 0; i < kWarmupIterations; ++i)
-		{
+		for (int i = 0; i < kWarmupIterations; ++i) {
 			NvFlexUpdateSolver(g_solver, 0.0001f, 1, false);
 			NvFlexSetVelocities(g_solver, g_buffers->velocities.buffer, NULL);
 		}
 
 		// udpate host copy
 		NvFlexGetParticles(g_solver, g_buffers->positions.buffer, NULL);
-		NvFlexGetSmoothParticles(g_solver, g_buffers->smoothPositions.buffer, NULL);
-		NvFlexGetAnisotropy(g_solver, g_buffers->anisotropy1.buffer, g_buffers->anisotropy2.buffer, g_buffers->anisotropy3.buffer, NULL);
+		NvFlexGetSmoothParticles(g_solver, g_buffers->smoothPositions.buffer,
+		NULL);
+		NvFlexGetAnisotropy(g_solver, g_buffers->anisotropy1.buffer,
+				g_buffers->anisotropy2.buffer, g_buffers->anisotropy3.buffer,
+				NULL);
 
 		printf("Finished warm up.\n");
 	}
 }
 
-void Reset()
-{
+Eigen::MatrixXd Reset() {
 	Init(g_scene, false);
+	return curr_state;
 }
 
-void Shutdown()
-{
+void Shutdown() {
 	// free buffers
 	DestroyBuffers(g_buffers);
 
-	for (auto& iter : g_meshes)
-	{
+	for (auto& iter : g_meshes) {
 		NvFlexDestroyTriangleMesh(g_flexLib, iter.first);
 		DestroyGpuMesh(iter.second);
 	}
 
-	for (auto& iter : g_fields)
-	{
+	for (auto& iter : g_fields) {
 		NvFlexDestroyDistanceField(g_flexLib, iter.first);
 		DestroyGpuMesh(iter.second);
 	}
 
-	for (auto& iter : g_convexes)
-	{
+	for (auto& iter : g_convexes) {
 		NvFlexDestroyConvexMesh(g_flexLib, iter.first);
 		DestroyGpuMesh(iter.second);
 	}
@@ -1072,26 +1109,23 @@ void Shutdown()
 	NvFlexDestroySolver(g_solver);
 	NvFlexShutdown(g_flexLib);
 
-#if _WIN32
-	if (g_ffmpeg)
-		_pclose(g_ffmpeg);
-#endif
 }
 
-void UpdateEmitters()
-{
+void UpdateEmitters() {
 	float spin = DegToRad(15.0f);
 
-	const Vec3 forward(-sinf(g_camAngle.x + spin)*cosf(g_camAngle.y), sinf(g_camAngle.y), -cosf(g_camAngle.x + spin)*cosf(g_camAngle.y));
+	const Vec3 forward(-sinf(g_camAngle.x + spin) * cosf(g_camAngle.y),
+			sinf(g_camAngle.y),
+			-cosf(g_camAngle.x + spin) * cosf(g_camAngle.y));
 	const Vec3 right(Normalize(Cross(forward, Vec3(0.0f, 1.0f, 0.0f))));
 
 	g_emitters[0].mDir = Normalize(forward + Vec3(0.0, 0.4f, 0.0f));
 	g_emitters[0].mRight = right;
-	g_emitters[0].mPos = g_camPos + forward*1.f + Vec3(0.0f, 0.2f, 0.0f) + right*0.65f;
+	g_emitters[0].mPos = g_camPos + forward * 1.f + Vec3(0.0f, 0.2f, 0.0f)
+			+ right * 0.65f;
 
 	// process emitters
-	if (g_emit)
-	{
+	if (g_emit) {
 		int activeCount = NvFlexGetActiveCount(g_solver);
 
 		size_t e = 0;
@@ -1100,8 +1134,7 @@ void UpdateEmitters()
 		if (g_camSmoothVel.z >= 0.025f)
 			e = 1;
 
-		for (; e < g_emitters.size(); ++e)
-		{
+		for (; e < g_emitters.size(); ++e) {
 			if (!g_emitters[e].mEnabled)
 				continue;
 
@@ -1109,39 +1142,41 @@ void UpdateEmitters()
 			Vec3 emitterRight = g_emitters[e].mRight;
 			Vec3 emitterPos = g_emitters[e].mPos;
 
-
 			float r = g_params.fluidRestDistance;
-			int phase = NvFlexMakePhase(0, eNvFlexPhaseSelfCollide | eNvFlexPhaseFluid);
+			int phase = NvFlexMakePhase(0,
+					eNvFlexPhaseSelfCollide | eNvFlexPhaseFluid);
 
-			float numParticles = (g_emitters[e].mSpeed / r)*g_dt;
+			float numParticles = (g_emitters[e].mSpeed / r) * g_dt;
 
 			// whole number to emit
 			int n = int(numParticles + g_emitters[e].mLeftOver);
 
 			if (n)
-				g_emitters[e].mLeftOver = (numParticles + g_emitters[e].mLeftOver) - n;
+				g_emitters[e].mLeftOver = (numParticles
+						+ g_emitters[e].mLeftOver) - n;
 			else
 				g_emitters[e].mLeftOver += numParticles;
 
 			// create a grid of particles (n particles thick)
-			for (int k = 0; k < n; ++k)
-			{
+			for (int k = 0; k < n; ++k) {
 				int emitterWidth = g_emitters[e].mWidth;
-				int numParticles = emitterWidth*emitterWidth;
-				for (int i = 0; i < numParticles; ++i)
-				{
-					float x = float(i%emitterWidth) - float(emitterWidth/2);
-					float y = float((i / emitterWidth) % emitterWidth) - float(emitterWidth/2);
+				int numParticles = emitterWidth * emitterWidth;
+				for (int i = 0; i < numParticles; ++i) {
+					float x = float(i % emitterWidth) - float(emitterWidth / 2);
+					float y = float((i / emitterWidth) % emitterWidth)
+							- float(emitterWidth / 2);
 
-					if ((sqr(x) + sqr(y)) <= (emitterWidth / 2)*(emitterWidth / 2))
-					{
+					if ((sqr(x) + sqr(y))
+							<= (emitterWidth / 2) * (emitterWidth / 2)) {
 						Vec3 up = Normalize(Cross(emitterDir, emitterRight));
-						Vec3 offset = r*(emitterRight*x + up*y) + float(k)*emitterDir*r;
+						Vec3 offset = r * (emitterRight * x + up * y)
+								+ float(k) * emitterDir * r;
 
-						if (activeCount < g_buffers->positions.size())
-						{
-							g_buffers->positions[activeCount] = Vec4(emitterPos + offset, 1.0f);
-							g_buffers->velocities[activeCount] = emitterDir*g_emitters[e].mSpeed;
+						if (activeCount < g_buffers->positions.size()) {
+							g_buffers->positions[activeCount] = Vec4(
+									emitterPos + offset, 1.0f);
+							g_buffers->velocities[activeCount] = emitterDir
+									* g_emitters[e].mSpeed;
 							g_buffers->phases[activeCount] = phase;
 
 							g_buffers->activeIndices.push_back(activeCount);
@@ -1155,22 +1190,20 @@ void UpdateEmitters()
 	}
 }
 
-void UpdateCamera()
-{
-	Vec3 forward(-sinf(g_camAngle.x)*cosf(g_camAngle.y), sinf(g_camAngle.y), -cosf(g_camAngle.x)*cosf(g_camAngle.y));
+void UpdateCamera() {
+	Vec3 forward(-sinf(g_camAngle.x) * cosf(g_camAngle.y), sinf(g_camAngle.y),
+			-cosf(g_camAngle.x) * cosf(g_camAngle.y));
 	Vec3 right(Normalize(Cross(forward, Vec3(0.0f, 1.0f, 0.0f))));
 
 	g_camSmoothVel = Lerp(g_camSmoothVel, g_camVel, 0.1f);
-	g_camPos += (forward*g_camSmoothVel.z + right*g_camSmoothVel.x + Cross(right, forward)*g_camSmoothVel.y);
+	g_camPos += (forward * g_camSmoothVel.z + right * g_camSmoothVel.x
+			+ Cross(right, forward) * g_camSmoothVel.y);
 }
 
-void UpdateMouse()
-{
+void UpdateMouse() {
 	// mouse button is up release particle
-	if (g_lastb == -1)
-	{
-		if (g_mouseParticle != -1)
-		{
+	if (g_lastb == -1) {
+		if (g_mouseParticle != -1) {
 			// restore particle mass
 			g_buffers->positions[g_mouseParticle].w = g_mouseMass;
 
@@ -1180,8 +1213,7 @@ void UpdateMouse()
 	}
 
 	// mouse went down, pick new particle
-	if (g_mousePicked)
-	{
+	if (g_mousePicked) {
 		assert(g_mouseParticle == -1);
 
 		Vec3 origin, dir;
@@ -1189,25 +1221,29 @@ void UpdateMouse()
 
 		const int numActive = NvFlexGetActiveCount(g_solver);
 
-		g_mouseParticle = PickParticle(origin, dir, &g_buffers->positions[0], &g_buffers->phases[0], numActive, g_params.radius*0.8f, g_mouseT);
+		g_mouseParticle = PickParticle(origin, dir, &g_buffers->positions[0],
+				&g_buffers->phases[0], numActive, g_params.radius * 0.8f,
+				g_mouseT);
 
-		if (g_mouseParticle != -1)
-		{
-			printf("picked: %d, p: %f %f %f\n", g_mouseParticle, g_buffers->positions[g_mouseParticle].x, g_buffers->positions[g_mouseParticle].y, g_buffers->positions[g_mouseParticle].z );
-            //printf("picked: %d, mass: %f v: %f %f %f\n", g_mouseParticle, g_buffers->positions[g_mouseParticle].w, g_buffers->velocities[g_mouseParticle].x, g_buffers->velocities[g_mouseParticle].y, g_buffers->velocities[g_mouseParticle].z);
+		if (g_mouseParticle != -1) {
+			printf("picked: %d, p: %f %f %f\n", g_mouseParticle,
+					g_buffers->positions[g_mouseParticle].x,
+					g_buffers->positions[g_mouseParticle].y,
+					g_buffers->positions[g_mouseParticle].z);
+			//printf("picked: %d, mass: %f v: %f %f %f\n", g_mouseParticle, g_buffers->positions[g_mouseParticle].w, g_buffers->velocities[g_mouseParticle].x, g_buffers->velocities[g_mouseParticle].y, g_buffers->velocities[g_mouseParticle].z);
 
-			g_mousePos = origin + dir*g_mouseT;
+			g_mousePos = origin + dir * g_mouseT;
 			g_mouseMass = g_buffers->positions[g_mouseParticle].w;
-			g_buffers->positions[g_mouseParticle].w = 0.0f;		// increase picked particle's mass to force it towards the point
+			g_buffers->positions[g_mouseParticle].w = 0.0f;	// increase picked particle's mass to force it towards the point
 		}
 
 		g_mousePicked = false;
 	}
 
 	// update picked particle position
-	if (g_mouseParticle != -1)
-	{
-		Vec3 p = Lerp(Vec3(g_buffers->positions[g_mouseParticle]), g_mousePos, 0.8f);
+	if (g_mouseParticle != -1) {
+		Vec3 p = Lerp(Vec3(g_buffers->positions[g_mouseParticle]), g_mousePos,
+				0.8f);
 		Vec3 delta = p - Vec3(g_buffers->positions[g_mouseParticle]);
 
 		g_buffers->positions[g_mouseParticle].x = p.x;
@@ -1220,40 +1256,51 @@ void UpdateMouse()
 	}
 }
 
-void UpdateWind()
-{
+void UpdateWind() {
 	g_windTime += g_dt;
 
 	const Vec3 kWindDir = Vec3(3.0f, 15.0f, 0.0f);
-	const float kNoise = Perlin1D(g_windTime*g_windFrequency, 10, 0.25f);
-	Vec3 wind = g_windStrength*kWindDir*Vec3(kNoise, fabsf(kNoise), 0.0f);
+	const float kNoise = Perlin1D(g_windTime * g_windFrequency, 10, 0.25f);
+	Vec3 wind = g_windStrength * kWindDir * Vec3(kNoise, fabsf(kNoise), 0.0f);
 
 	g_params.wind[0] = wind.x;
 	g_params.wind[1] = wind.y;
 	g_params.wind[2] = wind.z;
 
-	if (g_wavePool)
-	{
+	if (g_wavePool) {
 		g_waveTime += g_dt;
 
-		g_params.planes[2][3] = g_wavePlane + (sinf(float(g_waveTime)*g_waveFrequency - kPi*0.5f)*0.5f + 0.5f)*g_waveAmplitude;
+		g_params.planes[2][3] = g_wavePlane
+				+ (sinf(float(g_waveTime) * g_waveFrequency - kPi * 0.5f) * 0.5f
+						+ 0.5f) * g_waveAmplitude;
 	}
 }
 
-void SyncScene()
-{
+void chooseScene(int scene) {
+	g_scene = scene;
+}
+
+void SyncScene() {
 	// let the scene send updates to flex directly
 	g_scenes[g_scene]->Sync();
 }
 
-void UpdateScene()
-{
+void UpdateScene() {
 	// give scene a chance to make changes to particle buffers
 	g_scenes[g_scene]->Update();
 }
 
-void RenderScene()
-{
+Eigen::MatrixXd UpdateControlScene(Eigen::VectorXd act) {
+	// give scene a chance to make changes to particle buffers
+	return g_scenes[g_scene]->Update(act);
+}
+
+Eigen::MatrixXd getState() {
+//	return g_scenes[g_scene]->getState();
+	return curr_state;
+}
+
+void RenderScene() {
 	const int numParticles = NvFlexGetActiveCount(g_solver);
 	const int numDiffuse = g_buffers->diffuseCount[0];
 
@@ -1261,73 +1308,63 @@ void RenderScene()
 	// use VBO buffer wrappers to allow Flex to write directly to the OpenGL buffers
 	// Flex will take care of any CUDA interop mapping/unmapping during the get() operations
 
-	if (numParticles)
-	{
+	if (numParticles) {
 
-		if (g_interop)
-		{
+		if (g_interop) {
 			// copy data directly from solver to the renderer buffers
-			UpdateFluidRenderBuffers(g_fluidRenderBuffers, g_solver, g_drawEllipsoids, g_drawDensity);
-		}
-		else
-		{
+			UpdateFluidRenderBuffers(g_fluidRenderBuffers, g_solver,
+					g_drawEllipsoids, g_drawDensity);
+		} else {
 			// copy particle data to GPU render device
 
-			if (g_drawEllipsoids)
-			{
+			if (g_drawEllipsoids) {
 				// if fluid surface rendering then update with smooth positions and anisotropy
 				UpdateFluidRenderBuffers(g_fluidRenderBuffers,
-					&g_buffers->smoothPositions[0],
-					(g_drawDensity) ? &g_buffers->densities[0] : (float*)&g_buffers->phases[0],
-					&g_buffers->anisotropy1[0],
-					&g_buffers->anisotropy2[0],
-					&g_buffers->anisotropy3[0],
-					g_buffers->positions.size(),
-					&g_buffers->activeIndices[0],
-					numParticles);
-			}
-			else
-			{
+						&g_buffers->smoothPositions[0],
+						(g_drawDensity) ?
+								&g_buffers->densities[0] :
+								(float*) &g_buffers->phases[0],
+						&g_buffers->anisotropy1[0], &g_buffers->anisotropy2[0],
+						&g_buffers->anisotropy3[0], g_buffers->positions.size(),
+						&g_buffers->activeIndices[0], numParticles);
+			} else {
 				// otherwise just send regular positions and no anisotropy
 				UpdateFluidRenderBuffers(g_fluidRenderBuffers,
-					&g_buffers->positions[0],
-					(float*)&g_buffers->phases[0],
-					NULL, NULL, NULL,
-					g_buffers->positions.size(),
-					&g_buffers->activeIndices[0],
-					numParticles);
+						&g_buffers->positions[0],
+						(float*) &g_buffers->phases[0],
+						NULL, NULL, NULL, g_buffers->positions.size(),
+						&g_buffers->activeIndices[0], numParticles);
 			}
 		}
 	}
 
 	// GPU Render time doesn't include CPU->GPU copy time
 	GraphicsTimerBegin();
-	
-	if (numDiffuse)
-	{
-		if (g_interop)
-		{
+
+	if (numDiffuse) {
+		if (g_interop) {
 			// copy data directly from solver to the renderer buffers
 			UpdateDiffuseRenderBuffers(g_diffuseRenderBuffers, g_solver);
-		}
-		else
-		{
-			// copy diffuse particle data from host to GPU render device 
+		} else {
+			// copy diffuse particle data from host to GPU render device
 			UpdateDiffuseRenderBuffers(g_diffuseRenderBuffers,
-				&g_buffers->diffusePositions[0],
-				&g_buffers->diffuseVelocities[0],
-				numDiffuse);
+					&g_buffers->diffusePositions[0],
+					&g_buffers->diffuseVelocities[0], numDiffuse);
 		}
 	}
-	
+
 	//---------------------------------------
 	// setup view and state
 
 	float fov = kPi / 4.0f;
 	float aspect = float(g_screenWidth) / g_screenHeight;
 
-	Matrix44 proj = ProjectionMatrix(RadToDeg(fov), aspect, g_camNear, g_camFar);
-	Matrix44 view = RotationMatrix(-g_camAngle.x, Vec3(0.0f, 1.0f, 0.0f))*RotationMatrix(-g_camAngle.y, Vec3(cosf(-g_camAngle.x), 0.0f, sinf(-g_camAngle.x)))*TranslationMatrix(-Point3(g_camPos));
+	Matrix44 proj = ProjectionMatrix(RadToDeg(fov), aspect, g_camNear,
+			g_camFar);
+	Matrix44 view = RotationMatrix(-g_camAngle.x, Vec3(0.0f, 1.0f, 0.0f))
+			* RotationMatrix(-g_camAngle.y,
+					Vec3(cosf(-g_camAngle.x), 0.0f, sinf(-g_camAngle.x)))
+			* TranslationMatrix(-Point3(g_camPos));
 
 	//------------------------------------
 	// lighting pass
@@ -1337,27 +1374,34 @@ void RenderScene()
 	g_sceneUpper = Max(g_sceneUpper, Vec3(2.0f, 2.0f, 2.0f));
 
 	Vec3 sceneExtents = g_sceneUpper - g_sceneLower;
-	Vec3 sceneCenter = 0.5f*(g_sceneUpper + g_sceneLower);
+	Vec3 sceneCenter = 0.5f * (g_sceneUpper + g_sceneLower);
 
 	g_lightDir = Normalize(Vec3(5.0f, 15.0f, 7.5f));
-	g_lightPos = sceneCenter + g_lightDir*Length(sceneExtents)*g_lightDistance;
+	g_lightPos = sceneCenter
+			+ g_lightDir * Length(sceneExtents) * g_lightDistance;
 	g_lightTarget = sceneCenter;
 
 	// calculate tight bounds for shadow frustum
-	float lightFov = 2.0f*atanf(Length(g_sceneUpper - sceneCenter) / Length(g_lightPos - sceneCenter));
+	float lightFov = 2.0f
+			* atanf(
+					Length(g_sceneUpper - sceneCenter)
+							/ Length(g_lightPos - sceneCenter));
 
 	// scale and clamp fov for aesthetics
 	lightFov = Clamp(lightFov, DegToRad(25.0f), DegToRad(65.0f));
 
-	Matrix44 lightPerspective = ProjectionMatrix(RadToDeg(lightFov), 1.0f, 1.0f, 1000.0f);
-	Matrix44 lightView = LookAtMatrix(Point3(g_lightPos), Point3(g_lightTarget));
-	Matrix44 lightTransform = lightPerspective*lightView;
+	Matrix44 lightPerspective = ProjectionMatrix(RadToDeg(lightFov), 1.0f, 1.0f,
+			1000.0f);
+	Matrix44 lightView = LookAtMatrix(Point3(g_lightPos),
+			Point3(g_lightTarget));
+	Matrix44 lightTransform = lightPerspective * lightView;
 
 	// radius used for drawing
-	float radius = Max(g_params.solidRestDistance, g_params.fluidRestDistance)*0.5f*g_pointScale;
+	float radius = Max(g_params.solidRestDistance, g_params.fluidRestDistance)
+			* 0.5f * g_pointScale;
 
 	//-------------------------------------
-	// shadowing pass 
+	// shadowing pass
 
 	if (g_meshSkinIndices.size())
 		SkinMesh();
@@ -1376,32 +1420,30 @@ void RenderScene()
 
 	DrawShapes();
 
-	if (g_drawCloth && g_buffers->triangles.size())
-	{
-		DrawCloth(&g_buffers->positions[0], &g_buffers->normals[0], g_buffers->uvs.size() ? &g_buffers->uvs[0].x : NULL, &g_buffers->triangles[0], g_buffers->triangles.size() / 3, g_buffers->positions.size(), 3, g_expandCloth);
+	if (g_drawCloth && g_buffers->triangles.size()) {
+		DrawCloth(&g_buffers->positions[0], &g_buffers->normals[0],
+				g_buffers->uvs.size() ? &g_buffers->uvs[0].x : NULL,
+				&g_buffers->triangles[0], g_buffers->triangles.size() / 3,
+				g_buffers->positions.size(), 3, g_expandCloth);
 	}
 
-	if (g_drawRopes)
-	{
+	if (g_drawRopes) {
 		for (size_t i = 0; i < g_ropes.size(); ++i)
-			DrawRope(&g_buffers->positions[0], &g_ropes[i].mIndices[0], g_ropes[i].mIndices.size(), radius*g_ropeScale, i);
+			DrawRope(&g_buffers->positions[0], &g_ropes[i].mIndices[0],
+					g_ropes[i].mIndices.size(), radius * g_ropeScale, i);
 	}
 
 	int shadowParticles = numParticles;
 	int shadowParticlesOffset = 0;
 
-	if (!g_drawPoints)
-	{
+	if (!g_drawPoints) {
 		shadowParticles = 0;
 
-		if (g_drawEllipsoids)
-		{
+		if (g_drawEllipsoids) {
 			shadowParticles = numParticles - g_numSolidParticles;
 			shadowParticlesOffset = g_numSolidParticles;
 		}
-	}
-	else
-	{
+	} else {
 		int offset = g_drawMesh ? g_numSolidParticles : 0;
 
 		shadowParticles = numParticles - offset;
@@ -1409,14 +1451,17 @@ void RenderScene()
 	}
 
 	if (g_buffers->activeIndices.size())
-		DrawPoints(g_fluidRenderBuffers, shadowParticles, shadowParticlesOffset, radius, 2048, 1.0f, lightFov, g_lightPos, g_lightTarget, lightTransform, g_shadowMap, g_drawDensity);
+		DrawPoints(g_fluidRenderBuffers, shadowParticles, shadowParticlesOffset,
+				radius, 2048, 1.0f, lightFov, g_lightPos, g_lightTarget,
+				lightTransform, g_shadowMap, g_drawDensity);
 
 	ShadowEnd();
 
 	//----------------
 	// lighting pass
 
-	BindSolidShader(g_lightPos, g_lightTarget, lightTransform, g_shadowMap, 0.0f, Vec4(g_clearColor, g_fogDistance));
+	BindSolidShader(g_lightPos, g_lightTarget, lightTransform, g_shadowMap,
+			0.0f, Vec4(g_clearColor, g_fogDistance));
 
 	SetView(view, proj);
 	SetCullMode(true);
@@ -1425,24 +1470,27 @@ void RenderScene()
 	// We do this by rerendering our simple graphics many times.
 	int passes = g_increaseGfxLoadForAsyncComputeTesting ? 50 : 1;
 
-	for (int i = 0; i != passes; i++)
-	{
+	for (int i = 0; i != passes; i++) {
 
-		DrawPlanes((Vec4*)g_params.planes, g_params.numPlanes, g_drawPlaneBias);
+		DrawPlanes((Vec4*) g_params.planes, g_params.numPlanes,
+				g_drawPlaneBias);
 
 		if (g_drawMesh)
 			DrawMesh(g_mesh, g_meshColor);
 
-
 		DrawShapes();
 
 		if (g_drawCloth && g_buffers->triangles.size())
-			DrawCloth(&g_buffers->positions[0], &g_buffers->normals[0], g_buffers->uvs.size() ? &g_buffers->uvs[0].x : NULL, &g_buffers->triangles[0], g_buffers->triangles.size() / 3, g_buffers->positions.size(), 3, g_expandCloth);
+			DrawCloth(&g_buffers->positions[0], &g_buffers->normals[0],
+					g_buffers->uvs.size() ? &g_buffers->uvs[0].x : NULL,
+					&g_buffers->triangles[0], g_buffers->triangles.size() / 3,
+					g_buffers->positions.size(), 3, g_expandCloth);
 
-		if (g_drawRopes)
-		{
+		if (g_drawRopes) {
 			for (size_t i = 0; i < g_ropes.size(); ++i)
-				DrawRope(&g_buffers->positions[0], &g_ropes[i].mIndices[0], g_ropes[i].mIndices.size(), g_params.radius*0.5f*g_ropeScale, i);
+				DrawRope(&g_buffers->positions[0], &g_ropes[i].mIndices[0],
+						g_ropes[i].mIndices.size(),
+						g_params.radius * 0.5f * g_ropeScale, i);
 		}
 
 		// give scene a chance to do custom drawing
@@ -1450,80 +1498,86 @@ void RenderScene()
 	}
 	UnbindSolidShader();
 
-
 	// first pass of diffuse particles (behind fluid surface)
 	if (g_drawDiffuse)
-		RenderDiffuse(g_fluidRenderer, g_diffuseRenderBuffers, numDiffuse, radius*g_diffuseScale, float(g_screenWidth), aspect, fov, g_diffuseColor, g_lightPos, g_lightTarget, lightTransform, g_shadowMap, g_diffuseMotionScale, g_diffuseInscatter, g_diffuseOutscatter, g_diffuseShadow, false);
+		RenderDiffuse(g_fluidRenderer, g_diffuseRenderBuffers, numDiffuse,
+				radius * g_diffuseScale, float(g_screenWidth), aspect, fov,
+				g_diffuseColor, g_lightPos, g_lightTarget, lightTransform,
+				g_shadowMap, g_diffuseMotionScale, g_diffuseInscatter,
+				g_diffuseOutscatter, g_diffuseShadow, false);
 
-	if (g_drawEllipsoids)
-	{
+	if (g_drawEllipsoids) {
 		// draw solid particles separately
 		if (g_numSolidParticles && g_drawPoints)
-			DrawPoints(g_fluidRenderBuffers, g_numSolidParticles, 0, radius, float(g_screenWidth), aspect, fov, g_lightPos, g_lightTarget, lightTransform, g_shadowMap, g_drawDensity);
+			DrawPoints(g_fluidRenderBuffers, g_numSolidParticles, 0, radius,
+					float(g_screenWidth), aspect, fov, g_lightPos,
+					g_lightTarget, lightTransform, g_shadowMap, g_drawDensity);
 
 		// render fluid surface
-		RenderEllipsoids(g_fluidRenderer, g_fluidRenderBuffers, numParticles - g_numSolidParticles, g_numSolidParticles, radius, float(g_screenWidth), aspect, fov, g_lightPos, g_lightTarget, lightTransform, g_shadowMap, g_fluidColor, g_blur, g_ior, g_drawOpaque);
+		RenderEllipsoids(g_fluidRenderer, g_fluidRenderBuffers,
+				numParticles - g_numSolidParticles, g_numSolidParticles, radius,
+				float(g_screenWidth), aspect, fov, g_lightPos, g_lightTarget,
+				lightTransform, g_shadowMap, g_fluidColor, g_blur, g_ior,
+				g_drawOpaque);
 
 		// second pass of diffuse particles for particles in front of fluid surface
 		if (g_drawDiffuse)
-			RenderDiffuse(g_fluidRenderer, g_diffuseRenderBuffers, numDiffuse, radius*g_diffuseScale, float(g_screenWidth), aspect, fov, g_diffuseColor, g_lightPos, g_lightTarget, lightTransform, g_shadowMap, g_diffuseMotionScale, g_diffuseInscatter, g_diffuseOutscatter, g_diffuseShadow, true);
-	}
-	else
-	{
+			RenderDiffuse(g_fluidRenderer, g_diffuseRenderBuffers, numDiffuse,
+					radius * g_diffuseScale, float(g_screenWidth), aspect, fov,
+					g_diffuseColor, g_lightPos, g_lightTarget, lightTransform,
+					g_shadowMap, g_diffuseMotionScale, g_diffuseInscatter,
+					g_diffuseOutscatter, g_diffuseShadow, true);
+	} else {
 		// draw all particles as spheres
-		if (g_drawPoints)
-		{
+		if (g_drawPoints) {
 			int offset = g_drawMesh ? g_numSolidParticles : 0;
 
 			if (g_buffers->activeIndices.size())
-				DrawPoints(g_fluidRenderBuffers, numParticles - offset, offset, radius, float(g_screenWidth), aspect, fov, g_lightPos, g_lightTarget, lightTransform, g_shadowMap, g_drawDensity);
+				DrawPoints(g_fluidRenderBuffers, numParticles - offset, offset,
+						radius, float(g_screenWidth), aspect, fov, g_lightPos,
+						g_lightTarget, lightTransform, g_shadowMap,
+						g_drawDensity);
 		}
 	}
 
 	GraphicsTimerEnd();
 }
 
-float grab_z_pos_particle(int i) {
-    return z_pos_array[i];
-}
-float grab_y_pos_particle(int i) {
-    return y_pos_array[i];
-}
-float grab_x_pos_particle(int i) {
-    return x_pos_array[i];
-}
+//float grab_z_pos_particle(int i) {
+//	return z_pos_array[i];
+//}
+//float grab_y_pos_particle(int i) {
+//	return y_pos_array[i];
+//}
+//float grab_x_pos_particle(int i) {
+//	return x_pos_array[i];
+//}
 
-void RenderDebug()
-{
+void RenderDebug() {
 
-    for (int n=0; n < 3548; n++)
-    {
-        x_pos_array[n] = g_buffers->positions[n].x;
-        y_pos_array[n] = (g_buffers->positions[n].y-0.23)*-100;
-        z_pos_array[n] = g_buffers->positions[n].z;
-    }
+	for (int n = 0; n < 3548; n++) {
+		x_pos_array[n] = g_buffers->positions[n].x;
+		y_pos_array[n] = (g_buffers->positions[n].y - 0.23) * -100;
+		z_pos_array[n] = g_buffers->positions[n].z;
+	}
 
-
-	if (g_mouseParticle != -1)
-	{
+	if (g_mouseParticle != -1) {
 		// draw mouse spring
 		BeginLines();
-		DrawLine(g_mousePos, Vec3(g_buffers->positions[g_mouseParticle]), Vec4(1.0f));
+		DrawLine(g_mousePos, Vec3(g_buffers->positions[g_mouseParticle]),
+				Vec4(1.0f));
 		EndLines();
 	}
 
 	// springs
-	if (g_drawSprings)
-	{
+	if (g_drawSprings) {
 		Vec4 color;
 
-		if (g_drawSprings == 1)
-		{
-			// stretch 
+		if (g_drawSprings == 1) {
+			// stretch
 			color = Vec4(0.0f, 0.0f, 1.0f, 0.8f);
 		}
-		if (g_drawSprings == 2)
-		{
+		if (g_drawSprings == 2) {
 			// tether
 			color = Vec4(0.0f, 1.0f, 0.0f, 0.8f);
 		}
@@ -1532,8 +1586,7 @@ void RenderDebug()
 
 		int start = 0;
 
-		for (int i = start; i < g_buffers->springLengths.size(); ++i)
-		{
+		for (int i = start; i < g_buffers->springLengths.size(); ++i) {
 			if (g_drawSprings == 1 && g_buffers->springStiffness[i] < 0.0f)
 				continue;
 			if (g_drawSprings == 2 && g_buffers->springStiffness[i] > 0.0f)
@@ -1544,23 +1597,29 @@ void RenderDebug()
 
 			//cout << i << " "<< g_buffers->positions[a] << " " << g_buffers->positions[a].x << endl;
 
-			DrawLine(Vec3(g_buffers->positions[a]), Vec3(g_buffers->positions[b]), color);
+			DrawLine(Vec3(g_buffers->positions[a]),
+					Vec3(g_buffers->positions[b]), color);
 		}
 
 		EndLines();
 	}
 
 	// visualize contacts against the environment
-	if (g_drawContacts)
-	{
+	if (g_drawContacts) {
 		const int maxContactsPerParticle = 6;
 
-		NvFlexVector<Vec4> contactPlanes(g_flexLib, g_buffers->positions.size()*maxContactsPerParticle);
-		NvFlexVector<Vec4> contactVelocities(g_flexLib, g_buffers->positions.size()*maxContactsPerParticle);
-		NvFlexVector<int> contactIndices(g_flexLib, g_buffers->positions.size());
-		NvFlexVector<unsigned int> contactCounts(g_flexLib, g_buffers->positions.size());
+		NvFlexVector<Vec4> contactPlanes(g_flexLib,
+				g_buffers->positions.size() * maxContactsPerParticle);
+		NvFlexVector<Vec4> contactVelocities(g_flexLib,
+				g_buffers->positions.size() * maxContactsPerParticle);
+		NvFlexVector<int> contactIndices(g_flexLib,
+				g_buffers->positions.size());
+		NvFlexVector<unsigned int> contactCounts(g_flexLib,
+				g_buffers->positions.size());
 
-		NvFlexGetContacts(g_solver, contactPlanes.buffer, contactVelocities.buffer, contactIndices.buffer, contactCounts.buffer);
+		NvFlexGetContacts(g_solver, contactPlanes.buffer,
+				contactVelocities.buffer, contactIndices.buffer,
+				contactCounts.buffer);
 
 		// ensure transfers have finished
 		contactPlanes.map();
@@ -1572,88 +1631,85 @@ void RenderDebug()
 
 		//cout << g_buffers->positions[g_buffers->activeIndices[2]] << " NEXT " << g_buffers->positions[g_buffers->activeIndices[100]] << endl;
 
-		for (int i = 0; i < int(g_buffers->activeIndices.size()); ++i)
-		{
+		for (int i = 0; i < int(g_buffers->activeIndices.size()); ++i) {
 			const int contactIndex = contactIndices[g_buffers->activeIndices[i]];
 			const unsigned int count = contactCounts[contactIndex];
 
 			const float scale = 0.1f;
 
-			for (unsigned int c = 0; c < count; ++c)
-			{
-				Vec4 plane = contactPlanes[contactIndex*maxContactsPerParticle + c];
+			for (unsigned int c = 0; c < count; ++c) {
+				Vec4 plane = contactPlanes[contactIndex * maxContactsPerParticle
+						+ c];
 
-				DrawLine(Vec3(g_buffers->positions[g_buffers->activeIndices[i]]), 
-						 Vec3(g_buffers->positions[g_buffers->activeIndices[i]]) + Vec3(plane)*scale,
-						 Vec4(0.0f, 1.0f, 0.0f, 0.0f));
+				DrawLine(
+						Vec3(g_buffers->positions[g_buffers->activeIndices[i]]),
+						Vec3(g_buffers->positions[g_buffers->activeIndices[i]])
+								+ Vec3(plane) * scale,
+						Vec4(0.0f, 1.0f, 0.0f, 0.0f));
 				//cout << i << " " << contactIndex << " " << c << " " << count << " "  << " " << int(g_buffers->activeIndices.size()) << endl;
 
 			}
 
 		}
 
-
 		EndLines();
 	}
-	
-	if (g_drawBases)
-	{
-		for (int i = 0; i < int(g_buffers->rigidRotations.size()); ++i)
-		{
+
+	if (g_drawBases) {
+		for (int i = 0; i < int(g_buffers->rigidRotations.size()); ++i) {
 			BeginLines();
 
 			float size = 0.1f;
 
-			for (int b = 0; b < 3; ++b)
-			{
+			for (int b = 0; b < 3; ++b) {
 				Vec3 color;
 				color[b] = 1.0f;
-			
+
 				Matrix33 frame(g_buffers->rigidRotations[i]);
 
 				DrawLine(Vec3(g_buffers->rigidTranslations[i]),
-						 Vec3(g_buffers->rigidTranslations[i] + frame.cols[b] * size),
-						 Vec4(color, 0.0f));
+						Vec3(
+								g_buffers->rigidTranslations[i]
+										+ frame.cols[b] * size),
+						Vec4(color, 0.0f));
 			}
 
 			EndLines();
 		}
 	}
 
-	if (g_drawNormals)
-	{
+	if (g_drawNormals) {
 		NvFlexGetNormals(g_solver, g_buffers->normals.buffer, NULL);
 
 		BeginLines();
 
-		for (int i = 0; i < g_buffers->normals.size(); ++i)
-		{
+		for (int i = 0; i < g_buffers->normals.size(); ++i) {
 			DrawLine(Vec3(g_buffers->positions[i]),
-					 Vec3(g_buffers->positions[i] - g_buffers->normals[i] * g_buffers->normals[i].w),
-					 Vec4(0.0f, 1.0f, 0.0f, 0.0f));
+					Vec3(
+							g_buffers->positions[i]
+									- g_buffers->normals[i]
+											* g_buffers->normals[i].w),
+					Vec4(0.0f, 1.0f, 0.0f, 0.0f));
 		}
 
 		EndLines();
 	}
 }
 
-void DrawShapes()
-{
-	for (int i = 0; i < g_buffers->shapeFlags.size(); ++i)
-	{
+void DrawShapes() {
+	for (int i = 0; i < g_buffers->shapeFlags.size(); ++i) {
 		const int flags = g_buffers->shapeFlags[i];
 
 		// unpack flags
-		int type = int(flags&eNvFlexShapeFlagTypeMask);
+		int type = int(flags & eNvFlexShapeFlagTypeMask);
 		//bool dynamic = int(flags&eNvFlexShapeFlagDynamic) > 0;
 
 		Vec3 color = Vec3(0.9f);
 
-		if (flags & eNvFlexShapeFlagTrigger)
-		{
+		if (flags & eNvFlexShapeFlagTrigger) {
 			color = Vec3(0.6f, 1.0, 0.6f);
 
-			SetFillMode(true);		
+			SetFillMode(true);
 		}
 
 		// render with prev positions to match particle update order
@@ -1663,74 +1719,70 @@ void DrawShapes()
 
 		NvFlexCollisionGeometry geo = g_buffers->shapeGeometry[i];
 
-		if (type == eNvFlexShapeSphere)
-		{
+		if (type == eNvFlexShapeSphere) {
 			Mesh* sphere = CreateSphere(20, 20, geo.sphere.radius);
 
-			Matrix44 xform = TranslationMatrix(Point3(position))*RotationMatrix(Quat(rotation));
+			Matrix44 xform = TranslationMatrix(Point3(position))
+					* RotationMatrix(Quat(rotation));
 			sphere->Transform(xform);
 
 			DrawMesh(sphere, Vec3(color));
 
 			delete sphere;
-		}
-		else if (type == eNvFlexShapeCapsule)
-		{
-			Mesh* capsule = CreateCapsule(10, 20, geo.capsule.radius, geo.capsule.halfHeight);
+		} else if (type == eNvFlexShapeCapsule) {
+			Mesh* capsule = CreateCapsule(10, 20, geo.capsule.radius,
+					geo.capsule.halfHeight);
 
 			// transform to world space
-			Matrix44 xform = TranslationMatrix(Point3(position))*RotationMatrix(Quat(rotation))*RotationMatrix(DegToRad(-90.0f), Vec3(0.0f, 0.0f, 1.0f));
+			Matrix44 xform = TranslationMatrix(Point3(position))
+					* RotationMatrix(Quat(rotation))
+					* RotationMatrix(DegToRad(-90.0f), Vec3(0.0f, 0.0f, 1.0f));
 			capsule->Transform(xform);
 
 			DrawMesh(capsule, Vec3(color));
 
 			delete capsule;
-		}
-		else if (type == eNvFlexShapeBox)
-		{
+		} else if (type == eNvFlexShapeBox) {
 			Mesh* box = CreateCubeMesh();
 
-			Matrix44 xform = TranslationMatrix(Point3(position))*RotationMatrix(Quat(rotation))*ScaleMatrix(Vec3(geo.box.halfExtents)*2.0f);
+			Matrix44 xform = TranslationMatrix(Point3(position))
+					* RotationMatrix(Quat(rotation))
+					* ScaleMatrix(Vec3(geo.box.halfExtents) * 2.0f);
 			box->Transform(xform);
 
 			DrawMesh(box, Vec3(color));
-			delete box;			
-		}
-		else if (type == eNvFlexShapeConvexMesh)
-		{
-			if (g_convexes.find(geo.convexMesh.mesh) != g_convexes.end())
-			{
+			delete box;
+		} else if (type == eNvFlexShapeConvexMesh) {
+			if (g_convexes.find(geo.convexMesh.mesh) != g_convexes.end()) {
 				GpuMesh* m = g_convexes[geo.convexMesh.mesh];
 
-				if (m)
-				{
-					Matrix44 xform = TranslationMatrix(Point3(g_buffers->shapePositions[i]))*RotationMatrix(Quat(g_buffers->shapeRotations[i]))*ScaleMatrix(geo.convexMesh.scale);
+				if (m) {
+					Matrix44 xform = TranslationMatrix(
+							Point3(g_buffers->shapePositions[i]))
+							* RotationMatrix(Quat(g_buffers->shapeRotations[i]))
+							* ScaleMatrix(geo.convexMesh.scale);
 					DrawGpuMesh(m, xform, Vec3(color));
 				}
 			}
-		}
-		else if (type == eNvFlexShapeTriangleMesh)
-		{
-			if (g_meshes.find(geo.triMesh.mesh) != g_meshes.end())
-			{
+		} else if (type == eNvFlexShapeTriangleMesh) {
+			if (g_meshes.find(geo.triMesh.mesh) != g_meshes.end()) {
 				GpuMesh* m = g_meshes[geo.triMesh.mesh];
 
-				if (m)
-				{
-					Matrix44 xform = TranslationMatrix(Point3(position))*RotationMatrix(Quat(rotation))*ScaleMatrix(geo.triMesh.scale);
+				if (m) {
+					Matrix44 xform = TranslationMatrix(Point3(position))
+							* RotationMatrix(Quat(rotation))
+							* ScaleMatrix(geo.triMesh.scale);
 					DrawGpuMesh(m, xform, Vec3(color));
 				}
 			}
-		}
-		else if (type == eNvFlexShapeSDF)
-		{
-			if (g_fields.find(geo.sdf.field) != g_fields.end())
-			{
+		} else if (type == eNvFlexShapeSDF) {
+			if (g_fields.find(geo.sdf.field) != g_fields.end()) {
 				GpuMesh* m = g_fields[geo.sdf.field];
 
-				if (m)
-				{
-					Matrix44 xform = TranslationMatrix(Point3(position))*RotationMatrix(Quat(rotation))*ScaleMatrix(geo.sdf.scale);
+				if (m) {
+					Matrix44 xform = TranslationMatrix(Point3(position))
+							* RotationMatrix(Quat(rotation))
+							* ScaleMatrix(geo.sdf.scale);
 					DrawGpuMesh(m, xform, Vec3(color));
 				}
 			}
@@ -1740,16 +1792,13 @@ void DrawShapes()
 	SetFillMode(g_wireframe);
 }
 
-
 // returns the new scene if one is selected
-int DoUI()
-{
+int DoUI() {
 	// gui may set a new scene
 	int newScene = -1;
 
-	if (g_showHelp)
-	{
-		const int numParticles = NvFlexGetActiveCount(g_solver);		
+	if (g_showHelp) {
+		const int numParticles = NvFlexGetActiveCount(g_solver);
 		const int numDiffuse = g_buffers->diffuseCount[0];
 
 		int x = g_screenWidth - 200;
@@ -1768,66 +1817,134 @@ int DoUI()
 
 		int fontHeight = 13;
 
-		if (1)
-		{
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Frame: %d", g_frame); y -= fontHeight * 2;
+		if (1) {
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Frame: %d",
+					g_frame);
+			y -= fontHeight * 2;
 
-			if (!g_ffmpeg)
-			{
-				DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Frame Time: %.2fms", g_realdt*1000.0f); y -= fontHeight * 2;
+			if (!g_ffmpeg) {
+				DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+						"Frame Time: %.2fms", g_realdt * 1000.0f);
+				y -= fontHeight * 2;
 
 				// If detailed profiling is enabled, then these timers will contain the overhead of the detail timers, so we won't display them.
-				if (!g_profile)
-				{
-					DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Sim Time (CPU): %.2fms", g_updateTime*1000.0f); y -= fontHeight;
-					DrawImguiString(x, y, Vec3(0.97f, 0.59f, 0.27f), IMGUI_ALIGN_RIGHT, "Sim Latency (GPU): %.2fms", g_simLatency); y -= fontHeight * 2;
+				if (!g_profile) {
+					DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+							"Sim Time (CPU): %.2fms", g_updateTime * 1000.0f);
+					y -= fontHeight;
+					DrawImguiString(x, y, Vec3(0.97f, 0.59f, 0.27f),
+							IMGUI_ALIGN_RIGHT, "Sim Latency (GPU): %.2fms",
+							g_simLatency);
+					y -= fontHeight * 2;
 
 					BenchmarkUpdateGraph();
-				}
-				else
-				{
+				} else {
 					y -= fontHeight * 3;
 				}
 			}
 
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Particle Count: %d", numParticles); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Diffuse Count: %d", numDiffuse); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Rigid Count: %d", g_buffers->rigidOffsets.size() > 0 ? g_buffers->rigidOffsets.size() - 1 : 0); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Spring Count: %d", g_buffers->springLengths.size()); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Num Substeps: %d", g_numSubsteps); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Num Iterations: %d", g_params.numIterations); y -= fontHeight * 2;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Particle Count: %d", numParticles);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Diffuse Count: %d", numDiffuse);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Rigid Count: %d",
+					g_buffers->rigidOffsets.size() > 0 ?
+							g_buffers->rigidOffsets.size() - 1 : 0);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Spring Count: %d", g_buffers->springLengths.size());
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Num Substeps: %d", g_numSubsteps);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Num Iterations: %d", g_params.numIterations);
+			y -= fontHeight * 2;
 
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Device: %s", g_deviceName); y -= fontHeight * 2;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Device: %s",
+					g_deviceName);
+			y -= fontHeight * 2;
 		}
 
-		if (g_profile)
-		{
-			DrawImguiString(x, y, Vec3(0.97f, 0.59f, 0.27f), IMGUI_ALIGN_RIGHT, "Total GPU Sim Latency: %.2fms", g_timers.total); y -= fontHeight * 2;
+		if (g_profile) {
+			DrawImguiString(x, y, Vec3(0.97f, 0.59f, 0.27f), IMGUI_ALIGN_RIGHT,
+					"Total GPU Sim Latency: %.2fms", g_timers.total);
+			y -= fontHeight * 2;
 
-			DrawImguiString(x, y, Vec3(0.0f, 1.0f, 0.0f), IMGUI_ALIGN_RIGHT, "GPU Latencies"); y -= fontHeight;
+			DrawImguiString(x, y, Vec3(0.0f, 1.0f, 0.0f), IMGUI_ALIGN_RIGHT,
+					"GPU Latencies");
+			y -= fontHeight;
 
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Predict: %.2fms", g_timers.predict); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Create Cell Indices: %.2fms", g_timers.createCellIndices); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Sort Cell Indices: %.2fms", g_timers.sortCellIndices); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Reorder: %.2fms", g_timers.reorder); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "CreateGrid: %.2fms", g_timers.createGrid); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Collide Particles: %.2fms", g_timers.collideParticles); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Collide Shapes: %.2fms", g_timers.collideShapes); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Collide Triangles: %.2fms", g_timers.collideTriangles); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Calculate Density: %.2fms", g_timers.calculateDensity); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Solve Densities: %.2fms", g_timers.solveDensities); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Solve Velocities: %.2fms", g_timers.solveVelocities); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Solve Rigids: %.2fms", g_timers.solveShapes); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Solve Springs: %.2fms", g_timers.solveSprings); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Solve Inflatables: %.2fms", g_timers.solveInflatables); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Solve Contacts: %.2fms", g_timers.solveContacts); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Apply Deltas: %.2fms", g_timers.applyDeltas); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Finalize: %.2fms", g_timers.finalize); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Update Triangles: %.2fms", g_timers.updateTriangles); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Update Normals: %.2fms", g_timers.updateNormals); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Update Bounds: %.2fms", g_timers.updateBounds); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Calculate Anisotropy: %.2fms", g_timers.calculateAnisotropy); y -= fontHeight;
-			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT, "Update Diffuse: %.2fms", g_timers.updateDiffuse); y -= fontHeight * 2;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Predict: %.2fms", g_timers.predict);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Create Cell Indices: %.2fms", g_timers.createCellIndices);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Sort Cell Indices: %.2fms", g_timers.sortCellIndices);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Reorder: %.2fms", g_timers.reorder);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"CreateGrid: %.2fms", g_timers.createGrid);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Collide Particles: %.2fms", g_timers.collideParticles);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Collide Shapes: %.2fms", g_timers.collideShapes);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Collide Triangles: %.2fms", g_timers.collideTriangles);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Calculate Density: %.2fms", g_timers.calculateDensity);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Solve Densities: %.2fms", g_timers.solveDensities);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Solve Velocities: %.2fms", g_timers.solveVelocities);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Solve Rigids: %.2fms", g_timers.solveShapes);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Solve Springs: %.2fms", g_timers.solveSprings);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Solve Inflatables: %.2fms", g_timers.solveInflatables);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Solve Contacts: %.2fms", g_timers.solveContacts);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Apply Deltas: %.2fms", g_timers.applyDeltas);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Finalize: %.2fms", g_timers.finalize);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Update Triangles: %.2fms", g_timers.updateTriangles);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Update Normals: %.2fms", g_timers.updateNormals);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Update Bounds: %.2fms", g_timers.updateBounds);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Calculate Anisotropy: %.2fms",
+					g_timers.calculateAnisotropy);
+			y -= fontHeight;
+			DrawImguiString(x, y, Vec3(1.0f), IMGUI_ALIGN_RIGHT,
+					"Update Diffuse: %.2fms", g_timers.updateDiffuse);
+			y -= fontHeight * 2;
 		}
 
 		x -= 180;
@@ -1839,26 +1956,32 @@ int DoUI()
 		int uiLeft = uiBorder;
 
 		if (g_tweakPanel)
-			imguiBeginScrollArea("Scene", uiLeft, g_screenHeight - uiBorder - uiOffset, uiWidth, uiOffset, &g_levelScroll);
+			imguiBeginScrollArea("Scene", uiLeft,
+					g_screenHeight - uiBorder - uiOffset, uiWidth, uiOffset,
+					&g_levelScroll);
 		else
-			imguiBeginScrollArea("Scene", uiLeft, uiBorder, uiWidth, g_screenHeight - uiBorder - uiBorder, &g_levelScroll);
+			imguiBeginScrollArea("Scene", uiLeft, uiBorder, uiWidth,
+					g_screenHeight - uiBorder - uiBorder, &g_levelScroll);
 
-		for (int i = 0; i < int(g_scenes.size()); ++i)
-		{
-			unsigned int color = g_scene == i ? imguiRGBA(255, 151, 61, 255) : imguiRGBA(255, 255, 255, 200);
+		for (int i = 0; i < int(g_scenes.size()); ++i) {
+			unsigned int color =
+					g_scene == i ?
+							imguiRGBA(255, 151, 61, 255) :
+							imguiRGBA(255, 255, 255, 200);
 			if (imguiItem(g_scenes[i]->GetName(), true, color)) // , i == g_selectedScene))
-			{
+					{
 				newScene = i;
 			}
 		}
 
 		imguiEndScrollArea();
 
-		if (g_tweakPanel)
-		{
+		if (g_tweakPanel) {
 			static int scroll = 0;
 
-			imguiBeginScrollArea("Options", uiLeft, g_screenHeight - uiBorder - uiHeight - uiOffset - uiBorder, uiWidth, uiHeight, &scroll);
+			imguiBeginScrollArea("Options", uiLeft,
+					g_screenHeight - uiBorder - uiHeight - uiOffset - uiBorder,
+					uiWidth, uiHeight, &scroll);
 			imguiSeparatorLine();
 
 			// global options
@@ -1880,8 +2003,7 @@ int DoUI()
 			if (imguiCheck("Draw Fluid", g_drawEllipsoids))
 				g_drawEllipsoids = !g_drawEllipsoids;
 
-			if (imguiCheck("Draw Mesh", g_drawMesh))
-			{
+			if (imguiCheck("Draw Mesh", g_drawMesh)) {
 				g_drawMesh = !g_drawMesh;
 				g_drawRopes = !g_drawRopes;
 			}
@@ -1900,8 +2022,8 @@ int DoUI()
 			// scene options
 			g_scenes[g_scene]->DoGui();
 
-		if (imguiButton("Reset Scene"))
-			g_resetScene = true;
+			if (imguiButton("Reset Scene"))
+				g_resetScene = true;
 
 			imguiSeparatorLine();
 
@@ -1920,23 +2042,34 @@ int DoUI()
 
 			imguiSeparatorLine();
 			imguiSlider("Radius", &g_params.radius, 0.01f, 0.5f, 0.01f);
-			imguiSlider("Solid Radius", &g_params.solidRestDistance, 0.0f, 0.5f, 0.001f);
-			imguiSlider("Fluid Radius", &g_params.fluidRestDistance, 0.0f, 0.5f, 0.001f);
+			imguiSlider("Solid Radius", &g_params.solidRestDistance, 0.0f, 0.5f,
+					0.001f);
+			imguiSlider("Fluid Radius", &g_params.fluidRestDistance, 0.0f, 0.5f,
+					0.001f);
 
 			// common params
 			imguiSeparatorLine();
-			imguiSlider("Dynamic Friction", &g_params.dynamicFriction, 0.0f, 1.0f, 0.01f);
-			imguiSlider("Static Friction", &g_params.staticFriction, 0.0f, 1.0f, 0.01f);
-			imguiSlider("Particle Friction", &g_params.particleFriction, 0.0f, 1.0f, 0.01f);
-			imguiSlider("Restitution", &g_params.restitution, 0.0f, 1.0f, 0.01f);
-			imguiSlider("SleepThreshold", &g_params.sleepThreshold, 0.0f, 1.0f, 0.01f);
-			imguiSlider("Shock Propagation", &g_params.shockPropagation, 0.0f, 10.0f, 0.01f);
+			imguiSlider("Dynamic Friction", &g_params.dynamicFriction, 0.0f,
+					1.0f, 0.01f);
+			imguiSlider("Static Friction", &g_params.staticFriction, 0.0f, 1.0f,
+					0.01f);
+			imguiSlider("Particle Friction", &g_params.particleFriction, 0.0f,
+					1.0f, 0.01f);
+			imguiSlider("Restitution", &g_params.restitution, 0.0f, 1.0f,
+					0.01f);
+			imguiSlider("SleepThreshold", &g_params.sleepThreshold, 0.0f, 1.0f,
+					0.01f);
+			imguiSlider("Shock Propagation", &g_params.shockPropagation, 0.0f,
+					10.0f, 0.01f);
 			imguiSlider("Damping", &g_params.damping, 0.0f, 10.0f, 0.01f);
-			imguiSlider("Dissipation", &g_params.dissipation, 0.0f, 0.01f, 0.0001f);
+			imguiSlider("Dissipation", &g_params.dissipation, 0.0f, 0.01f,
+					0.0001f);
 			imguiSlider("SOR", &g_params.relaxationFactor, 0.0f, 5.0f, 0.01f);
 
-			imguiSlider("Collision Distance", &g_params.collisionDistance, 0.0f, 0.5f, 0.001f);
-			imguiSlider("Collision Margin", &g_params.shapeCollisionMargin, 0.0f, 5.0f, 0.01f);
+			imguiSlider("Collision Distance", &g_params.collisionDistance, 0.0f,
+					0.5f, 0.001f);
+			imguiSlider("Collision Margin", &g_params.shapeCollisionMargin,
+					0.0f, 5.0f, 0.01f);
 
 			// cloth params
 			imguiSeparatorLine();
@@ -1948,27 +2081,38 @@ int DoUI()
 			// fluid params
 			imguiSlider("Adhesion", &g_params.adhesion, 0.0f, 10.0f, 0.01f);
 			imguiSlider("Cohesion", &g_params.cohesion, 0.0f, 0.2f, 0.0001f);
-			imguiSlider("Surface Tension", &g_params.surfaceTension, 0.0f, 50.0f, 0.01f);
+			imguiSlider("Surface Tension", &g_params.surfaceTension, 0.0f,
+					50.0f, 0.01f);
 			imguiSlider("Viscosity", &g_params.viscosity, 0.0f, 120.0f, 0.01f);
-			imguiSlider("Vorticicty Confinement", &g_params.vorticityConfinement, 0.0f, 120.0f, 0.1f);
-			imguiSlider("Solid Pressure", &g_params.solidPressure, 0.0f, 1.0f, 0.01f);
-			imguiSlider("Surface Drag", &g_params.freeSurfaceDrag, 0.0f, 1.0f, 0.01f);
+			imguiSlider("Vorticicty Confinement",
+					&g_params.vorticityConfinement, 0.0f, 120.0f, 0.1f);
+			imguiSlider("Solid Pressure", &g_params.solidPressure, 0.0f, 1.0f,
+					0.01f);
+			imguiSlider("Surface Drag", &g_params.freeSurfaceDrag, 0.0f, 1.0f,
+					0.01f);
 			imguiSlider("Buoyancy", &g_params.buoyancy, -1.0f, 1.0f, 0.01f);
 
 			imguiSeparatorLine();
-			imguiSlider("Anisotropy Scale", &g_params.anisotropyScale, 0.0f, 30.0f, 0.01f);
+			imguiSlider("Anisotropy Scale", &g_params.anisotropyScale, 0.0f,
+					30.0f, 0.01f);
 			imguiSlider("Smoothing", &g_params.smoothing, 0.0f, 1.0f, 0.01f);
 
 			// diffuse params
 			imguiSeparatorLine();
-			imguiSlider("Diffuse Threshold", &g_params.diffuseThreshold, 0.0f, 1000.0f, 1.0f);
-			imguiSlider("Diffuse Buoyancy", &g_params.diffuseBuoyancy, 0.0f, 2.0f, 0.01f);
-			imguiSlider("Diffuse Drag", &g_params.diffuseDrag, 0.0f, 2.0f, 0.01f);
+			imguiSlider("Diffuse Threshold", &g_params.diffuseThreshold, 0.0f,
+					1000.0f, 1.0f);
+			imguiSlider("Diffuse Buoyancy", &g_params.diffuseBuoyancy, 0.0f,
+					2.0f, 0.01f);
+			imguiSlider("Diffuse Drag", &g_params.diffuseDrag, 0.0f, 2.0f,
+					0.01f);
 			imguiSlider("Diffuse Scale", &g_diffuseScale, 0.0f, 1.5f, 0.01f);
 			imguiSlider("Diffuse Alpha", &g_diffuseColor.w, 0.0f, 3.0f, 0.01f);
-			imguiSlider("Diffuse Inscatter", &g_diffuseInscatter, 0.0f, 2.0f, 0.01f);
-			imguiSlider("Diffuse Outscatter", &g_diffuseOutscatter, 0.0f, 2.0f, 0.01f);
-			imguiSlider("Diffuse Motion Blur", &g_diffuseMotionScale, 0.0f, 5.0f, 0.1f);
+			imguiSlider("Diffuse Inscatter", &g_diffuseInscatter, 0.0f, 2.0f,
+					0.01f);
+			imguiSlider("Diffuse Outscatter", &g_diffuseOutscatter, 0.0f, 2.0f,
+					0.01f);
+			imguiSlider("Diffuse Motion Blur", &g_diffuseMotionScale, 0.0f,
+					5.0f, 0.1f);
 
 			n = float(g_params.diffuseBallistic);
 			if (imguiSlider("Diffuse Ballistic", &n, 1, 40, 1))
@@ -1985,8 +2129,7 @@ int DoUI()
 	return newScene;
 }
 
-void UpdateFrame()
-{
+Eigen::MatrixXd UpdateFrame(Eigen::VectorXd action) {
 	static double lastTime;
 
 	// real elapsed frame time
@@ -1999,24 +2142,30 @@ void UpdateFrame()
 	double currentTime = frameBeginTime;
 	static double lastJoyTime = currentTime;
 
-	if (g_gamecontroller && currentTime - lastJoyTime > g_dt)
-	{
+	if (g_gamecontroller && currentTime - lastJoyTime > g_dt) {
 		lastJoyTime = currentTime;
 
-		int leftStickX = SDL_GameControllerGetAxis(g_gamecontroller, SDL_CONTROLLER_AXIS_LEFTX);
-		int leftStickY = SDL_GameControllerGetAxis(g_gamecontroller, SDL_CONTROLLER_AXIS_LEFTY);
-		int rightStickX = SDL_GameControllerGetAxis(g_gamecontroller, SDL_CONTROLLER_AXIS_RIGHTX);
-		int rightStickY = SDL_GameControllerGetAxis(g_gamecontroller, SDL_CONTROLLER_AXIS_RIGHTY);
-		int leftTrigger = SDL_GameControllerGetAxis(g_gamecontroller, SDL_CONTROLLER_AXIS_TRIGGERLEFT);
-		int rightTrigger = SDL_GameControllerGetAxis(g_gamecontroller, SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
+		int leftStickX = SDL_GameControllerGetAxis(g_gamecontroller,
+				SDL_CONTROLLER_AXIS_LEFTX);
+		int leftStickY = SDL_GameControllerGetAxis(g_gamecontroller,
+				SDL_CONTROLLER_AXIS_LEFTY);
+		int rightStickX = SDL_GameControllerGetAxis(g_gamecontroller,
+				SDL_CONTROLLER_AXIS_RIGHTX);
+		int rightStickY = SDL_GameControllerGetAxis(g_gamecontroller,
+				SDL_CONTROLLER_AXIS_RIGHTY);
+		int leftTrigger = SDL_GameControllerGetAxis(g_gamecontroller,
+				SDL_CONTROLLER_AXIS_TRIGGERLEFT);
+		int rightTrigger = SDL_GameControllerGetAxis(g_gamecontroller,
+				SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
 
-		Vec2 leftStick(joyAxisFilter(leftStickX, 0), joyAxisFilter(leftStickY, 0));
-		Vec2 rightStick(joyAxisFilter(rightStickX, 1), joyAxisFilter(rightStickY, 1));
+		Vec2 leftStick(joyAxisFilter(leftStickX, 0),
+				joyAxisFilter(leftStickY, 0));
+		Vec2 rightStick(joyAxisFilter(rightStickX, 1),
+				joyAxisFilter(rightStickY, 1));
 		Vec2 trigger(leftTrigger / 32768.0f, rightTrigger / 32768.0f);
 
-		if (leftStick.x != 0.0f || leftStick.y != 0.0f ||
-			rightStick.x != 0.0f || rightStick.y != 0.0f)
-		{
+		if (leftStick.x != 0.0f || leftStick.y != 0.0f || rightStick.x != 0.0f
+				|| rightStick.y != 0.0f) {
 			// note constant factor to speed up analog control compared to digital because it is more controllable.
 			g_camVel.z = -4 * g_camSpeed * leftStick.y;
 			g_camVel.x = 4 * g_camSpeed * leftStick.x;
@@ -2029,12 +2178,9 @@ void UpdateFrame()
 		// Handle left stick motion
 		static bool bLeftStick = false;
 
-		if ((leftStick.x != 0.0f || leftStick.y != 0.0f) && !bLeftStick)
-		{
+		if ((leftStick.x != 0.0f || leftStick.y != 0.0f) && !bLeftStick) {
 			bLeftStick = true;
-		}
-		else if ((leftStick.x == 0.0f && leftStick.y == 0.0f) && bLeftStick)
-		{
+		} else if ((leftStick.x == 0.0f && leftStick.y == 0.0f) && bLeftStick) {
 			bLeftStick = false;
 			g_camVel.z = -4 * g_camSpeed * leftStick.y;
 			g_camVel.x = 4 * g_camSpeed * leftStick.x;
@@ -2047,30 +2193,24 @@ void UpdateFrame()
 		static bool bRightTrigger = false;
 		SDL_ControllerButtonEvent e;
 
-		if (!bLeftTrigger && trigger.x > 0.0f)
-		{
+		if (!bLeftTrigger && trigger.x > 0.0f) {
 			e.type = SDL_CONTROLLERBUTTONDOWN;
 			e.button = SDL_CONTROLLER_BUTTON_LEFT_TRIGGER;
 			ControllerButtonEvent(e);
 			bLeftTrigger = true;
-		}
-		else if (bLeftTrigger && trigger.x == 0.0f)
-		{
+		} else if (bLeftTrigger && trigger.x == 0.0f) {
 			e.type = SDL_CONTROLLERBUTTONUP;
 			e.button = SDL_CONTROLLER_BUTTON_LEFT_TRIGGER;
 			ControllerButtonEvent(e);
 			bLeftTrigger = false;
 		}
 
-		if (!bRightTrigger && trigger.y > 0.0f)
-		{
+		if (!bRightTrigger && trigger.y > 0.0f) {
 			e.type = SDL_CONTROLLERBUTTONDOWN;
 			e.button = SDL_CONTROLLER_BUTTON_RIGHT_TRIGGER;
 			ControllerButtonEvent(e);
 			bRightTrigger = true;
-		}
-		else if (bRightTrigger && trigger.y == 0.0f)
-		{
+		} else if (bRightTrigger && trigger.y == 0.0f) {
 			e.type = SDL_CONTROLLERBUTTONDOWN;
 			e.button = SDL_CONTROLLER_BUTTON_RIGHT_TRIGGER;
 			ControllerButtonEvent(e);
@@ -2088,18 +2228,22 @@ void UpdateFrame()
 	double waitEndTime = GetSeconds();
 
 	// Getting timers causes CPU/GPU sync, so we do it after a map
-	float newSimLatency = NvFlexGetDeviceLatency(g_solver, &g_GpuTimers.computeBegin, &g_GpuTimers.computeEnd, &g_GpuTimers.computeFreq);
-	float newGfxLatency = RendererGetDeviceTimestamps(&g_GpuTimers.renderBegin, &g_GpuTimers.renderEnd, &g_GpuTimers.renderFreq);
-	(void)newGfxLatency;
+	float newSimLatency = NvFlexGetDeviceLatency(g_solver,
+			&g_GpuTimers.computeBegin, &g_GpuTimers.computeEnd,
+			&g_GpuTimers.computeFreq);
+	float newGfxLatency = RendererGetDeviceTimestamps(&g_GpuTimers.renderBegin,
+			&g_GpuTimers.renderEnd, &g_GpuTimers.renderFreq);
+	(void) newGfxLatency;
 
 	UpdateCamera();
-
-	if (!g_pause || g_step)
-	{
+	if (!g_pause || g_step) {
 		UpdateEmitters();
 		UpdateMouse();
 		UpdateWind();
-		UpdateScene();
+//		Eigen::VectorXd action(4);
+//		action << 0, 0, 0, 0;
+		curr_state = UpdateControlScene(action);
+//		cout<<"ASFASFASF0"<<endl;
 	}
 
 	//-------------------------------------------------------------------
@@ -2107,14 +2251,11 @@ void UpdateFrame()
 
 	double renderBeginTime = GetSeconds();
 
-	if (g_profile && (!g_pause || g_step))
-	{
-		if (g_benchmark)
-		{
-			g_numDetailTimers = NvFlexGetDetailTimers(g_solver, &g_detailTimers);
-		}
-		else
-		{
+	if (g_profile && (!g_pause || g_step)) {
+		if (g_benchmark) {
+			g_numDetailTimers = NvFlexGetDetailTimers(g_solver,
+					&g_detailTimers);
+		} else {
 			memset(&g_timers, 0, sizeof(g_timers));
 			NvFlexGetTimers(g_solver, &g_timers);
 		}
@@ -2130,32 +2271,31 @@ void UpdateFrame()
 
 	EndFrame();
 
-	// If user has disabled async compute, ensure that no compute can overlap 
-	// graphics by placing a sync between them	
+	// If user has disabled async compute, ensure that no compute can overlap
+	// graphics by placing a sync between them
 	if (!g_useAsyncCompute)
 		NvFlexComputeWaitForGraphics(g_flexLib);
 
 	UnmapBuffers(g_buffers);
 
 	// move mouse particle (must be done here as GetViewRay() uses the GL projection state)
-	if (g_mouseParticle != -1)
-	{
+	if (g_mouseParticle != -1) {
 		Vec3 origin, dir;
 		GetViewRay(g_lastx, g_screenHeight - g_lasty, origin, dir);
 
-		g_mousePos = origin + dir*g_mouseT;
+		g_mousePos = origin + dir * g_mouseT;
 	}
 
-	if (g_capture)
-	{
+	if (g_capture) {
 		TgaImage img;
 		img.m_width = g_screenWidth;
 		img.m_height = g_screenHeight;
-		img.m_data = new uint32_t[g_screenWidth*g_screenHeight];
+		img.m_data = new uint32_t[g_screenWidth * g_screenHeight];
 
-		ReadFrame((int*)img.m_data, g_screenWidth, g_screenHeight);
+		ReadFrame((int*) img.m_data, g_screenWidth, g_screenHeight);
 
-		fwrite(img.m_data, sizeof(uint32_t)*g_screenWidth*g_screenHeight, 1, g_ffmpeg);
+		fwrite(img.m_data, sizeof(uint32_t) * g_screenWidth * g_screenHeight, 1,
+				g_ffmpeg);
 
 		delete[] img.m_data;
 	}
@@ -2163,8 +2303,7 @@ void UpdateFrame()
 	double renderEndTime = GetSeconds();
 
 	// if user requested a scene reset process it now
-	if (g_resetScene)
-	{
+	if (g_resetScene) {
 		Reset();
 		g_resetScene = false;
 	}
@@ -2185,23 +2324,19 @@ void UpdateFrame()
 	// allow scene to update constraints etc
 	SyncScene();
 
-	if (g_shapesChanged)
-	{
-		NvFlexSetShapes(
-			g_solver,
-			g_buffers->shapeGeometry.buffer,
-			g_buffers->shapePositions.buffer,
-			g_buffers->shapeRotations.buffer,
-			g_buffers->shapePrevPositions.buffer,
-			g_buffers->shapePrevRotations.buffer,
-			g_buffers->shapeFlags.buffer,
-			int(g_buffers->shapeFlags.size()));
+	if (g_shapesChanged) {
+		NvFlexSetShapes(g_solver, g_buffers->shapeGeometry.buffer,
+				g_buffers->shapePositions.buffer,
+				g_buffers->shapeRotations.buffer,
+				g_buffers->shapePrevPositions.buffer,
+				g_buffers->shapePrevRotations.buffer,
+				g_buffers->shapeFlags.buffer,
+				int(g_buffers->shapeFlags.size()));
 
 		g_shapesChanged = false;
 	}
 
-	if (!g_pause || g_step)
-	{
+	if (!g_pause || g_step) {
 		// tick solver
 		NvFlexSetParams(g_solver, &g_params);
 		NvFlexUpdateSolver(g_solver, g_dt, g_numSubsteps, g_profile);
@@ -2211,7 +2346,7 @@ void UpdateFrame()
 	}
 
 	// read back base particle data
-	// Note that flexGet calls don't wait for the GPU, they just queue a GPU copy 
+	// Note that flexGet calls don't wait for the GPU, they just queue a GPU copy
 	// to be executed later.
 	// When we're ready to read the fetched buffers we'll Map them, and that's when
 	// the CPU will wait for the GPU flex update and GPU copy to finish.
@@ -2219,37 +2354,42 @@ void UpdateFrame()
 	NvFlexGetVelocities(g_solver, g_buffers->velocities.buffer, NULL);
 	NvFlexGetNormals(g_solver, g_buffers->normals.buffer, NULL);
 
-
 	// readback triangle normals
 	if (g_buffers->triangles.size())
-		NvFlexGetDynamicTriangles(g_solver, g_buffers->triangles.buffer, g_buffers->triangleNormals.buffer, g_buffers->triangles.size() / 3);
+		NvFlexGetDynamicTriangles(g_solver, g_buffers->triangles.buffer,
+				g_buffers->triangleNormals.buffer,
+				g_buffers->triangles.size() / 3);
 
 	// readback rigid transforms
 	if (g_buffers->rigidOffsets.size())
-		NvFlexGetRigids(g_solver, NULL, NULL, NULL, NULL, NULL, NULL, NULL, g_buffers->rigidRotations.buffer, g_buffers->rigidTranslations.buffer);
+		NvFlexGetRigids(g_solver, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+				g_buffers->rigidRotations.buffer,
+				g_buffers->rigidTranslations.buffer);
 
-	if (!g_interop)
-	{
+	if (!g_interop) {
 		// if not using interop then we read back fluid data to host
-		if (g_drawEllipsoids)
-		{
-			NvFlexGetSmoothParticles(g_solver, g_buffers->smoothPositions.buffer, NULL);
-			NvFlexGetAnisotropy(g_solver, g_buffers->anisotropy1.buffer, g_buffers->anisotropy2.buffer, g_buffers->anisotropy3.buffer, NULL);
+		if (g_drawEllipsoids) {
+			NvFlexGetSmoothParticles(g_solver,
+					g_buffers->smoothPositions.buffer, NULL);
+			NvFlexGetAnisotropy(g_solver, g_buffers->anisotropy1.buffer,
+					g_buffers->anisotropy2.buffer,
+					g_buffers->anisotropy3.buffer, NULL);
 		}
 
 		// read back diffuse data to host
 		if (g_drawDensity)
 			NvFlexGetDensities(g_solver, g_buffers->densities.buffer, NULL);
 
-		if (GetNumDiffuseRenderParticles(g_diffuseRenderBuffers))
-		{
-			NvFlexGetDiffuseParticles(g_solver, g_buffers->diffusePositions.buffer, g_buffers->diffuseVelocities.buffer, g_buffers->diffuseCount.buffer);
+		if (GetNumDiffuseRenderParticles(g_diffuseRenderBuffers)) {
+			NvFlexGetDiffuseParticles(g_solver,
+					g_buffers->diffusePositions.buffer,
+					g_buffers->diffuseVelocities.buffer,
+					g_buffers->diffuseCount.buffer);
 		}
-	}
-	else
-	{
+	} else {
 		// read back just the new diffuse particle count, render buffers will be updated during rendering
-		NvFlexGetDiffuseParticles(g_solver, NULL, NULL, g_buffers->diffuseCount.buffer);
+		NvFlexGetDiffuseParticles(g_solver, NULL, NULL,
+				g_buffers->diffuseCount.buffer);
 	}
 
 	double updateEndTime = GetSeconds();
@@ -2264,24 +2404,35 @@ void UpdateFrame()
 	// Exponential filter to make the display easier to read
 	const float timerSmoothing = 0.05f;
 
-	g_updateTime = (g_updateTime == 0.0f) ? newUpdateTime : Lerp(g_updateTime, newUpdateTime, timerSmoothing);
-	g_renderTime = (g_renderTime == 0.0f) ? newRenderTime : Lerp(g_renderTime, newRenderTime, timerSmoothing);
-	g_waitTime = (g_waitTime == 0.0f) ? newWaitTime : Lerp(g_waitTime, newWaitTime, timerSmoothing);
-	g_simLatency = (g_simLatency == 0.0f) ? newSimLatency : Lerp(g_simLatency, newSimLatency, timerSmoothing);
+	g_updateTime =
+			(g_updateTime == 0.0f) ?
+					newUpdateTime :
+					Lerp(g_updateTime, newUpdateTime, timerSmoothing);
+	g_renderTime =
+			(g_renderTime == 0.0f) ?
+					newRenderTime :
+					Lerp(g_renderTime, newRenderTime, timerSmoothing);
+	g_waitTime =
+			(g_waitTime == 0.0f) ?
+					newWaitTime : Lerp(g_waitTime, newWaitTime, timerSmoothing);
+	g_simLatency =
+			(g_simLatency == 0.0f) ?
+					newSimLatency :
+					Lerp(g_simLatency, newSimLatency, timerSmoothing);
 
-	if (g_benchmark) newScene = BenchmarkUpdate();
+	if (g_benchmark)
+		newScene = BenchmarkUpdate();
 
 	// flush out the last frame before freeing up resources in the event of a scene change
 	// this is necessary for d3d12
 	PresentFrame(g_vsync);
 
-
 	// if gui or benchmark requested a scene change process it now
-	if (newScene != -1)
-	{
+	if (newScene != -1) {
 		g_scene = newScene;
 		Init(g_scene);
 	}
+	return curr_state;
 }
 
 #if ENABLE_AFTERMATH_SUPPORT
@@ -2295,15 +2446,14 @@ void DumpAftermathData()
 }
 #endif
 
-void ReshapeWindow(int width, int height)
-{
+void ReshapeWindow(int width, int height) {
 	if (!g_benchmark)
 		printf("Reshaping\n");
 
 	ReshapeRender(g_window);
 
-	if (!g_fluidRenderer || (width != g_screenWidth || height != g_screenHeight))
-	{
+	if (!g_fluidRenderer
+			|| (width != g_screenWidth || height != g_screenHeight)) {
 		if (g_fluidRenderer)
 			DestroyFluidRenderer(g_fluidRenderer);
 		g_fluidRenderer = CreateFluidRenderer(width, height);
@@ -2313,12 +2463,9 @@ void ReshapeWindow(int width, int height)
 	g_screenHeight = height;
 }
 
-void InputArrowKeysDown(int key, int x, int y)
-{
-	switch (key)
-	{
-	case SDLK_DOWN:
-	{
+void InputArrowKeysDown(int key, int x, int y) {
+	switch (key) {
+	case SDLK_DOWN: {
 		if (g_selectedScene < int(g_scenes.size()) - 1)
 			g_selectedScene++;
 
@@ -2326,8 +2473,7 @@ void InputArrowKeysDown(int key, int x, int y)
 		g_levelScroll = max((g_selectedScene - 4) * 24, 0);
 		break;
 	}
-	case SDLK_UP:
-	{
+	case SDLK_UP: {
 		if (g_selectedScene > 0)
 			g_selectedScene--;
 
@@ -2335,8 +2481,7 @@ void InputArrowKeysDown(int key, int x, int y)
 		g_levelScroll = max((g_selectedScene - 4) * 24, 0);
 		break;
 	}
-	case SDLK_LEFT:
-	{
+	case SDLK_LEFT: {
 		if (g_scene > 0)
 			--g_scene;
 		Init(g_scene);
@@ -2345,8 +2490,7 @@ void InputArrowKeysDown(int key, int x, int y)
 		g_levelScroll = max((g_scene - 4) * 24, 0);
 		break;
 	}
-	case SDLK_RIGHT:
-	{
+	case SDLK_RIGHT: {
 		if (g_scene < int(g_scenes.size()) - 1)
 			++g_scene;
 		Init(g_scene);
@@ -2358,14 +2502,11 @@ void InputArrowKeysDown(int key, int x, int y)
 	}
 }
 
-void InputArrowKeysUp(int key, int x, int y)
-{
+void InputArrowKeysUp(int key, int x, int y) {
 }
 
-bool InputKeyboardDown(unsigned char key, int x, int y)
-{
-	if (key > '0' && key <= '9')
-	{
+bool InputKeyboardDown(unsigned char key, int x, int y) {
+	if (key > '0' && key <= '9') {
 		g_scene = key - '0' - 1;
 		Init(g_scene);
 		return false;
@@ -2373,172 +2514,108 @@ bool InputKeyboardDown(unsigned char key, int x, int y)
 
 	float kSpeed = g_camSpeed;
 
-	switch (key)
-	{
-	case 'w':
-	{
+	switch (key) {
+	case 'w': {
 		g_camVel.z = kSpeed;
 		break;
 	}
-	case 's':
-	{
+	case 's': {
 		g_camVel.z = -kSpeed;
 		break;
 	}
-	case 'a':
-	{
+	case 'a': {
 		g_camVel.x = -kSpeed;
 		break;
 	}
-	case 'd':
-	{
+	case 'd': {
 		g_camVel.x = kSpeed;
 		break;
 	}
-	case 'q':
-	{
+	case 'q': {
 		g_camVel.y = kSpeed;
 		break;
 	}
-	case 'z':
-	{
+	case 'z': {
 		//g_drawCloth = !g_drawCloth;
 		g_camVel.y = -kSpeed;
 		break;
 	}
 
-	case 'u':
-	{
+	case 'u': {
 #ifndef ANDROID
-		if (g_fullscreen)
-		{
+		if (g_fullscreen) {
 			SDL_SetWindowFullscreen(g_window, 0);
 			ReshapeWindow(1280, 720);
 			g_fullscreen = false;
-		}
-		else
-		{
+		} else {
 			SDL_SetWindowFullscreen(g_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
 			g_fullscreen = true;
 		}
 #endif
 		break;
 	}
-	case 'r':
-	{
+	case 'r': {
 		g_resetScene = true;
 		break;
 	}
-	case 'y':
-	{
+	case 'y': {
 		g_wavePool = !g_wavePool;
 		break;
 	}
-	case 'c':
-	{
-#if _WIN32
-		if (!g_ffmpeg)
-		{
-			// open ffmpeg stream
-
-			int i = 0;
-			char buf[255];
-			FILE* f = NULL;
-
-			do
-			{
-				sprintf(buf, "../../movies/output%d.mp4", i);
-				f = fopen(buf, "rb");
-				if (f)
-					fclose(f);
-
-				++i;
-			} while (f);
-
-			const char* str = "ffmpeg -r 60 -f rawvideo -pix_fmt rgba -s 1280x720 -i - "
-				"-threads 0 -preset fast -y -crf 19 -pix_fmt yuv420p -tune animation -vf vflip %s";
-
-			char cmd[1024];
-			sprintf(cmd, str, buf);
-
-			g_ffmpeg = _popen(cmd, "wb");
-			assert(g_ffmpeg);
-		}
-		else
-		{
-			_pclose(g_ffmpeg);
-			g_ffmpeg = NULL;
-		}
-
-		g_capture = !g_capture;
-		g_frame = 0;
-#endif
+	case 'c': {
 		break;
 	}
-	case 'p':
-	{
+	case 'p': {
 		g_pause = !g_pause;
 		break;
 	}
-	case 'o':
-	{
+	case 'o': {
 		g_step = true;
 		break;
 	}
-	case 'h':
-	{
+	case 'h': {
 		g_showHelp = !g_showHelp;
 		break;
 	}
-	case 'e':
-	{
+	case 'e': {
 		g_drawEllipsoids = !g_drawEllipsoids;
 		break;
 	}
-	case 't':
-	{
+	case 't': {
 		g_drawOpaque = !g_drawOpaque;
 		break;
 	}
-	case 'v':
-	{
+	case 'v': {
 		g_drawPoints = !g_drawPoints;
 		break;
 	}
-	case 'f':
-	{
+	case 'f': {
 		g_drawSprings = (g_drawSprings + 1) % 3;
 		break;
 	}
-	case 'i':
-	{
+	case 'i': {
 		g_drawDiffuse = !g_drawDiffuse;
 		break;
 	}
-	case 'm':
-	{
+	case 'm': {
 		g_drawMesh = !g_drawMesh;
 		break;
 	}
-	case 'n':
-	{
+	case 'n': {
 		g_drawRopes = !g_drawRopes;
 		break;
 	}
-	case 'j':
-	{
+	case 'j': {
 		g_windTime = 0.0f;
 		g_windStrength = 1.5f;
 		g_windFrequency = 0.2f;
 		break;
 	}
-	case '.':
-	{
+	case '.': {
 		g_profile = !g_profile;
 		break;
 	}
-	case 'g':
-	{
+	case 'g': {
 		if (g_params.gravity[1] != 0.0f)
 			g_params.gravity[1] = 0.0f;
 		else
@@ -2546,31 +2623,26 @@ bool InputKeyboardDown(unsigned char key, int x, int y)
 
 		break;
 	}
-	case '-':
-	{
+	case '-': {
 		if (g_params.numPlanes)
 			g_params.numPlanes--;
 
 		break;
 	}
-	case ' ':
-	{
+	case ' ': {
 		g_emit = !g_emit;
 		break;
 	}
-	case ';':
-	{
+	case ';': {
 		g_debug = !g_debug;
 		break;
 	}
-	case 13:
-	{
+	case 13: {
 		g_scene = g_selectedScene;
 		Init(g_scene);
 		break;
 	}
-	case 27:
-	{
+	case 27: {
 		// return quit = true
 		return true;
 	}
@@ -2586,45 +2658,36 @@ bool InputKeyboardDown(unsigned char key, int x, int y)
 	return false;
 }
 
-void InputKeyboardUp(unsigned char key, int x, int y)
-{
-	switch (key)
-	{
+void InputKeyboardUp(unsigned char key, int x, int y) {
+	switch (key) {
 	case 'w':
-	case 's':
-	{
+	case 's': {
 		g_camVel.z = 0.0f;
 		break;
 	}
 	case 'a':
-	case 'd':
-	{
+	case 'd': {
 		g_camVel.x = 0.0f;
 		break;
 	}
 	case 'q':
-	case 'z':
-	{
+	case 'z': {
 		g_camVel.y = 0.0f;
 		break;
 	}
 	};
 }
 
-void MouseFunc(int b, int state, int x, int y)
-{
-	switch (state)
-	{
-	case SDL_RELEASED:
-	{
+void MouseFunc(int b, int state, int x, int y) {
+	switch (state) {
+	case SDL_RELEASED: {
 		g_lastx = x;
 		g_lasty = y;
 		g_lastb = -1;
 
 		break;
 	}
-	case SDL_PRESSED:
-	{
+	case SDL_PRESSED: {
 		g_lastx = x;
 		g_lasty = y;
 		g_lastb = b;
@@ -2632,8 +2695,7 @@ void MouseFunc(int b, int state, int x, int y)
 		extern void setStateLeft(bool bLeftDown);
 		setStateLeft(false);
 #else
-		if ((SDL_GetModState() & KMOD_LSHIFT) && g_lastb == SDL_BUTTON_LEFT)
-		{
+		if ((SDL_GetModState() & KMOD_LSHIFT) && g_lastb == SDL_BUTTON_LEFT) {
 			// record that we need to update the picked particle
 			g_mousePicked = true;
 		}
@@ -2643,49 +2705,47 @@ void MouseFunc(int b, int state, int x, int y)
 	};
 }
 
-void MousePassiveMotionFunc(int x, int y)
-{
+void MousePassiveMotionFunc(int x, int y) {
 	g_lastx = x;
 	g_lasty = y;
 }
 
-void MouseMotionFunc(unsigned state, int x, int y)
-{
+void MouseMotionFunc(unsigned state, int x, int y) {
 	float dx = float(x - g_lastx);
 	float dy = float(y - g_lasty);
 
 	g_lastx = x;
 	g_lasty = y;
 
-	if (state & SDL_BUTTON_RMASK)
-	{
+	if (state & SDL_BUTTON_RMASK) {
 		const float kSensitivity = DegToRad(0.1f);
 		const float kMaxDelta = FLT_MAX;
 
-		g_camAngle.x -= Clamp(dx*kSensitivity, -kMaxDelta, kMaxDelta);
-		g_camAngle.y -= Clamp(dy*kSensitivity, -kMaxDelta, kMaxDelta);
+		g_camAngle.x -= Clamp(dx * kSensitivity, -kMaxDelta, kMaxDelta);
+		g_camAngle.y -= Clamp(dy * kSensitivity, -kMaxDelta, kMaxDelta);
 	}
 }
 
 bool g_Error = false;
 
-void ErrorCallback(NvFlexErrorSeverity severity, const char* msg, const char* file, int line)
-{
+void ErrorCallback(NvFlexErrorSeverity severity, const char* msg,
+		const char* file, int line) {
 	printf("Flex: %s - %s:%d\n", msg, file, line);
 	g_Error = (severity == eNvFlexLogError);
 	//assert(0); asserts are bad for TeamCity
 }
 
-void ControllerButtonEvent(SDL_ControllerButtonEvent event)
-{
+void ControllerButtonEvent(SDL_ControllerButtonEvent event) {
 	// map controller buttons to keyboard keys
-	if (event.type == SDL_CONTROLLERBUTTONDOWN)
-	{
-		InputKeyboardDown(GetKeyFromGameControllerButton(SDL_GameControllerButton(event.button)), 0, 0);
-		InputArrowKeysDown(GetKeyFromGameControllerButton(SDL_GameControllerButton(event.button)), 0, 0);
+	if (event.type == SDL_CONTROLLERBUTTONDOWN) {
+		InputKeyboardDown(
+				GetKeyFromGameControllerButton(
+						SDL_GameControllerButton(event.button)), 0, 0);
+		InputArrowKeysDown(
+				GetKeyFromGameControllerButton(
+						SDL_GameControllerButton(event.button)), 0, 0);
 
-		if (event.button == SDL_CONTROLLER_BUTTON_LEFT_TRIGGER)
-		{
+		if (event.button == SDL_CONTROLLER_BUTTON_LEFT_TRIGGER) {
 			// Handle picking events using the game controller
 			g_lastx = g_screenWidth / 2;
 			g_lasty = g_screenHeight / 2;
@@ -2694,14 +2754,15 @@ void ControllerButtonEvent(SDL_ControllerButtonEvent event)
 			// record that we need to update the picked particle
 			g_mousePicked = true;
 		}
-	}
-	else
-	{
-		InputKeyboardUp(GetKeyFromGameControllerButton(SDL_GameControllerButton(event.button)), 0, 0);
-		InputArrowKeysUp(GetKeyFromGameControllerButton(SDL_GameControllerButton(event.button)), 0, 0);
+	} else {
+		InputKeyboardUp(
+				GetKeyFromGameControllerButton(
+						SDL_GameControllerButton(event.button)), 0, 0);
+		InputArrowKeysUp(
+				GetKeyFromGameControllerButton(
+						SDL_GameControllerButton(event.button)), 0, 0);
 
-		if (event.button == SDL_CONTROLLER_BUTTON_LEFT_TRIGGER)
-		{
+		if (event.button == SDL_CONTROLLER_BUTTON_LEFT_TRIGGER) {
 			// Handle picking events using the game controller
 			g_lastx = g_screenWidth / 2;
 			g_lasty = g_screenHeight / 2;
@@ -2710,391 +2771,129 @@ void ControllerButtonEvent(SDL_ControllerButtonEvent event)
 	}
 }
 
-void ControllerDeviceUpdate()
-{
-	if (SDL_NumJoysticks() > 0)
-	{
+void ControllerDeviceUpdate() {
+	if (SDL_NumJoysticks() > 0) {
 		SDL_JoystickEventState(SDL_ENABLE);
-		if (SDL_IsGameController(0))
-		{
+		if (SDL_IsGameController(0)) {
 			g_gamecontroller = SDL_GameControllerOpen(0);
 		}
 	}
 }
 
-void SDLInit(const char* title)
-{
+void SDLInit(const char* title) {
 
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0)	// Initialize SDL's Video subsystem and game controllers
 		printf("Unable to initialize SDL");
 
 	unsigned int flags = SDL_WINDOW_RESIZABLE;
 #if !FLEX_DX
-	if (g_graphics == 0)
-	{
+	if (g_graphics == 0) {
 		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 		flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL;
 	}
 #endif
 
-	g_window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-		g_screenWidth, g_screenHeight, flags);
+	g_window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED,
+	SDL_WINDOWPOS_CENTERED, g_screenWidth, g_screenHeight, flags);
 
 	g_windowId = SDL_GetWindowID(g_window);
 }
 
+bool SDLMain() {
 
+	bool quit = false;
+	while (SDL_PollEvent(&e)) {
+		switch (e.type) {
+		case SDL_QUIT:
+			quit = true;
+			break;
 
-bool SDLMain()
-{
+		case SDL_KEYDOWN:
+			if (e.key.keysym.sym < 256
+					&& (e.key.keysym.mod == KMOD_NONE
+							|| (e.key.keysym.mod & KMOD_NUM)))
+				quit = InputKeyboardDown(e.key.keysym.sym, 0, 0);
+			InputArrowKeysDown(e.key.keysym.sym, 0, 0);
+			break;
 
-    bool quit = false;
-    while (SDL_PollEvent(&e))
-    {
-        switch (e.type)
-        {
-        case SDL_QUIT:
-            quit = true;
-            break;
+		case SDL_KEYUP:
+			if (e.key.keysym.sym < 256
+					&& (e.key.keysym.mod == 0 || (e.key.keysym.mod & KMOD_NUM)))
+				InputKeyboardUp(e.key.keysym.sym, 0, 0);
+			InputArrowKeysUp(e.key.keysym.sym, 0, 0);
+			break;
 
-        case SDL_KEYDOWN:
-            if (e.key.keysym.sym < 256 && (e.key.keysym.mod == KMOD_NONE || (e.key.keysym.mod & KMOD_NUM)))
-                quit = InputKeyboardDown(e.key.keysym.sym, 0, 0);
-            InputArrowKeysDown(e.key.keysym.sym, 0, 0);
-            break;
+		case SDL_MOUSEMOTION:
+			if (e.motion.state)
+				MouseMotionFunc(e.motion.state, e.motion.x, e.motion.y);
+			else
+				MousePassiveMotionFunc(e.motion.x, e.motion.y);
+			break;
 
-        case SDL_KEYUP:
-            if (e.key.keysym.sym < 256 && (e.key.keysym.mod == 0 || (e.key.keysym.mod & KMOD_NUM)))
-                InputKeyboardUp(e.key.keysym.sym, 0, 0);
-            InputArrowKeysUp(e.key.keysym.sym, 0, 0);
-            break;
+		case SDL_MOUSEBUTTONDOWN:
+		case SDL_MOUSEBUTTONUP:
+			MouseFunc(e.button.button, e.button.state, e.motion.x, e.motion.y);
+			break;
 
-        case SDL_MOUSEMOTION:
-            if (e.motion.state)
-                MouseMotionFunc(e.motion.state, e.motion.x, e.motion.y);
-            else
-                MousePassiveMotionFunc(e.motion.x, e.motion.y);
-            break;
+		case SDL_WINDOWEVENT:
+			if (e.window.windowID == g_windowId) {
+				if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+					ReshapeWindow(e.window.data1, e.window.data2);
+			}
+			break;
 
-        case SDL_MOUSEBUTTONDOWN:
-        case SDL_MOUSEBUTTONUP:
-            MouseFunc(e.button.button, e.button.state, e.motion.x, e.motion.y);
-            break;
+		case SDL_WINDOWEVENT_LEAVE:
+			g_camVel = Vec3(0.0f, 0.0f, 0.0f);
+			break;
 
-        case SDL_WINDOWEVENT:
-            if (e.window.windowID == g_windowId)
-            {
-                if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
-                    ReshapeWindow(e.window.data1, e.window.data2);
-            }
-            break;
+		case SDL_CONTROLLERBUTTONUP:
+		case SDL_CONTROLLERBUTTONDOWN:
+			ControllerButtonEvent(e.cbutton);
+			break;
 
-        case SDL_WINDOWEVENT_LEAVE:
-            g_camVel = Vec3(0.0f, 0.0f, 0.0f);
-            break;
-
-        case SDL_CONTROLLERBUTTONUP:
-        case SDL_CONTROLLERBUTTONDOWN:
-            ControllerButtonEvent(e.cbutton);
-            break;
-
-        case SDL_JOYDEVICEADDED:
-        case SDL_JOYDEVICEREMOVED:
-            ControllerDeviceUpdate();
-            break;
-        }
-    }
-    return quit;
+		case SDL_JOYDEVICEADDED:
+		case SDL_JOYDEVICEREMOVED:
+			ControllerDeviceUpdate();
+			break;
+		}
+	}
+	return quit;
 }
 
+void initialize() {
 
-
-
-void initialize(){
-
-
-
-	// soft body scenes
-	SoftBody::Instance octopus("../../data/softs/octopus.obj");
-	octopus.mScale = Vec3(32.0f);
-	octopus.mClusterSpacing = 2.75f;
-	octopus.mClusterRadius = 3.0f;
-	octopus.mClusterStiffness = 0.15f;
-	octopus.mSurfaceSampling = 1.0f;
-	SoftBody* softOctopusSceneNew = new SoftBody("Soft Octopus");
-	softOctopusSceneNew->AddStack(octopus, 1, 3, 1);
-
-	SoftBody::Instance rope("../../data/rope.obj");
-	rope.mScale = Vec3(50.0f);
-	rope.mClusterSpacing = 1.5f;
-	rope.mClusterRadius = 0.0f;
-	rope.mClusterStiffness = 0.55f;
-	SoftBody* softRopeSceneNew = new SoftBody("Soft Rope");
-	softRopeSceneNew->AddInstance(rope);
-
-	SoftBody::Instance bowl("../../data/bowl_high.ply");
-	bowl.mScale = Vec3(10.0f);
-	bowl.mClusterSpacing = 2.0f;
-	bowl.mClusterRadius = 2.0f;
-	bowl.mClusterStiffness = 0.55f;
-	SoftBody* softBowlSceneNew = new SoftBody("Soft Bowl");
-	softBowlSceneNew->AddInstance(bowl);
-
-	SoftBody::Instance cloth("../../data/box_ultra_high.ply");
-	cloth.mScale = Vec3(20.0f, 0.2f, 20.0f);
-	cloth.mClusterSpacing = 1.0f;
-	cloth.mClusterRadius = 2.0f;
-	cloth.mClusterStiffness = 0.2f;
-	cloth.mLinkRadius = 2.0f;
-	cloth.mLinkStiffness = 1.0f;
-	//cloth.mSkinningFalloff = 1.0f;
-	//cloth.mSkinningMaxDistance = 100.f;
-	SoftBody* softClothSceneNew = new SoftBody("Soft Cloth");
-	softClothSceneNew->mRadius = 0.05f;
-	softClothSceneNew->AddInstance(cloth);
-
-	SoftBody::Instance rod("../../data/box_very_high.ply");
-	rod.mScale = Vec3(20.0f, 5.0f, 2.0f);
-	rod.mTranslation = Vec3(-0.3f, 1.0f, 0.0f);
-	rod.mClusterSpacing = 2.0f;//2.0f;
-	rod.mClusterRadius = 2.0f;//2.0f;
-	rod.mClusterStiffness = 0.3225f;
-	SoftBodyFixed* softRodSceneNew = new SoftBodyFixed("Soft Rod");
-	softRodSceneNew->AddStack(rod, 3);
-
-
-
-	SoftBody::Instance teapot("../../data/teapot.ply");
-	teapot.mScale = Vec3(25.0f);
-	teapot.mClusterSpacing = 3.0f;
-	teapot.mClusterRadius = 0.0f;
-	teapot.mClusterStiffness = 0.1f;
-	SoftBody* softTeapotSceneNew = new SoftBody("Soft Teapot");
-	softTeapotSceneNew->AddInstance(teapot);
-
-	SoftBody::Instance armadillo("../../data/armadillo.ply");
-	armadillo.mScale = Vec3(25.0f);
-	armadillo.mClusterSpacing = 3.0f;
-	armadillo.mClusterRadius = 0.0f;
-	SoftBody* softArmadilloSceneNew = new SoftBody("Soft Armadillo");
-	softArmadilloSceneNew->AddInstance(armadillo);
-
-	SoftBody::Instance softbunny("../../data/bunny.ply");
-	softbunny.mScale = Vec3(20.0f);
-	softbunny.mClusterSpacing = 3.5f;
-	softbunny.mClusterRadius = 0.0f;
-	softbunny.mClusterStiffness = 0.2f;
-	SoftBody* softBunnySceneNew = new SoftBody("Soft Bunny");
-	softBunnySceneNew->AddInstance(softbunny);
-
-	// plastic scenes
-
-	//a bunch of bunnies stacked
-	SoftBody::Instance plasticbunny("../../data/bunny.ply");
-	plasticbunny.mScale = Vec3(10.0f);
-	plasticbunny.mClusterSpacing = 1.0f;
-	plasticbunny.mClusterRadius = 0.0f;
-	plasticbunny.mClusterStiffness = 0.0f;
-	plasticbunny.mGlobalStiffness = 1.0f;
-	plasticbunny.mClusterPlasticThreshold = 0.0015f;
-	plasticbunny.mClusterPlasticCreep = 0.15f;
-	plasticbunny.mTranslation[1] = 5.0f;
-	SoftBody* plasticBunniesSceneNew = new SoftBody("Plastic Bunnies");
-	plasticBunniesSceneNew->mPlinth = true;
-	plasticBunniesSceneNew->AddStack(plasticbunny, 1, 10, 1, true);
-
-    //plastic comparison of two different bunnies
-	SoftBody::Instance bunny1("../../data/bunny.ply");
-	bunny1.mScale = Vec3(10.0f);
-	bunny1.mClusterSpacing = 1.0f;
-	bunny1.mClusterRadius = 0.0f;
-	bunny1.mClusterStiffness = 0.0f;
-	bunny1.mGlobalStiffness = 1.0f;
-	bunny1.mClusterPlasticThreshold = 0.0015f;
-	bunny1.mClusterPlasticCreep = 0.15f;
-	bunny1.mTranslation[1] = 5.0f;
-	SoftBody::Instance bunny2("../../data/bunny.ply");
-	bunny2.mScale = Vec3(10.0f);
-	bunny2.mClusterSpacing = 1.0f;
-	bunny2.mClusterRadius = 0.0f;
-	bunny2.mClusterStiffness = 0.0f;
-	bunny2.mGlobalStiffness = 1.0f;
-	bunny2.mClusterPlasticThreshold = 0.0015f;
-	bunny2.mClusterPlasticCreep = 0.30f;
-	bunny2.mTranslation[1] = 5.0f;
-	bunny2.mTranslation[0] = 2.0f;
-	SoftBody* plasticComparisonScene = new SoftBody("Plastic Comparison");
-	plasticComparisonScene->AddInstance(bunny1);
-	plasticComparisonScene->AddInstance(bunny2);
-	plasticComparisonScene->mPlinth = true;
-
-	SoftBody::Instance stackBox("../../data/box_high.ply");
-	stackBox.mScale = Vec3(10.0f);
-	stackBox.mClusterSpacing = 1.5f;
-	stackBox.mClusterRadius = 0.0f;
-	stackBox.mClusterStiffness = 0.0f;
-	stackBox.mGlobalStiffness = 1.0f;
-	stackBox.mClusterPlasticThreshold = 0.0015f;
-	stackBox.mClusterPlasticCreep = 0.25f;
-	stackBox.mTranslation[1] = 1.0f;
-	SoftBody::Instance stackSphere("../../data/sphere.ply");
-	stackSphere.mScale = Vec3(10.0f);
-	stackSphere.mClusterSpacing = 1.5f;
-	stackSphere.mClusterRadius = 0.0f;
-	stackSphere.mClusterStiffness = 0.0f;
-	stackSphere.mGlobalStiffness = 1.0f;
-	stackSphere.mClusterPlasticThreshold = 0.0015f;
-	stackSphere.mClusterPlasticCreep = 0.25f;
-	stackSphere.mTranslation[1] = 2.0f;
-	SoftBody* plasticStackScene = new SoftBody("Plastic Stack");
-	plasticStackScene->AddInstance(stackBox);
-	plasticStackScene->AddInstance(stackSphere);
-	for (int i = 0; i < 3; i++)
-	{
-		stackBox.mTranslation[1] += 2.0f;
-		stackSphere.mTranslation[1] += 2.0f;
-		plasticStackScene->AddInstance(stackBox);
-		plasticStackScene->AddInstance(stackSphere);
-	}
-
-
-
-	// opening scene
-
-	g_scenes.push_back(new PotPourri("Pot Pourri"));
-	g_scenes.push_back(softOctopusSceneNew);
-	g_scenes.push_back(softTeapotSceneNew);
-	g_scenes.push_back(softRopeSceneNew);
-	g_scenes.push_back(softClothSceneNew);
-	g_scenes.push_back(softBowlSceneNew);
-	g_scenes.push_back(softRodSceneNew);
-	g_scenes.push_back(softArmadilloSceneNew);
-	g_scenes.push_back(softBunnySceneNew);
-
-	g_scenes.push_back(plasticBunniesSceneNew);
-	g_scenes.push_back(plasticComparisonScene);
-	g_scenes.push_back(plasticStackScene);
-
-	// collision scenes
-	g_scenes.push_back(new FrictionRamp("Friction Ramp"));
-	g_scenes.push_back(new FrictionMovingShape("Friction Moving Box", 0));
-	g_scenes.push_back(new FrictionMovingShape("Friction Moving Sphere", 1));
-	g_scenes.push_back(new FrictionMovingShape("Friction Moving Capsule", 2));
-	g_scenes.push_back(new FrictionMovingShape("Friction Moving Mesh", 3));
-	g_scenes.push_back(new ShapeCollision("Shape Collision"));
-	g_scenes.push_back(new ShapeChannels("Shape Channels"));
-	g_scenes.push_back(new TriangleCollision("Triangle Collision"));
-	g_scenes.push_back(new LocalSpaceFluid("Local Space Fluid"));
-	g_scenes.push_back(new LocalSpaceCloth("Local Space Cloth"));
-	g_scenes.push_back(new CCDFluid("World Space Fluid"));
-
-	// cloth scenes
-	g_scenes.push_back(new EnvironmentalCloth("Env Cloth Small", 6, 6, 40, 16));
-	g_scenes.push_back(new EnvironmentalCloth("Env Cloth Large", 16, 32, 10, 3));
-	g_scenes.push_back(new FlagCloth("Flag Cloth"));
-	g_scenes.push_back(new Inflatable("Inflatables"));
-	g_scenes.push_back(new ClothLayers("Cloth Layers"));
-	g_scenes.push_back(new SphereCloth("Sphere Cloth"));
-	g_scenes.push_back(new Tearing("Tearing"));
-	g_scenes.push_back(new Pasta("Pasta"));
-
-	// game mesh scenes
-	g_scenes.push_back(new GameMesh("Game Mesh Rigid", 0));
-	g_scenes.push_back(new GameMesh("Game Mesh Particles", 1));
-	g_scenes.push_back(new GameMesh("Game Mesh Fluid", 2));
-	g_scenes.push_back(new GameMesh("Game Mesh Cloth", 3));
-	g_scenes.push_back(new RigidDebris("Rigid Debris"));
-
-	// viscous fluids
-	g_scenes.push_back(new Viscosity("Viscosity Low", 0.5f));
-	g_scenes.push_back(new Viscosity("Viscosity Med", 3.0f));
-	g_scenes.push_back(new Viscosity("Viscosity High", 5.0f, 0.12f));
-	g_scenes.push_back(new Adhesion("Adhesion"));
-	g_scenes.push_back(new GooGun("Goo Gun", true));
-
-	// regular fluids
-	g_scenes.push_back(new Buoyancy("Buoyancy"));
-	g_scenes.push_back(new Melting("Melting"));
-	g_scenes.push_back(new SurfaceTension("Surface Tension Low", 0.0f));
-	g_scenes.push_back(new SurfaceTension("Surface Tension Med", 10.0f));
-	g_scenes.push_back(new SurfaceTension("Surface Tension High", 20.0f));
-	g_scenes.push_back(new DamBreak("DamBreak  5cm", 0.05f));
-	g_scenes.push_back(new DamBreak("DamBreak 10cm", 0.1f));
-	g_scenes.push_back(new DamBreak("DamBreak 15cm", 0.15f));
-	g_scenes.push_back(new RockPool("Rock Pool"));
-	g_scenes.push_back(new RayleighTaylor2D("Rayleigh Taylor 2D"));
-
-	// misc feature scenes
-	g_scenes.push_back(new TriggerVolume("Trigger Volume"));
-	g_scenes.push_back(new ForceField("Force Field"));
-	g_scenes.push_back(new InitialOverlap("Initial Overlap"));
-
-	// rigid body scenes
-	g_scenes.push_back(new RigidPile("Rigid2", 2));
-	g_scenes.push_back(new RigidPile("Rigid4", 4));
-	g_scenes.push_back(new RigidPile("Rigid8", 12));
-	g_scenes.push_back(new BananaPile("Bananas"));
-	g_scenes.push_back(new LowDimensionalShapes("Low Dimensional Shapes"));
-
-	// granular scenes
-	g_scenes.push_back(new GranularPile("Granular Pile"));
-
-	// coupling scenes
-	g_scenes.push_back(new ParachutingBunnies("Parachuting Bunnies"));
-	g_scenes.push_back(new WaterBalloon("Water Balloons"));
-	g_scenes.push_back(new RigidFluidCoupling("Rigid Fluid Coupling"));
-	g_scenes.push_back(new FluidBlock("Fluid Block"));
-	g_scenes.push_back(new FluidClothCoupling("Fluid Cloth Coupling Water", false));
-	g_scenes.push_back(new FluidClothCoupling("Fluid Cloth Coupling Goo", true));
-	g_scenes.push_back(new BunnyBath("Bunny Bath Dam", true));
+	g_scenes.push_back(new GranularSweep("Granular Sweep"));
+	g_scenes.push_back(new FluidSweep("Fluid Sweep"));
+//    g_scenes.push_back(new ForceField("Force Field"));
 
 	// init graphics
 	RenderInitOptions options;
 
-	cout << "*********** Starting FleX with Python ************ " << endl;
+//    cout << "*********** Starting FleX with Python ************ " << endl;
 
-#ifndef ANDROID
 	DemoContext* demoContext = nullptr;
-#if FLEX_DX
-	// Flex DX demo will always create the renderer using the same DX api as the flex lib
-	if (g_d3d12)
-	{
-		// workaround for a driver issue with D3D12 with msaa, force it to off
-		// options.numMsaaSamples = 1;
-		g_graphics = 2;
-	}
-	else
-	{
-		g_graphics = 1;
-	}
-#else
-	switch (g_graphics)
-	{
-	case 0: break;
-	case 1: break;
+
+	switch (g_graphics) {
+	case 0:
+		break;
+	case 1:
+		break;
 	case 2:
 		// workaround for a driver issue with D3D12 with msaa, force it to off
 		// options.numMsaaSamples = 1;
 		// Currently interop doesn't work on d3d12
 		g_interop = false;
 		break;
-	default: assert(0);
+	default:
+		assert(0);
 	}
-#endif
 	// Create the demo context
 	CreateDemoContext(g_graphics);
 
 	std::string str;
-#if FLEX_DX
-	if (g_d3d12)
-		str = "Flex Demo (Compute: DX12) ";
-	else
-		str = "Flex Demo (Compute: DX11) ";
-#else
+
 	str = "Flex Demo (Compute: CUDA) ";
-#endif
-	switch (g_graphics)
-	{
+	switch (g_graphics) {
 	case 0:
 		str += "(Graphics: OpenGL)";
 		break;
@@ -3122,26 +2921,6 @@ void initialize(){
 
 	ReshapeWindow(g_screenWidth, g_screenHeight);
 
-#endif // ifndef ANDROID
-
-#if _WIN32 && !FLEX_DX
-	// use the PhysX GPU selected from the NVIDIA control panel
-	if (g_device == -1)
-		g_device = NvFlexDeviceGetSuggestedOrdinal();
-
-	// Create an optimized CUDA context for Flex and set it on the
-	// calling thread. This is an optional call, it is fine to use
-	// a regular CUDA context, although creating one through this API
-	// is recommended for best performance.
-	bool success = NvFlexDeviceCreateCudaContext(g_device);
-
-	if (!success)
-	{
-		printf("Error creating CUDA context.\n");
-		exit(-1);
-	}
-#endif
-
 	NvFlexInitDesc desc;
 	desc.deviceIndex = g_device;
 	desc.enableExtensions = g_extensions;
@@ -3150,55 +2929,11 @@ void initialize(){
 	desc.computeContext = 0;
 	desc.computeType = eNvFlexCUDA;
 
-#if FLEX_DX
-	if (g_d3d12)
-		desc.computeType = eNvFlexD3D12;
-	else
-		desc.computeType = eNvFlexD3D11;
-
-	bool userSpecifiedGpuToUseForFlex = (g_device != -1);
-
-	if (userSpecifiedGpuToUseForFlex)
-	{
-		// Flex doesn't currently support interop between different D3DDevices.
-		// If the user specifies which physical device to use, then Flex always
-		// creates its own D3DDevice, even if graphics is on the same physical device.
-		// So specified physical device always means no interop.
-		g_interop = false;
-	}
-	else
-	{
-		// Ask Flex to run on the same GPU as rendering
-		GetRenderDevice(&desc.renderDevice,
-			&desc.renderContext);
-	}
-
-	// Shared resources are unimplemented on D3D12,
-	// so disable it for now.
-	if (g_d3d12)
-		g_interop = false;
-
-	// Setting runOnRenderContext = true doesn't prevent async compute, it just
-	// makes Flex send compute and graphics to the GPU on the same queue.
-	//
-	// So to allow the user to toggle async compute, we set runOnRenderContext = false
-	// and provide a toggleable sync between compute and graphics in the app.
-	//
-	// Search for g_useAsyncCompute for details
-	desc.runOnRenderContext = false;
-#else
-	// Shared resources are unimplemented on D3D12,
-	// so disable it for now.
-	if (g_d3d12)
-		g_interop = false;
-#endif
-
 	// Init Flex library, note that no CUDA methods should be called before this
 	// point to ensure we get the device context we want
 	g_flexLib = NvFlexInit(NV_FLEX_VERSION, ErrorCallback, &desc);
 
-	if (g_Error || g_flexLib == NULL)
-	{
+	if (g_Error || g_flexLib == NULL) {
 		printf("Could not initialize Flex, exiting.\n");
 		exit(-1);
 	}
@@ -3213,23 +2948,18 @@ void initialize(){
 	// create shadow maps
 	g_shadowMap = ShadowCreate();
 
-
 	// init default scene
 	StartGpuWork();
 	Init(g_scene);
 	EndGpuWork();
 
-
-
-
-    cout << "C++ Finished Initializing!" << endl;
+	cout << "C++ Finished Initializing!" << endl;
 
 }
 
+int destroy_scene() {
 
-int destroy_scene(){
-
-    cout << "C++ Destroying Scene!" << endl;
+	cout << "C++ Destroying Scene!" << endl;
 
 	if (g_fluidRenderer)
 		DestroyFluidRenderer(g_fluidRenderer);
@@ -3247,6 +2977,4 @@ int destroy_scene(){
 
 	return 0;
 }
-
-
 

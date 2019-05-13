@@ -1,6 +1,6 @@
 
 
-
+//#include "../helpers.h"
 class GranularShape : public Scene
 {
 public:
@@ -9,11 +9,12 @@ public:
 
 	void Initialize()
 	{
+        g_params.radius = 0.5*g_params.radius;
 		// granular dragon
-		CreateParticleShape(GetFilePathByPlatform("../../data/dragon.obj").c_str(),Vec3(0.0f, 2.5f, 0.0f), 16.0f, DegToRad(-20.0f), g_params.radius*1.05f, Vec3(0.0f, 0.0f, 0.0f), 1.0f, false, 0.0f, NvFlexMakePhase(0, eNvFlexPhaseSelfCollide), false, g_params.radius*0.05f);
+		CreateParticleShape(GetFilePathByPlatform("../../data/dragon.obj").c_str(),Vec3(0.0f, 2.5f, 0.0f), 5.0f, DegToRad(-20.0f), g_params.radius*1.05f, Vec3(0.0f, 0.0f, 0.0f), 1.0f, false, 0.0f, NvFlexMakePhase(0, eNvFlexPhaseSelfCollide), false, g_params.radius*0.005f);
 		
-		AddBox(Vec3(8.0f, 8.0f, 5.0f));
-		g_buffers->shapePositions[0] += Vec4(0.0f, -1.5f, 0.0f, 0.0f);
+//		AddBox(Vec3(8.0f, 8.0f, 5.0f));
+//		g_buffers->shapePositions[0] += Vec4(0.0f, -1.5f, 0.0f, 0.0f);
 		
 		g_params.staticFriction = 1.0f;
 		g_params.dynamicFriction = 0.65f;
@@ -25,11 +26,13 @@ public:
 		g_params.restitution = 0.01f;
 		g_params.gravity[1] *= 1.f;
 
-		g_numSubsteps = 3;
+		g_numSubsteps = 10;
 
 		g_colors[1] = Colour(0.805f, 0.702f, 0.401f);		
 
 		// draw options		
 		g_drawPoints = true;
+//        g_drawMesh = true;
+
 	}
 };

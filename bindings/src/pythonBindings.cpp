@@ -41,17 +41,16 @@ PYBIND11_MODULE(bindings, m) {
     m.def("initialize", &initialize, "float init");
     m.def("destroy_scene", &destroy_scene, py::return_value_policy::automatic);
 
-
-
     m.def("RandInit", &RandInit, "RandInit");
     m.def("add", &add, "Add two numbers");
-    m.def("grab_z_pos_particle", &grab_z_pos_particle,  py::return_value_policy::automatic);
-    m.def("grab_y_pos_particle", &grab_y_pos_particle,  py::return_value_policy::automatic);
-    m.def("grab_x_pos_particle", &grab_x_pos_particle,  py::return_value_policy::automatic);
     m.def("make_array", &make_array,  py::return_value_policy::move); // Return policy can be left default, i.e. return_value_policy::automatic
-
-
+    m.def("chooseScene",&chooseScene,"chooseScene");
     m.def("subtract", [](int i, int j) { return i - j; }, "Subtract two numbers");
+    m.def("get_state",&getState,"getState");
+    m.def("setSceneRandSeed",&setSceneRandSeed,"setSceneRandSeed");
+    m.def("resetScene",&Reset,"resetScene");
+    m.def("getDt",&getDt,"getDt");
+    m.def("setDt",&setDt,"setDt");
 
 #ifdef VERSION_INFO
     m.attr("__version__") = VERSION_INFO;

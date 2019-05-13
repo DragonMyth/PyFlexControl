@@ -14,7 +14,7 @@ public:
 		const float radius = 0.01f;
 		const int phase = NvFlexMakePhase(0, eNvFlexPhaseSelfCollide);
 
-		CreateParticleGrid(Vec3(-1.0f, radius, 0.0f), 200, 6, 50, radius*0.5f, Vec3(0.0f), 1.0f, false, 0.0f, phase);
+		CreateParticleGrid(Vec3(-1.0f, radius, 0.0f), 200, 6, 200, radius*0.5f, Vec3(0.0f), 1.0f, false, 0.0f, phase);
 
 		g_params.radius = radius*1.0f;
 		g_params.dynamicFriction = 0.4f;
@@ -76,13 +76,19 @@ public:
 	{
 		float time = g_frame*g_dt;
 
-		(Vec3&)forcefield.mPosition = Vec3((sinf(time)), 0.5f, 0.0f);
-		forcefield.mRadius = (sinf(time*1.5f)*0.5f + 0.5f);
-		forcefield.mStrength = -30.0f;
+		(Vec3&)forcefield.mPosition = Vec3((sinf(time)), 0.3f, 0.0f);
+//		forcefield.mRadius = (sinf(time*1.5f)*0.5f + 0.5f);
+        forcefield.mRadius = (0.5f);
+
+        forcefield.mStrength = -30.0f;
 		forcefield.mMode = eNvFlexExtModeForce;
 		forcefield.mLinearFalloff = true;
 
 		NvFlexExtSetForceFields(callback, &forcefield, 1);
+	}
+
+	virtual void Act(){
+
 	}
 
 	NvFlexExtForceField forcefield;
