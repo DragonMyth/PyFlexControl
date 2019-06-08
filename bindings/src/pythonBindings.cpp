@@ -1,6 +1,5 @@
 //Written by Henry M. Clever. November 15, 2018.
 
-
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
 #include <pybind11/functional.h>
@@ -13,50 +12,45 @@
 #include <stdio.h>
 
 int add(int i, int j) {
-    return 100;//deadzones[1];
+	return 100; //deadzones[1];
 }
-
-
 
 namespace py = pybind11;
 
-
 py::array_t<double> make_array() {
-    // No pointer is passed, so NumPy will allocate the buffer
-    printf("a;lsfjl;\n");
-    auto myarray = py::array_t<double>(10);
+	// No pointer is passed, so NumPy will allocate the buffer
+	printf("a;lsfjl;\n");
+	auto myarray = py::array_t<double>(10);
 
-    return myarray;
+	return myarray;
 }
-
-
-
 
 PYBIND11_MODULE(bindings, m) {
-    m.doc() = "pybind11 passing plugin";
+	m.doc() = "pybind11 passing plugin";
 
+	m.def("update_frame", &UpdateFrame, "void update frame");
+	m.def("sdl_main", &SDLMain, py::return_value_policy::automatic);
+	m.def("initialize", &initialize, "float init");
+	m.def("destroy_scene", &destroy_scene, py::return_value_policy::automatic);
 
-    m.def("update_frame", &UpdateFrame, "void update frame");
-    m.def("sdl_main", &SDLMain, py::return_value_policy::automatic);
-    m.def("initialize", &initialize, "float init");
-    m.def("destroy_scene", &destroy_scene, py::return_value_policy::automatic);
-
-    m.def("RandInit", &RandInit, "RandInit");
-    m.def("add", &add, "Add two numbers");
-    m.def("make_array", &make_array,  py::return_value_policy::move); // Return policy can be left default, i.e. return_value_policy::automatic
-    m.def("chooseScene",&chooseScene,"chooseScene");
-    m.def("subtract", [](int i, int j) { return i - j; }, "Subtract two numbers");
-    m.def("get_state",&getState,"getState");
-    m.def("setSceneRandSeed",&setSceneRandSeed,"setSceneRandSeed");
-    m.def("resetScene",&Reset,"resetScene");
-    m.def("getDt",&getDt,"getDt");
-    m.def("setDt",&setDt,"setDt");
+	m.def("RandInit", &RandInit, "RandInit");
+	m.def("add", &add, "Add two numbers");
+	m.def("make_array", &make_array, py::return_value_policy::move); // Return policy can be left default, i.e. return_value_policy::automatic
+	m.def("chooseScene", &chooseScene, "chooseScene");
+	m.def("subtract", [](int i, int j) {return i - j;}, "Subtract two numbers");
+	m.def("get_state", &getState, "getState");
+	m.def("setSceneRandSeed", &setSceneRandSeed, "setSceneRandSeed");
+	m.def("resetScene", &Reset, "resetScene");
+	m.def("getDt", &getDt, "getDt");
+	m.def("setDt", &setDt, "setDt");
+	m.def("getNumParticles", &getNumParticles, "getNumParticles");
+	m.def("getNumInstances", &getNumInstances, "getNumInstances");
+	m.def("getAllCenters",&getAllCenters,"getAllCenters");
 
 #ifdef VERSION_INFO
-    m.attr("__version__") = VERSION_INFO;
+	m.attr("__version__") = VERSION_INFO;
 #else
-    m.attr("__version__") = "dev";
+	m.attr("__version__") = "dev";
 #endif
 }
-
 

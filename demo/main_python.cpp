@@ -436,8 +436,8 @@ void DestroyBuffers(SimBuffers* buffers) {
 	delete buffers;
 }
 
-Vec3 g_camPos(6.0f, 8.0f, 18.0f);
-Vec3 g_camAngle(0.0f, -DegToRad(20.0f), 0.0f);
+Vec3 g_camPos(-10.0f, 3.0f, 10.0f);
+Vec3 g_camAngle(-DegToRad(60.0f), -DegToRad(20.0f), 0.0f);
 Vec3 g_camVel(0.0f);
 Vec3 g_camSmoothVel(0.0f);
 
@@ -598,7 +598,7 @@ float getDt() {
 void setDt(float dt) {
 	g_dt = dt;
 }
-void Init(int scene, bool centerCamera = true) {
+void Init(int scene, bool centerCamera = false) {
 
 	RandInit();
 
@@ -1295,6 +1295,17 @@ Eigen::MatrixXd UpdateControlScene(Eigen::VectorXd act) {
 	return g_scenes[g_scene]->Update(act);
 }
 
+int getNumParticles() {
+	return g_buffers->positions.size();
+}
+
+int getNumInstances() {
+	return g_scenes[g_scene]->getNumInstances();
+}
+
+Eigen::MatrixXd getAllCenters() {
+	return g_scenes[g_scene]->getAllCenters();
+}
 Eigen::MatrixXd getState() {
 //	return g_scenes[g_scene]->getState();
 	return curr_state;

@@ -9,68 +9,87 @@ public:
 	GranularSweep(const char* name) :
 			Scene(name) {
 	}
-	Vec3 currPos;
-	Quat currRot;
-	Vec2 currRotVec;
 
-	Vec3 currVel;
-	float currAngVel;
+	vector<Vec3> currPoses;
+	vector<Quat> currRots;
+	vector<Vec3> currVels;
+	vector<float> currAngVels;
 
 	float kp_pos = 0.5;
 	float kd_pos = 1.2;
 	float kp_rot = 0.7;
 	float kd_rot = 1;
-
+	int particleDim = 50;
+	int numSceneDim = 5;
 	int seed = -1;
-	virtual Eigen::MatrixXd Initialize(int placeholder=0) {
+	vector<Vec3> centers;
+	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
+		centers.clear();
+		currPoses.clear();
+		currRots.clear();
+		currVels.clear();
+		currAngVels.clear();
 
-		if(seed!=-1){
+		if (seed != -1) {
 			srand(seed);
 		}
 		// granular pile
-		float radius = 0.075f;
-		float interRadius = radius * 1.01f;
+		float radius = 0.015f;
 
-//		for(int i=-2;i<3;i++){
-//			for(int j=0;j<2;j++){
-//				Vec3 center = Vec3(i*10,0,j*10);
-//				CreateParticleGrid(center+Vec3(0, 3, 0), 50, 1, 50, interRadius, Vec3(0, 0, 0),
-//								1, false, 0.0f, NvFlexMakePhase(0, eNvFlexPhaseSelfCollide),
-//								0.003f);
-//			}
-//
-//		}
-		Vec3 center = Vec3(0, 0, 0);
-		CreateParticleGrid(center + Vec3(0, 1, 0), 50, 1, 50, interRadius,
-				Vec3(0, 0, 0), 1, false, 0.0f,
-				NvFlexMakePhase(0, eNvFlexPhaseSelfCollide), 0.001f);
+		for (int i = -numSceneDim / 2; i < numSceneDim / 2 + 1; i++) {
+			for (int j = -numSceneDim / 2; j < numSceneDim / 2 + 1; j++) {
+				int group = i * 5 + j;
+				int phase = NvFlexMakePhase(group, eNvFlexPhaseSelfCollide);
+				Vec3 center = Vec3(i * 30, 0, j * 30);
+				centers.push_back(center);
+//				CreateParticleGrid(center + Vec3(0, radius, 0), particleDim, 1,
+//						particleDim, radius, Vec3(0, 0, 0), 1, false, 0.0f,
+//						phase, 0.005f);
+				Vec2 xRange = Vec2(-2,2);
+				Vec2 zRange = Vec2(-2,2);
+				Vec2 gap = Vec2(particleDim,particleDim);
+				CreateGranularGrid(center,xRange,zRange,radius,gap,Vec3(0,0,0),1,false,0.0f,phase,0.2f);
 
-		Eigen::Vector2d randPos;
-		randPos.setRandom();
-		randPos = randPos * 0.01;
-		Eigen::VectorXd randRot(1);
-		randRot.setRandom();
-		randRot *= EIGEN_PI * 0.1;
-		currPos = Vec3(0.0f, 0.0f, 2.5f) + Vec3(randPos[0], 0, randPos[1]);
-		currRot = QuatFromAxisAngle(Vec3(0, 1, 0), 0 + randRot(0));
+				Vec3 currPos;
+				Quat currRot;
 
-		AddBox(Vec3(0.7, 0.5, 0.03), currPos, currRot);
+				Vec3 currVel;
+				float currAngVel;
 
-		float currCosHalfAng = currRot.w;
-		float currSinHalfAng = currRot.y;
+				Eigen::Vector2d randPos;
+				randPos.setRandom();
+				randPos = randPos*4;
+				Eigen::VectorXd randRot(1);
+				randRot.setRandom();
+				randRot *= EIGEN_PI/2;
+				currPos = center
+						+ Vec3(randPos[0], 0, randPos[1]);
+				currRot = QuatFromAxisAngle(Vec3(0, 1, 0), 0 + randRot(0));
+				currVel = Vec3(0, 0, 0);
+				currAngVel = 0;
 
-		float currCosAng = Sqr(currCosHalfAng) - Sqr(currSinHalfAng);
-		float currSinAng = 2 * currCosHalfAng * currSinHalfAng;
+				AddBox(Vec3(0.7, 0.5, 0.03), currPos, currRot);
 
-		currRotVec = Vec2(currCosAng, currSinAng);
+				currPoses.push_back(currPos);
+				currRots.push_back(currRot);
+				currVels.push_back(currVel);
+				currAngVels.push_back(currAngVel);
 
-		g_numSubsteps = 2;
+			}
+
+		}
+//		Vec3 center = Vec3(0, 0, 0);
+//		CreateParticleGrid(center + Vec3(0, 1, 0), 50, 1, 50, interRadius,
+//				Vec3(0, 0, 0), 1, false, 0.0f,
+//				NvFlexMakePhase(0, eNvFlexPhaseSelfCollide), 0.001f);
+
+		g_numSubsteps = 5;
 		g_params.radius = radius;
-		g_params.staticFriction = 1.0f;
-		g_params.dynamicFriction = 0.8f;
+		g_params.staticFriction = 10.5f;
+		g_params.dynamicFriction = 1.2f;
 		g_params.viscosity = 0.0f;
-		g_params.numIterations = 10;
-		g_params.particleCollisionMargin = g_params.radius * 0.25f;	// 5% collision margin
+		g_params.numIterations = 5;
+		g_params.particleCollisionMargin = g_params.radius * 0.05f;	// 5% collision margin
 		g_params.sleepThreshold = g_params.radius * 0.25f;
 		g_params.shockPropagation = 6.f;
 		g_params.restitution = 0.2f;
@@ -84,10 +103,7 @@ public:
 		g_warmup = false;
 
 		// hack, change the color of phase 0 particles to 'sand'		
-		g_colors[0] = Colour(0.805f, 0.702f, 0.401f);
-
-		currVel = Vec3(0, 0, 0);
-		currAngVel = 0;
+//		g_colors[0] = Colour(0.805f, 0.702f, 0.401f);
 
 		return getState();
 	}
@@ -104,40 +120,47 @@ public:
 //				<< posDiff.z << endl;
 
 		if (g_frame > 40) {
-			Vec3 targetPos = Vec3(action(0), 0, action(1));
-			Vec2 targetRotVec = Vec2(action(2), action(3));
-
-			float angDiff = VectorToAngle(targetRotVec)
-					- VectorToAngle(currRotVec);
-
-			if (angDiff > EIGEN_PI) {
-				angDiff -= 2 * EIGEN_PI;
-			} else if (angDiff <= -EIGEN_PI) {
-				angDiff += 2 * EIGEN_PI;
-			}
-
-			Vec3 posDiff = targetPos - currPos;
-
-			Vec3 force = posDiff * kp_pos - currVel * kd_pos;
-			float torque = angDiff * kp_rot - currAngVel * kd_rot;
-
-			currVel += force * g_dt;
-			currAngVel += torque * g_dt;
-
-			Vec3 newPos = Vec3(currPos.x, currPos.y, currPos.z)
-					+ currVel * g_dt;
-			Quat newRot = currRot
-					* QuatFromAxisAngle(Vec3(0, 1, 0), currAngVel * g_dt);
-			currPos = newPos;
-			currRot = newRot;
-			float currCosHalfAng = currRot.w;
-			float currSinHalfAng = currRot.y;
-			float currCosAng = Sqr(currCosHalfAng) - Sqr(currSinHalfAng);
-			float currSinAng = 2 * currCosHalfAng * currSinHalfAng;
-			currRotVec = Vec2(currCosAng, currSinAng);
-
 			ClearShapes();
-			AddBox(Vec3(0.7, 0.5, 0.03), newPos, newRot);
+
+			for (int i = 0; i < centers.size(); i++) {
+
+				Vec3 targetPos = centers[i]
+						+ Vec3(action(i * 4), 0, action(i * 4 + 1));
+				Vec2 targetRotVec = Vec2(action(i * 4 + 2), action(i * 4 + 3));
+
+				float currCosHalfAng = currRots[i].w;
+				float currSinHalfAng = currRots[i].y;
+
+				float currCosAng = Sqr(currCosHalfAng) - Sqr(currSinHalfAng);
+				float currSinAng = 2 * currCosHalfAng * currSinHalfAng;
+
+				float angDiff = VectorToAngle(targetRotVec)
+						- VectorToAngle(Vec2(currCosAng, currSinAng));
+
+				if (angDiff > EIGEN_PI) {
+					angDiff -= 2 * EIGEN_PI;
+				} else if (angDiff <= -EIGEN_PI) {
+					angDiff += 2 * EIGEN_PI;
+				}
+
+				Vec3 posDiff = targetPos - currPoses[i];
+
+				Vec3 force = posDiff * kp_pos - currVels[i] * kd_pos;
+				float torque = angDiff * kp_rot - currAngVels[i] * kd_rot;
+
+				currVels[i] += force * g_dt;
+				currAngVels[i] += torque * g_dt;
+
+				Vec3 newPos = Vec3(currPoses[i].x, currPoses[i].y,
+						currPoses[i].z) + currVels[i] * g_dt;
+				Quat newRot = currRots[i]
+						* QuatFromAxisAngle(Vec3(0, 1, 0),
+								currAngVels[i] * g_dt);
+				currPoses[i] = newPos;
+				currRots[i] = newRot;
+
+				AddBox(Vec3(0.7, 0.5, 0.03), newPos, newRot);
+			}
 			UpdateShapes();
 
 		}
@@ -152,25 +175,58 @@ public:
 //		cout << "HERERE" << endl;
 		using namespace Eigen;
 		int numPart = g_buffers->positions.size();
+//		cout<<"Num Parts: "<<numPart<<endl;
+//		cout<<"Num Expect: "<<particleDim*particleDim*numSceneDim*numSceneDim<<endl;
+		int numBars = numPart / (particleDim * particleDim);
 		//The last four rows are the translational and rotational position and velocity for the moving bar
-		MatrixXd state(numPart + 4, 2);
+		MatrixXd state(numPart + 4 * numBars, 2);
 		state.setZero();
-//		cout<<g_buffers->positions[0].x<<endl;
-//		state.row(0) = Vector2d(g_buffers->positions[0].x,
-//							g_buffers->positions[0].z);
-		for (int i = 0; i < numPart; i++) {
-			state.row(i) = Vector2d(g_buffers->positions[i].x,
-					g_buffers->positions[i].z);
-//			state.row(i) = Vector2d(1,4);
-		}
-//		cout << "2" << endl;
 
-		state.row(numPart) = Vector2d(currPos.x, currPos.z);
-		state.row(numPart + 1) = Vector2d(currRotVec.x, currRotVec.y);
-		state.row(numPart + 2) = Vector2d(currVel.x, currVel.z);
-		state.row(numPart + 3) = Vector2d(cos(currAngVel), sin(currAngVel));
-//		cout << "THERETHERE" << endl;
+		for (int i = 0; i < numBars; i++) {
+			Vec3 cent = centers[i];
+			int numPartInScene = particleDim * particleDim;
+
+			for (int j = 0; j < numPartInScene; j++) {
+				state.row(i * numPartInScene + j) = Vector2d(
+						g_buffers->positions[i * numPartInScene + j].x,
+						g_buffers->positions[i * numPartInScene + j].z)
+						- Vector2d(cent.x, cent.z);
+			}
+
+		}
+
+		for (int i = 0; i < numBars; i++) {
+			Vec3 cent = centers[i];
+			float currCosHalfAng = currRots[i].w;
+			float currSinHalfAng = currRots[i].y;
+			float currCosAng = Sqr(currCosHalfAng) - Sqr(currSinHalfAng);
+			float currSinAng = 2 * currCosHalfAng * currSinHalfAng;
+
+			state.row(numPart + i * 4) = Vector2d(currPoses[i].x,
+					currPoses[i].z)- Vector2d(cent.x, cent.z);;
+			state.row(numPart + i * 4 + 1) = Vector2d(currCosAng, currSinAng);
+			state.row(numPart + i * 4 + 2) = Vector2d(currVels[i].x,
+					currVels[0].z);
+			state.row(numPart + i * 4 + 3) = Vector2d(cos(currAngVels[0]),
+					sin(currAngVels[0]));
+		}
 		return state;
 
+	}
+
+	int getNumInstances() {
+		return numSceneDim * numSceneDim;
+	}
+
+	virtual Eigen::MatrixXd getAllCenters() {
+		using namespace Eigen;
+		int numInstances = numSceneDim * numSceneDim;
+		MatrixXd allCenters(numInstances, 3);
+		allCenters.setZero();
+		for (int i = 0; i < numInstances; i++) {
+			Vector3d centerVec(centers[i].x, centers[i].y, centers[i].z);
+			allCenters.row(i) = centerVec;
+		}
+		return allCenters;
 	}
 };

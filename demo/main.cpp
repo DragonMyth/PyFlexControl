@@ -119,6 +119,7 @@ int GetKeyFromGameControllerButton(SDL_GameControllerButton button) {
 #define XINPUT_GAMEPAD_TRIGGER_THRESHOLD    30
 
 int deadzones[3] = { XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE,
+
 XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE, XINPUT_GAMEPAD_TRIGGER_THRESHOLD };
 
 inline float joyAxisFilter(int value, int stick) {
@@ -433,8 +434,8 @@ void DestroyBuffers(SimBuffers* buffers) {
 	delete buffers;
 }
 
-Vec3 g_camPos(6.0f, 8.0f, 18.0f);
-Vec3 g_camAngle(0.0f, -DegToRad(20.0f), 0.0f);
+Vec3 g_camPos(-10.0f, 3.0f, 10.0f);
+Vec3 g_camAngle(-DegToRad(60.0f), -DegToRad(20.0f), 0.0f);
 Vec3 g_camVel(0.0f);
 Vec3 g_camSmoothVel(0.0f);
 
@@ -578,11 +579,11 @@ inline float sqr(float x) {
 #include "scenes.h"
 #include "benchmark.h"
 
-void setSceneRandSeed(int seed){
+void setSceneRandSeed(int seed) {
 	g_scenes[g_scene]->setSceneSeed(seed);
 }
 
-void Init(int scene, bool centerCamera = true) {
+void Init(int scene, bool centerCamera = false) {
 	RandInit();
 	if (g_solver) {
 		if (g_buffers)
@@ -1271,13 +1272,18 @@ void UpdateScene() {
 	g_scenes[g_scene]->Update();
 }
 
-
-
 Eigen::MatrixXd UpdateControlScene(Eigen::VectorXd act) {
 	// give scene a chance to make changes to particle buffers
 	return g_scenes[g_scene]->Update(act);
 }
 
+int getNumParticles() {
+	return g_buffers->positions.size();
+}
+
+int getNumInstances() {
+	return g_scenes[g_scene]->getNumInstances();
+}
 void RenderScene() {
 	const int numParticles = NvFlexGetActiveCount(g_solver);
 	const int numDiffuse = g_buffers->diffuseCount[0];
@@ -2084,8 +2090,8 @@ int DoUI() {
 }
 
 Eigen::MatrixXd UpdateFrame(bool visualize) {
-	if (g_frame % 1000 == 0) {
-		cout << g_frame << endl;
+	if (g_frame % 100 == 0) {
+		cout <<"Frame Count: "<< g_frame << endl;
 	}
 	static double lastTime;
 
@@ -2121,8 +2127,8 @@ Eigen::MatrixXd UpdateFrame(bool visualize) {
 		UpdateWind();
 //		UpdateScene();
 
-		Eigen::VectorXd act(4);
-		act << 0, 0, -1, 0;
+		Eigen::VectorXd act(4 * 25);
+		act.setZero();
 		state = UpdateControlScene(act);
 
 	}

@@ -57,7 +57,8 @@ public:
 	virtual Matrix44 GetBasis() { return Matrix44::kIdentity; }	
 
 	virtual const char* GetName() { return mName; }
-
+	virtual int getNumInstances(){return 1;}
+	virtual Eigen::MatrixXd getAllCenters(){}
 	const char* mName;
 };
 

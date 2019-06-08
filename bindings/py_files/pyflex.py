@@ -8,14 +8,18 @@ import numpy as np
 
 main_loop_quit = False
 
-flexbind.chooseScene(1)
+flexbind.chooseScene(0)
 
 flexbind.initialize()
 
 step = 0
+# print(flexbind.getNumParticles())
+# print(flexbind.getNumInstances())
+# print(flexbind.getAllCenters())
 while main_loop_quit == False:
-    act = np.random.uniform([-2, -2, -1, -1], [2, 2, 1, 1], 4)
-    act[2::] / np.linalg.norm(act[2::])
+    # act = np.random.uniform([-2, -2, -1, -1], [2, 2, 1, 1], 4)
+    # act[2::] / np.linalg.norm(act[2::])
+    act = np.random.rand(100)
     s1 = flexbind.update_frame(act)
     orig = time()
     # if(step%100==0):
