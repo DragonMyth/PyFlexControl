@@ -13,15 +13,8 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bin/linux64/NvFlexDemoDebugCUDA_x64" beforeDir="false" afterPath="$PROJECT_DIR$/bin/linux64/NvFlexDemoDebugCUDA_x64" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bin/linux64/NvFlexDemoReleaseCUDA_x64" beforeDir="false" afterPath="$PROJECT_DIR$/bin/linux64/NvFlexDemoReleaseCUDA_x64" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bindings/py_files/pyflex.py" beforeDir="false" afterPath="$PROJECT_DIR$/bindings/py_files/pyflex.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bindings/src/pythonBindings.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/bindings/src/pythonBindings.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/main.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/main.cpp.o" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_release/main.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_release/main.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/helpers.h" beforeDir="false" afterPath="$PROJECT_DIR$/demo/helpers.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/demo/main.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/main_python.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/demo/main_python.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/scenes.h" beforeDir="false" afterPath="$PROJECT_DIR$/demo/scenes.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/scenes/fluidsweep.h" beforeDir="false" afterPath="$PROJECT_DIR$/demo/scenes/fluidsweep.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo/scenes/granularsweep.h" beforeDir="false" afterPath="$PROJECT_DIR$/demo/scenes/granularsweep.h" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -197,8 +190,8 @@
   </component>
   <component name="OCFindUsagesOptions" text="true" ivars="false" properties="true" derivedClasses="false" />
   <component name="ProjectFrameBounds">
-    <option name="x" value="375" />
-    <option name="y" value="189" />
+    <option name="x" value="399" />
+    <option name="y" value="32" />
     <option name="width" value="1035" />
     <option name="height" value="1018" />
   </component>
@@ -370,12 +363,12 @@
       <workItem from="1556642523072" duration="13714000" />
       <workItem from="1557252857637" duration="1307000" />
       <workItem from="1557254190456" duration="263000" />
-      <workItem from="1557254478779" duration="22599000" />
+      <workItem from="1557254478779" duration="24541000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="91105000" />
+    <option name="totallyTimeSpent" value="93047000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -387,10 +380,10 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="375" y="189" width="1035" height="1018" extended-state="0" />
+    <frame x="399" y="32" width="1035" height="1018" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49947423" visible="true" weight="0.31041455" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49947423" visible="true" weight="0.31041455" />
       <window_info id="Favorites" order="1" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
@@ -403,7 +396,7 @@
       <window_info anchor="bottom" id="Version Control" order="8" weight="0.32912722" />
       <window_info anchor="bottom" id="Database Changes" order="9" />
       <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.50159335" side_tool="true" weight="0.3193096" />
-      <window_info anchor="bottom" id="Terminal" order="11" sideWeight="0.49840662" visible="true" weight="0.31537598" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="11" sideWeight="0.49840662" visible="true" weight="0.31537598" />
       <window_info anchor="bottom" id="Python Console" order="12" weight="0.32901832" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />

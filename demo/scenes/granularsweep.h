@@ -19,7 +19,7 @@ public:
 	float kd_pos = 1.2;
 	float kp_rot = 0.7;
 	float kd_rot = 1;
-	int particleDim = 50;
+	int particleDim = 30;
 	int numSceneDim = 5;
 	int seed = -1;
 	vector<Vec3> centers;
@@ -34,7 +34,7 @@ public:
 			srand(seed);
 		}
 		// granular pile
-		float radius = 0.015f;
+		float radius = 0.05f;
 
 		for (int i = -numSceneDim / 2; i < numSceneDim / 2 + 1; i++) {
 			for (int j = -numSceneDim / 2; j < numSceneDim / 2 + 1; j++) {
@@ -58,7 +58,7 @@ public:
 
 				Eigen::Vector2d randPos;
 				randPos.setRandom();
-				randPos = randPos*4;
+				randPos = randPos*1;
 				Eigen::VectorXd randRot(1);
 				randRot.setRandom();
 				randRot *= EIGEN_PI/2;
