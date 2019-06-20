@@ -9,14 +9,7 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b699e3a4-66cc-4dfd-87ae-23d742b94496" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bin/linux64/NvFlexDemoDebugCUDA_x64" beforeDir="false" afterPath="$PROJECT_DIR$/bin/linux64/NvFlexDemoDebugCUDA_x64" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bin/linux64/NvFlexDemoReleaseCUDA_x64" beforeDir="false" afterPath="$PROJECT_DIR$/bin/linux64/NvFlexDemoReleaseCUDA_x64" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/main.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/main.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_release/main.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_release/main.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/scenes/granularsweep.h" beforeDir="false" afterPath="$PROJECT_DIR$/demo/scenes/granularsweep.h" afterDir="false" />
-    </list>
+    <list default="true" id="b699e3a4-66cc-4dfd-87ae-23d742b94496" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -363,12 +356,12 @@
       <workItem from="1556642523072" duration="13714000" />
       <workItem from="1557252857637" duration="1307000" />
       <workItem from="1557254190456" duration="263000" />
-      <workItem from="1557254478779" duration="24541000" />
+      <workItem from="1557254478779" duration="25494000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="93047000" />
+    <option name="totallyTimeSpent" value="94000000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
