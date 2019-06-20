@@ -20,7 +20,7 @@ while main_loop_quit == False:
     # act = np.random.uniform([-2, -2, -1, -1], [2, 2, 1, 1], 4)
     # act[2::] / np.linalg.norm(act[2::])
     act = np.random.rand(100)
-    s1 = flexbind.update_frame(act)
+    s1 = flexbind.update_frame(False,act)
     orig = time()
     # if(step%100==0):
     #     flexbind.setSceneRandSeed(0)

@@ -118,3 +118,4 @@ public:
 #include "scenes/waterballoon.h"
 #include "scenes/granularsweep.h"
 #include "scenes/fluidsweep.h"
+#include "scenes/granularsweep_torque_control.h"

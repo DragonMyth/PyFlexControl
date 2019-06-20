@@ -3,7 +3,7 @@ project(bindings)
 
 
 if (NOT DEFINED FleX_ROOT)
-    set(FleX_ROOT ~/FleX_PyBind11)
+    set(FleX_ROOT ~/PyFlexControl)
 endif()
 if (NOT DEFINED CUDA_ROOT)
     set(CUDA_ROOT /usr/local/cuda-9.2)
