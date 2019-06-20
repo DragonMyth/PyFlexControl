@@ -2140,7 +2140,12 @@ int DoUI() {
 	return newScene;
 }
 
-Eigen::MatrixXd UpdateFrame(Eigen::VectorXd action) {
+void UpdateFrame(bool capture, char *path, Eigen::VectorXd action) {
+	if (capture) {
+		g_capture = true;
+		g_ffmpeg = fopen(path, "wb");
+	}
+
 	static double lastTime;
 
 	// real elapsed frame time
@@ -2305,9 +2310,9 @@ Eigen::MatrixXd UpdateFrame(Eigen::VectorXd action) {
 
 		ReadFrame((int*) img.m_data, g_screenWidth, g_screenHeight);
 
-		fwrite(img.m_data, sizeof(uint32_t) * g_screenWidth * g_screenHeight, 1,
-				g_ffmpeg);
-
+//		fwrite(img.m_data, sizeof(uint32_t) * g_screenWidth * g_screenHeight, 1,
+//				g_ffmpeg);
+		TgaSave(g_ffmpeg, img, false);
 		delete[] img.m_data;
 	}
 
@@ -2443,19 +2448,16 @@ Eigen::MatrixXd UpdateFrame(Eigen::VectorXd action) {
 		g_scene = newScene;
 		Init(g_scene);
 	}
-	return curr_state;
-}
 
-#if ENABLE_AFTERMATH_SUPPORT
-void DumpAftermathData()
-{
-	GFSDK_Aftermath_ContextData dataOut;
-	GFSDK_Aftermath_Status statusOut;
+	if (capture) {
 
-	NvFlexGetDataAftermath(g_flexLib, &dataOut, &statusOut);
-	wprintf(L"Last Aftermath event: %s\n", (wchar_t *)dataOut.markerData);
+		g_capture = false;
+		fclose(g_ffmpeg);
+
+		g_ffmpeg = nullptr;
+	}
+
 }
-#endif
 
 void ReshapeWindow(int width, int height) {
 	if (!g_benchmark)
@@ -2875,6 +2877,7 @@ void initialize() {
 
 	g_scenes.push_back(new GranularSweep("Granular Sweep"));
 	g_scenes.push_back(new FluidSweep("Fluid Sweep"));
+	g_scenes.push_back(new GranularSweepTorqueControl("Granular Sweep Torque Control"));
 //    g_scenes.push_back(new ForceField("Force Field"));
 
 	// init graphics
