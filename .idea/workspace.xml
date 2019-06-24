@@ -10,48 +10,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b699e3a4-66cc-4dfd-87ae-23d742b94496" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.cproject" beforeDir="false" afterPath="$PROJECT_DIR$/.cproject" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.settings/language.settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.settings/language.settings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bin/linux64/NvFlexDemoDebugCUDA_x64" beforeDir="false" afterPath="$PROJECT_DIR$/bin/linux64/NvFlexDemoDebugCUDA_x64" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bin/linux64/NvFlexDemoReleaseCUDA_x64" beforeDir="false" afterPath="$PROJECT_DIR$/bin/linux64/NvFlexDemoReleaseCUDA_x64" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bindings/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/bindings/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bindings/py_files/pyflex.py" beforeDir="false" afterPath="$PROJECT_DIR$/bindings/py_files/pyflex.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bindings/src/pythonBindings.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/bindings/src/pythonBindings.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/.deps/flexDemoCUDA/debug/main.cpp.P" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/.deps/flexDemoCUDA/debug/main.cpp.P" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/.deps/flexDemoCUDA/release/main.cpp.P" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/.deps/flexDemoCUDA/release/main.cpp.P" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/aabbtree.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/aabbtree.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/core.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/core.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/extrude.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/extrude.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/maths.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/maths.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/mesh.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/mesh.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/perlin.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/perlin.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/pfm.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/pfm.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/platform.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/platform.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/png.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/png.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/sdf.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/sdf.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/tga.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/tga.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/voxelize.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/core/voxelize.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/imgui.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/imgui.cpp.o" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/main.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/main.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/opengl/imguiRenderGL.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/opengl/imguiRenderGL.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/opengl/shader.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/opengl/shader.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/opengl/shadersGL.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/opengl/shadersGL.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/shadersDemoContext.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_debug/shadersDemoContext.cpp.o" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_release/main.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexDemoCUDA_release/main.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_debug/core/aabbtree.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_debug/core/aabbtree.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_debug/core/maths.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_debug/core/maths.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_debug/core/sdf.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_debug/core/sdf.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_debug/core/voxelize.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_debug/core/voxelize.cpp.o" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_debug/cuda/extensions/cudaflexExt.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_debug/cuda/extensions/cudaflexExt.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_debug/extensions/flexExtCloth.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_debug/extensions/flexExtCloth.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_debug/extensions/flexExtContainer.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_debug/extensions/flexExtContainer.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_debug/extensions/flexExtMovingFrame.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_debug/extensions/flexExtMovingFrame.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_debug/extensions/flexExtRigid.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_debug/extensions/flexExtRigid.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_debug/extensions/flexExtSoft.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_debug/extensions/flexExtSoft.cpp.o" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_release/cuda/extensions/cudaflexExt.o" beforeDir="false" afterPath="$PROJECT_DIR$/demo/compiler/makelinux64/build/flexExtCUDA_release/cuda/extensions/cudaflexExt.o" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo/helpers.h" beforeDir="false" afterPath="$PROJECT_DIR$/demo/helpers.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/demo/main.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo/main_python.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/demo/main_python.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo/scenes.h" beforeDir="false" afterPath="$PROJECT_DIR$/demo/scenes.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo/scenes/granularsweep.h" beforeDir="false" afterPath="$PROJECT_DIR$/demo/scenes/granularsweep.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo/scenes/granularsweep_torque_control.h" beforeDir="false" afterPath="$PROJECT_DIR$/demo/scenes/granularsweep_torque_control.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo/scenes/shapechannels.h" beforeDir="false" afterPath="$PROJECT_DIR$/demo/scenes/shapechannels.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/linux64/NvFlexExtDebugCUDA_x64.a" beforeDir="false" afterPath="$PROJECT_DIR$/lib/linux64/NvFlexExtDebugCUDA_x64.a" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/linux64/NvFlexExtReleaseCUDA_x64.a" beforeDir="false" afterPath="$PROJECT_DIR$/lib/linux64/NvFlexExtReleaseCUDA_x64.a" afterDir="false" />
     </list>
@@ -104,8 +79,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/demo/scenes/granularsweep_torque_control.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret line="22" column="30" selection-start-line="22" selection-start-column="30" selection-end-line="22" selection-end-column="30" />
+            <state relative-caret-position="15">
+              <caret line="113" column="31" selection-start-line="113" selection-start-column="31" selection-end-line="113" selection-end-column="31" />
             </state>
           </provider>
         </entry>
@@ -114,7 +89,7 @@
         <entry file="file://$PROJECT_DIR$/demo/scenes/granularsweep.h">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="1410">
-              <caret line="94" column="24" selection-start-line="94" selection-start-column="24" selection-end-line="94" selection-end-column="24" />
+              <caret line="102" column="24" selection-start-line="102" selection-start-column="24" selection-end-line="102" selection-end-column="24" />
             </state>
           </provider>
         </entry>
@@ -163,7 +138,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/demo/main_python.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1120">
+            <state relative-caret-position="34800">
               <caret line="2320" column="53" selection-start-line="2320" selection-start-column="53" selection-end-line="2320" selection-end-column="53" />
             </state>
           </provider>
@@ -235,17 +210,16 @@
   </component>
   <component name="OCFindUsagesOptions" text="true" ivars="false" properties="true" derivedClasses="false" />
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="484" />
-    <option name="y" value="41" />
-    <option name="width" value="1431" />
-    <option name="height" value="1025" />
+    <option name="x" value="165" />
+    <option name="y" value="239" />
+    <option name="width" value="1766" />
+    <option name="height" value="996" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -264,10 +238,22 @@
               <item name="bindings" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
             </path>
+            <path>
+              <item name="PyFlexControl" type="b2602c69:ProjectViewProjectNode" />
+              <item name="PyFlexControl" type="462c0819:PsiDirectoryNode" />
+              <item name="demo" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="PyFlexControl" type="b2602c69:ProjectViewProjectNode" />
+              <item name="PyFlexControl" type="462c0819:PsiDirectoryNode" />
+              <item name="demo" type="462c0819:PsiDirectoryNode" />
+              <item name="scenes" type="462c0819:PsiDirectoryNode" />
+            </path>
           </expand>
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -356,11 +342,14 @@
       <workItem from="1557254478779" duration="24541000" />
       <workItem from="1560901847651" duration="2620000" />
       <workItem from="1560979770029" duration="8437000" />
+      <workItem from="1561027854625" duration="330000" />
+      <workItem from="1561038382347" duration="1481000" />
+      <workItem from="1561363607945" duration="599000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="104104000" />
+    <option name="totallyTimeSpent" value="106514000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -372,9 +361,10 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="65" y="-4" width="1855" height="1084" extended-state="6" />
+    <frame x="64" y="-4" width="1857" height="1085" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49947423" visible="true" weight="0.17468214" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49947423" visible="true" weight="0.18131565" />
       <window_info id="Favorites" order="1" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
@@ -387,7 +377,7 @@
       <window_info anchor="bottom" id="Version Control" order="8" weight="0.32912722" />
       <window_info anchor="bottom" id="Database Changes" order="9" />
       <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.50159335" side_tool="true" weight="0.3193096" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="11" sideWeight="0.49840662" visible="true" weight="0.28134558" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="11" sideWeight="0.49840662" visible="true" weight="0.2609582" />
       <window_info anchor="bottom" id="Python Console" order="12" weight="0.32901832" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -616,6 +606,11 @@
     </entry>
     <entry file="file:///tmp/pip-req-build-5nr_mpuh/src/pythonBindings.cpp" />
     <entry file="file://$PROJECT_DIR$/../.PyCharm2018.3/system/python_stubs/155040387/bindings.py" />
+    <entry file="file:///tmp/pip-req-build-ule3oru2/src/pythonBindings.cpp" />
+    <entry file="file:///tmp/pip-req-build-80zm3ve2/src/pythonBindings.cpp" />
+    <entry file="file:///tmp/pip-req-build-0mls7tr6/src/pythonBindings.cpp" />
+    <entry file="file:///tmp/pip-req-build-cvau_wnh/src/pythonBindings.cpp" />
+    <entry file="file:///tmp/pip-req-build-x5h50xml/src/pythonBindings.cpp" />
     <entry file="file://$PROJECT_DIR$/demo/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1740">
@@ -623,10 +618,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/bindings/py_files/pyflex.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="510">
+          <caret line="37" selection-start-line="37" selection-end-line="37" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/demo/scenes/granularsweep.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1410">
-          <caret line="94" column="24" selection-start-line="94" selection-start-column="24" selection-end-line="94" selection-end-column="24" />
+          <caret line="102" column="24" selection-start-line="102" selection-start-column="24" selection-end-line="102" selection-end-column="24" />
         </state>
       </provider>
     </entry>
@@ -654,28 +656,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file:///tmp/pip-req-build-ule3oru2/src/pythonBindings.cpp">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file:///tmp/pip-req-build-80zm3ve2/src/pythonBindings.cpp">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file:///tmp/pip-req-build-0mls7tr6/src/pythonBindings.cpp">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file:///tmp/pip-req-build-cvau_wnh/src/pythonBindings.cpp">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/demo/main_python.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1120">
-          <caret line="2320" column="53" selection-start-line="2320" selection-start-column="53" selection-end-line="2320" selection-end-column="53" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///tmp/pip-req-build-x5h50xml/src/pythonBindings.cpp">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/bindings/src/pythonBindings.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="345">
@@ -683,17 +663,17 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/bindings/py_files/pyflex.py">
+    <entry file="file://$PROJECT_DIR$/demo/main_python.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="510">
-          <caret line="37" selection-start-line="37" selection-end-line="37" />
+        <state relative-caret-position="34800">
+          <caret line="2320" column="53" selection-start-line="2320" selection-start-column="53" selection-end-line="2320" selection-end-column="53" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/demo/scenes/granularsweep_torque_control.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret line="22" column="30" selection-start-line="22" selection-start-column="30" selection-end-line="22" selection-end-column="30" />
+        <state relative-caret-position="15">
+          <caret line="113" column="31" selection-start-line="113" selection-start-column="31" selection-end-line="113" selection-end-column="31" />
         </state>
       </provider>
     </entry>

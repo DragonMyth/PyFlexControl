@@ -56,15 +56,23 @@ public:
 				Vec3 currVel;
 				float currAngVel;
 
-				Eigen::Vector2d randPos;
-				randPos.setRandom();
-				randPos = randPos*1;
-				Eigen::VectorXd randRot(1);
-				randRot.setRandom();
-				randRot *= EIGEN_PI/2;
+				float initAngOnCirc = Randf(-EIGEN_PI,EIGEN_PI);
+				Eigen::Vector2d randPos(cosf(initAngOnCirc)*3,sinf(initAngOnCirc)*3);
+
+//				Eigen::Vector2d randPos;
+//				randPos.setRandom();
+//				randPos = randPos*1;
+//				Eigen::VectorXd randRot(1);
+//				randRot.setRandom();
+//				randRot *= EIGEN_PI/2;
+
+
 				currPos = center
 						+ Vec3(randPos[0], 0, randPos[1]);
-				currRot = QuatFromAxisAngle(Vec3(0, 1, 0), 0 + randRot(0));
+
+				currRot = QuatFromAxisAngle(Vec3(0, 1, 0), initAngOnCirc+EIGEN_PI/2);
+
+//				currRot = QuatFromAxisAngle(Vec3(0, 1, 0), 0 + randRot(0));
 				currVel = Vec3(0, 0, 0);
 				currAngVel = 0;
 
@@ -83,12 +91,12 @@ public:
 //				Vec3(0, 0, 0), 1, false, 0.0f,
 //				NvFlexMakePhase(0, eNvFlexPhaseSelfCollide), 0.001f);
 
-		g_numSubsteps = 5;
+		g_numSubsteps = 1;
 		g_params.radius = radius;
 		g_params.staticFriction = 10.5f;
 		g_params.dynamicFriction = 1.2f;
 		g_params.viscosity = 0.0f;
-		g_params.numIterations = 5;
+		g_params.numIterations = 3;
 		g_params.particleCollisionMargin = g_params.radius * 0.05f;	// 5% collision margin
 		g_params.sleepThreshold = g_params.radius * 0.25f;
 		g_params.shockPropagation = 6.f;

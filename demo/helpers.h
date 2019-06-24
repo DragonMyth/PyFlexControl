@@ -73,52 +73,31 @@ void GetParticleBounds(Vec3& lower, Vec3& upper) {
 	}
 }
 
-void CreateParticleGrid(Vec3 lower, int dimx, int dimy, int dimz, float radius,
-		Vec3 velocity, float invMass, bool rigid, float rigidStiffness,
-		int phase, float jitter = 0.005f) {
+void CreateParticleGrid(Vec3 lower, int dimx, int dimy, int dimz, float radius, Vec3 velocity, float invMass, bool rigid, float rigidStiffness, int phase, float jitter=0.005f)
+{
 	if (rigid && g_buffers->rigidIndices.empty())
 		g_buffers->rigidOffsets.push_back(0);
 
-//	for (int x = 0; x < dimx; ++x)
-//	{
-//		for (int y = 0; y < dimy; ++y)
-//		{
-//			for (int z=0; z < dimz; ++z)
-//			{
-//				if (rigid)
-//					g_buffers->rigidIndices.push_back(int(g_buffers->positions.size()));
-//
-//				Vec3 position = lower + Vec3(float(x), float(y), float(z))*radius + RandomUnitVector()*jitter;
-//
-//				g_buffers->positions.push_back(Vec4(position.x, position.y, position.z, invMass));
-//				g_buffers->velocities.push_back(velocity);
-//				g_buffers->phases.push_back(phase);
-//			}
-//		}
-//	}
-
-	for (int x = 0; x < dimx; ++x) {
-		for (int y = 0; y < dimy; ++y) {
-			for (int z = 0; z < dimz; ++z) {
+	for (int x = 0; x < dimx; ++x)
+	{
+		for (int y = 0; y < dimy; ++y)
+		{
+			for (int z=0; z < dimz; ++z)
+			{
 				if (rigid)
-					g_buffers->rigidIndices.push_back(
-							int(g_buffers->positions.size()));
+					g_buffers->rigidIndices.push_back(int(g_buffers->positions.size()));
 
-				Vec3 position = lower
-						+ Vec3(float(x - dimx / 2), float(y - dimy / 2),
-								float(z - dimz / 2)) * radius
-						+ RandomUnitVector() * jitter;
-//                float invMassPart = invMass*pow((1+y/dimy),100);
-				float invMassPart = invMass;
-				g_buffers->positions.push_back(
-						Vec4(position.x, position.y, position.z, invMassPart));
+				Vec3 position = lower + Vec3(float(x), float(y), float(z))*radius + RandomUnitVector()*jitter;
+
+				g_buffers->positions.push_back(Vec4(position.x, position.y, position.z, invMass));
 				g_buffers->velocities.push_back(velocity);
 				g_buffers->phases.push_back(phase);
 			}
 		}
 	}
 
-	if (rigid) {
+	if (rigid)
+	{
 		g_buffers->rigidCoefficients.push_back(rigidStiffness);
 		g_buffers->rigidOffsets.push_back(int(g_buffers->rigidIndices.size()));
 	}
@@ -578,7 +557,7 @@ void AddPlinth() {
 	AddBox(Vec3(2.0f, 0.5f, 2.0f), center);
 }
 
-void AddSphere(float radius, Vec3 position, Quat rotation) {
+void AddSphere(float radius, Vec3 position, Quat rotation,int channels = eNvFlexPhaseShapeChannelMask) {
 	NvFlexCollisionGeometry geo;
 	geo.sphere.radius = radius;
 	g_buffers->shapeGeometry.push_back(geo);
@@ -589,7 +568,9 @@ void AddSphere(float radius, Vec3 position, Quat rotation) {
 	g_buffers->shapePrevPositions.push_back(g_buffers->shapePositions.back());
 	g_buffers->shapePrevRotations.push_back(g_buffers->shapeRotations.back());
 
-	int flags = NvFlexMakeShapeFlags(eNvFlexShapeSphere, false);
+//	int flags = NvFlexMakeShapeFlags(eNvFlexShapeSphere, false);
+	int flags=NvFlexMakeShapeFlagsWithChannels(eNvFlexShapeSphere, false,
+						channels);
 	g_buffers->shapeFlags.push_back(flags);
 }
 

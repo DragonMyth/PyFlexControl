@@ -2878,6 +2878,8 @@ void initialize() {
 	g_scenes.push_back(new GranularSweep("Granular Sweep"));
 	g_scenes.push_back(new FluidSweep("Fluid Sweep"));
 	g_scenes.push_back(new GranularSweepTorqueControl("Granular Sweep Torque Control"));
+	g_scenes.push_back(new GranularSweepGhost("Granular Sweep Ghost"));
+
 //    g_scenes.push_back(new ForceField("Force Field"));
 
 	// init graphics

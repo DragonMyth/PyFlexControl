@@ -119,3 +119,4 @@ public:
 #include "scenes/granularsweep.h"
 #include "scenes/fluidsweep.h"
 #include "scenes/granularsweep_torque_control.h"
+#include "scenes/granularsweep_ghost.h"
