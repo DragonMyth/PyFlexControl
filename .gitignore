@@ -3,6 +3,10 @@
 # windows
 *.exp
 *.ilk
-
+*.txt
+*.idea/
+*.settings/
+*.project
+.cproject
 # android
 *.apk
