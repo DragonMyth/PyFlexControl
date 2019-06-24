@@ -11,3 +11,7 @@
 bindings/CMakeLists.txt
 # android
 *.apk
+
+
+demo/compiler/makelinux64/build/
+bin/
