@@ -3,7 +3,6 @@
 # windows
 *.exp
 *.ilk
-*.txt
 *.idea/
 *.settings/
 *.project
