@@ -8,5 +8,6 @@
 *.settings/
 *.project
 .cproject
+bindings/*.txt
 # android
 *.apk
