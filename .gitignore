@@ -8,6 +8,6 @@
 *.settings/
 *.project
 .cproject
-bindings/*.txt
+bindings/CMakeLists.txt
 # android
 *.apk
