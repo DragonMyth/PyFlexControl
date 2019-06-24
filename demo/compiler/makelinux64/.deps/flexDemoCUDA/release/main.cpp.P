@@ -79,7 +79,8 @@ build/flexDemoCUDA_release/main.cpp.o: ../../main.cpp \
  ../../scenes/trianglecollision.h ../../scenes/triggervolume.h \
  ../../scenes/viscosity.h ../../scenes/waterballoon.h \
  ../../scenes/granularsweep.h ../../scenes/fluidsweep.h \
- ../../scenes/granularsweep_torque_control.h ../../benchmark.h
+ ../../scenes/granularsweep_torque_control.h \
+ ../../scenes/granularsweep_ghost.h ../../benchmark.h
 ../../main.cpp :
  ../../../core/types.h ../../../core/maths.h ../../../core/core.h :
  ../../../core/vec2.h ../../../core/vec3.h ../../../core/vec4.h :
@@ -161,4 +162,5 @@ build/flexDemoCUDA_release/main.cpp.o: ../../main.cpp \
  ../../scenes/trianglecollision.h ../../scenes/triggervolume.h :
  ../../scenes/viscosity.h ../../scenes/waterballoon.h :
  ../../scenes/granularsweep.h ../../scenes/fluidsweep.h :
- ../../scenes/granularsweep_torque_control.h ../../benchmark.h :
+ ../../scenes/granularsweep_torque_control.h :
+ ../../scenes/granularsweep_ghost.h ../../benchmark.h :

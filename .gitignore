@@ -3,6 +3,15 @@
 # windows
 *.exp
 *.ilk
-
+*.txt
+*.idea/
+*.settings/
+*.project
+.cproject
+bindings/*.txt
 # android
 *.apk
+
+
+demo/compiler/makelinux64/build/
+bin/

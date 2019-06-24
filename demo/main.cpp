@@ -2090,9 +2090,9 @@ int DoUI() {
 }
 
 Eigen::MatrixXd UpdateFrame(bool visualize) {
-	if (g_frame % 100 == 0) {
-		cout <<"Frame Count: "<< g_frame << endl;
-	}
+//	if (g_frame % 100 == 0) {
+//		cout <<"Frame Count: "<< g_frame << endl;
+//	}
 	static double lastTime;
 
 	// real elapsed frame time
@@ -2127,8 +2127,9 @@ Eigen::MatrixXd UpdateFrame(bool visualize) {
 		UpdateWind();
 //		UpdateScene();
 
-		Eigen::VectorXd act(4 * 25);
+		Eigen::VectorXd act(6 * 25);
 		act.setZero();
+
 		state = UpdateControlScene(act);
 
 	}
@@ -2763,8 +2764,11 @@ void SDLMainLoop() {
 int main(int argc, char* argv[]) {
 	// process command line args
 	g_scenes.push_back(new GranularSweep("Granular Sweep"));
-	g_scenes.push_back(new FluidSweep("Fluid Sweep"));
-	g_scenes.push_back(new ForceField("Force Field"));
+//	g_scenes.push_back(new FluidSweep("Fluid Sweep"));
+//	g_scenes.push_back(new ForceField("Force Field"));
+	g_scenes.push_back(new GranularSweepGhost("Granular Sweep Ghost"));
+//	g_scenes.push_back(new ShapeChannels("Shape Channels"));
+
 
 	// init graphics
 
