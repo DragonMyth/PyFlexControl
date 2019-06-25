@@ -436,8 +436,9 @@ void DestroyBuffers(SimBuffers* buffers) {
 	delete buffers;
 }
 
-Vec3 g_camPos(-10.0f, 3.0f, 10.0f);
-Vec3 g_camAngle(-DegToRad(60.0f), -DegToRad(20.0f), 0.0f);
+Vec3 g_camPos(-1.68645, 30.2395, 13.6924);
+Vec3 g_camAngle(0.340339, -0.869178, 0);
+
 Vec3 g_camVel(0.0f);
 Vec3 g_camSmoothVel(0.0f);
 
@@ -2879,6 +2880,7 @@ void initialize() {
 	g_scenes.push_back(new FluidSweep("Fluid Sweep"));
 	g_scenes.push_back(new GranularSweepTorqueControl("Granular Sweep Torque Control"));
 	g_scenes.push_back(new GranularSweepGhost("Granular Sweep Ghost"));
+	g_scenes.push_back(new GranularSweepGhostNoRotCont("Granular Sweep Ghost No Rotation Control"));
 
 //    g_scenes.push_back(new ForceField("Force Field"));
 

@@ -102,6 +102,7 @@ void CreateParticleGrid(Vec3 lower, int dimx, int dimy, int dimz, float radius, 
 		g_buffers->rigidOffsets.push_back(int(g_buffers->rigidIndices.size()));
 	}
 }
+
 void CreateGranularGrid(Vec3 center, Vec2 dimx, Vec2 dimz, float radius,
 		Vec2 particleDims, Vec3 velocity, float invMass, bool rigid,
 		float rigidStiffness, int phase, float jitter = 0.005f) {
