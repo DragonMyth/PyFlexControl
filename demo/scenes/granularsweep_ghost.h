@@ -43,10 +43,11 @@ public:
 		for (int i = -numSceneDim / 2; i < numSceneDim / 2 + 1; i++) {
 			for (int j = -numSceneDim / 2; j < numSceneDim / 2 + 1; j++) {
 
-				int group = i * numSceneDim + j;
 
-				Vec3 center = Vec3(i * 30, 0, j * 30);
+
+				Vec3 center = Vec3(i * 15, 0, j * 15);
 				centers.push_back(center);
+				int group = centers.size();
 				int channel = eNvFlexPhaseShapeChannel0;
 				int phase = NvFlexMakePhaseWithChannels(group,eNvFlexPhaseSelfCollide,channel);
 //				int phase = NvFlexMakePhase(group,eNvFlexPhaseSelfCollide);
@@ -58,8 +59,15 @@ public:
 				Vec2 zRange = Vec2(-2,2);
 				Vec2 gap = Vec2(particleDim,particleDim);
 
-				CreateGranularGrid(center,xRange,zRange,radius,gap,Vec3(0,0,0),1,false,0.0f,phase,0.0f);
 
+//				CreateGranularGrid(center,xRange,zRange,radius,gap,Vec3(0,0,0),1,false,0.0f,phase,0.0f);
+
+				//Random sample a initial position in range [-2,2] x [-2,2].
+				Eigen::Vector2f randInitPos;
+				randInitPos.setRandom();
+				randInitPos*=2;
+
+				CreateParticleGridRand(center+Vec3(randInitPos(0),radius,randInitPos(1)),particleDim/2,4,particleDim/2,radius*2,Vec3(0,0,0),1,false,0.0f,phase,0.005f);
 				Vec3 currPos;
 				Quat currRot;
 
@@ -118,7 +126,7 @@ public:
 		g_params.staticFriction = 10.5f;
 		g_params.dynamicFriction = 1.2f;
 		g_params.viscosity = 0.0f;
-		g_params.numIterations = 4;
+		g_params.numIterations = 3;
 		g_params.particleCollisionMargin = g_params.radius * 0.05f;	// 5% collision margin
 		g_params.sleepThreshold = g_params.radius * 0.25f;
 		g_params.shockPropagation = 6.f;
@@ -153,6 +161,7 @@ public:
 
 				Vec2 goal_target = Vec2(action(i * 6 + 4), action(i * 6 + 5))+Vec2(centers[i][0],centers[i][2]);
 
+//				Vec2 goal_target = Vec2(0,0)+Vec2(centers[i][0],centers[i][2]);
 				Vec2 targetDir = goal_target-Vec2(currPoses[i].x,currPoses[i].z);
 
 				float relativeDir = Dot(targetDir,Vec2(currVels[i].x,currVels[i].z));
@@ -199,6 +208,8 @@ public:
 				currRots[i] = newRot;
 
 				AddSphere(0.12,Vec3(goal_target.x,0,goal_target.y),Quat(),eNvFlexPhaseShapeChannel0<<1);
+
+				AddBox(Vec3(4,0.004,4), centers[i]+Vec3(0,0.005,0), Quat(),false,eNvFlexPhaseShapeChannel0<<1);
 
 				AddBox(barDim, newPos, newRot,false,channel);
 

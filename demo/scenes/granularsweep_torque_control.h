@@ -22,6 +22,7 @@ public:
 	float maxVel = 3;
 	float maxAngVel = EIGEN_PI;
 	vector<Vec3> centers;
+
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
 		centers.clear();
 		currPoses.clear();

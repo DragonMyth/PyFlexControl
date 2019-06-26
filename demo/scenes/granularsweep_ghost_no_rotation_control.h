@@ -205,6 +205,7 @@ public:
 
 			AddSphere(0.12, Vec3(goal_target.x, 0, goal_target.z), Quat(),
 					eNvFlexPhaseShapeChannel0 << 1);
+			AddBox(Vec3(4,0.004,4), centers[i]+Vec3(0,0.005,0), Quat(),false,eNvFlexPhaseShapeChannel0<<1);
 
 			AddBox(barDim, newPos, newRot, false, channel);
 

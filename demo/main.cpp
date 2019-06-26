@@ -2128,7 +2128,7 @@ Eigen::MatrixXd UpdateFrame(bool visualize) {
 		UpdateWind();
 //		UpdateScene();
 
-		Eigen::VectorXd act(4 * 25);
+		Eigen::VectorXd act(4 * 64);
 		act.setZero();
 //		act.setRandom();
 
@@ -2765,7 +2765,7 @@ void SDLMainLoop() {
 
 int main(int argc, char* argv[]) {
 	// process command line args
-	g_scenes.push_back(new GranularSweep("Granular Sweep"));
+//	g_scenes.push_back(new GranularSweep("Granular Sweep"));
 //	g_scenes.push_back(new FluidSweep("Fluid Sweep"));
 //	g_scenes.push_back(new ForceField("Force Field"));
 	g_scenes.push_back(new GranularSweepGhost("Granular Sweep Ghost"));
