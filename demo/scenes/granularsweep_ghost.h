@@ -31,10 +31,10 @@ public:
 		currVels.clear();
 		currAngVels.clear();
 
-		if (seed != -1) {
-			srand(seed);
+		//if (seed != -1) {
+			//srand(seed);
 
-		}
+		//}
 //		srand(time_get());
 		// granular pile
 		float radius = 0.05f;
@@ -67,7 +67,15 @@ public:
 				randInitPos.setRandom();
 				randInitPos*=2;
 
-				CreateParticleGridRand(center+Vec3(randInitPos(0),radius,randInitPos(1)),particleDim/2,4,particleDim/2,radius*2,Vec3(0,0,0),1,false,0.0f,phase,0.005f);
+				Eigen::VectorXf randInitShape(1);
+				randInitShape.setRandom();
+				randInitShape/=2.0f;
+				if(randInitShape(0)<0){
+					CreateParticleGridRand(center+Vec3(randInitPos(0),radius,randInitPos(1)),particleDim/2,4,particleDim/2,radius*3,Vec3(0,0,0),1,false,0.0f,phase,0.005f);
+				}else{
+					CreateGranularGrid(center,xRange,zRange,radius,gap,Vec3(0,0,0),1,false,0.0f,phase,0.0f);
+
+				}
 				Vec3 currPos;
 				Quat currRot;
 
