@@ -135,7 +135,7 @@ void CreateParticleGridRand(Vec3 target, int dimx, int dimy, int dimz, float rad
 
 void CreateGranularGrid(Vec3 center, Vec2 dimx, Vec2 dimz, float radius,
 		Vec2 particleDims, Vec3 velocity, float invMass, bool rigid,
-		float rigidStiffness, int phase, float jitter = 0.005f) {
+		float rigidStiffness, int phase, float jitter = 0.005f,Vec2 rot=Vec2(1,0)) {
 	if (rigid && g_buffers->rigidIndices.empty())
 		g_buffers->rigidOffsets.push_back(0);
 
@@ -151,10 +151,13 @@ void CreateGranularGrid(Vec3 center, Vec2 dimx, Vec2 dimz, float radius,
 				g_buffers->rigidIndices.push_back(
 						int(g_buffers->positions.size()));
 
-			Vec3 position = center + Vec3(posX, radius, posZ)
+			Vec3 position = Vec3(posX, radius, posZ)
 					+ RandomUnitVector() * jitter;
-
-			//                float invMassPart = invMass*pow((1+y/dimy),100);
+			float newX = position.x*rot.x-position.z*rot.y;
+			float newZ = position.x*rot.y+position.z*rot.x;
+			position.x=newX;
+			position.z = newZ;
+			position+=center;
 			float invMassPart = invMass;
 			g_buffers->positions.push_back(
 					Vec4(position.x, position.y, position.z, invMassPart));

@@ -45,10 +45,11 @@ public:
 //				CreateParticleGrid(center + Vec3(0, radius, 0), particleDim, 1,
 //						particleDim, radius, Vec3(0, 0, 0), 1, false, 0.0f,
 //						phase, 0.005f);
-				Vec2 xRange = Vec2(-2,2);
-				Vec2 zRange = Vec2(-2,2);
-				Vec2 gap = Vec2(particleDim,particleDim);
-				CreateGranularGrid(center,xRange,zRange,radius,gap,Vec3(0,0,0),1,false,0.0f,phase,0.2f);
+				Vec2 xRange = Vec2(-2, 2);
+				Vec2 zRange = Vec2(-2, 2);
+				Vec2 gap = Vec2(particleDim, particleDim);
+				CreateGranularGrid(center, xRange, zRange, radius, gap,
+						Vec3(0, 0, 0), 1, false, 0.0f, phase, 0.2f);
 
 				Vec3 currPos;
 				Quat currRot;
@@ -56,8 +57,9 @@ public:
 				Vec3 currVel;
 				float currAngVel;
 
-				float initAngOnCirc = Randf(-EIGEN_PI,EIGEN_PI);
-				Eigen::Vector2d randPos(cosf(initAngOnCirc)*3,sinf(initAngOnCirc)*3);
+				float initAngOnCirc = Randf(-EIGEN_PI, EIGEN_PI);
+				Eigen::Vector2d randPos(cosf(initAngOnCirc) * 3,
+						sinf(initAngOnCirc) * 3);
 
 //				Eigen::Vector2d randPos;
 //				randPos.setRandom();
@@ -66,11 +68,10 @@ public:
 //				randRot.setRandom();
 //				randRot *= EIGEN_PI/2;
 
+				currPos = center + Vec3(randPos[0], 0, randPos[1]);
 
-				currPos = center
-						+ Vec3(randPos[0], 0, randPos[1]);
-
-				currRot = QuatFromAxisAngle(Vec3(0, 1, 0), initAngOnCirc+EIGEN_PI/2);
+				currRot = QuatFromAxisAngle(Vec3(0, 1, 0),
+						initAngOnCirc + EIGEN_PI / 2);
 
 //				currRot = QuatFromAxisAngle(Vec3(0, 1, 0), 0 + randRot(0));
 				currVel = Vec3(0, 0, 0);
@@ -180,28 +181,14 @@ public:
 		this->seed = seed;
 	}
 	Eigen::MatrixXd getState() {
-//		cout << "HERERE" << endl;
 		using namespace Eigen;
 		int numPart = g_buffers->positions.size();
-//		cout<<"Num Parts: "<<numPart<<endl;
-//		cout<<"Num Expect: "<<particleDim*particleDim*numSceneDim*numSceneDim<<endl;
-		int numBars = numPart / (particleDim * particleDim);
+
+		int numBars = numSceneDim * numSceneDim;
 		//The last four rows are the translational and rotational position and velocity for the moving bar
 		MatrixXd state(numPart + 4 * numBars, 2);
+		cout << state.rows() << endl;
 		state.setZero();
-
-		for (int i = 0; i < numBars; i++) {
-			Vec3 cent = centers[i];
-			int numPartInScene = particleDim * particleDim;
-
-			for (int j = 0; j < numPartInScene; j++) {
-				state.row(i * numPartInScene + j) = Vector2d(
-						g_buffers->positions[i * numPartInScene + j].x,
-						g_buffers->positions[i * numPartInScene + j].z)
-						- Vector2d(cent.x, cent.z);
-			}
-
-		}
 
 		for (int i = 0; i < numBars; i++) {
 			Vec3 cent = centers[i];
@@ -210,13 +197,24 @@ public:
 			float currCosAng = Sqr(currCosHalfAng) - Sqr(currSinHalfAng);
 			float currSinAng = 2 * currCosHalfAng * currSinHalfAng;
 
-			state.row(numPart + i * 4) = Vector2d(currPoses[i].x,
-					currPoses[i].z)- Vector2d(cent.x, cent.z);;
-			state.row(numPart + i * 4 + 1) = Vector2d(currCosAng, currSinAng);
-			state.row(numPart + i * 4 + 2) = Vector2d(currVels[i].x,
+			int numPartInScene = numPart / numBars;
+
+			for (int j = 0; j < numPartInScene; j++) {
+				state.row(i * (numPartInScene + 4) + j + 4) = Vector2d(
+						g_buffers->positions[i * numPartInScene + j].x,
+						g_buffers->positions[i * numPartInScene + j].z)
+						- Vector2d(cent.x, cent.z);
+			}
+			state.row(i * (numPartInScene + 4)) = Vector2d(currPoses[i].x,
+					currPoses[i].z) - Vector2d(cent.x, cent.z);
+			;
+			state.row(i * (numPartInScene + 4) + 1) = Vector2d(currCosAng,
+					currSinAng);
+			state.row(i * (numPartInScene + 4) + 2) = Vector2d(currVels[i].x,
 					currVels[0].z);
-			state.row(numPart + i * 4 + 3) = Vector2d(cos(currAngVels[0]),
-					sin(currAngVels[0]));
+			state.row(i * (numPartInScene + 4) + 3) = Vector2d(
+					cos(currAngVels[0]), sin(currAngVels[0]));
+
 		}
 		return state;
 

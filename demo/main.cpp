@@ -2128,9 +2128,10 @@ Eigen::MatrixXd UpdateFrame(bool visualize) {
 		UpdateWind();
 //		UpdateScene();
 
-		Eigen::VectorXd act(4 * 64);
-		act.setZero();
-//		act.setRandom();
+		Eigen::VectorXd act(7 * 25);
+
+		act.setRandom();
+//		act.setZero();
 
 		state = UpdateControlScene(act);
 
@@ -2768,8 +2769,8 @@ int main(int argc, char* argv[]) {
 //	g_scenes.push_back(new GranularSweep("Granular Sweep"));
 //	g_scenes.push_back(new FluidSweep("Fluid Sweep"));
 //	g_scenes.push_back(new ForceField("Force Field"));
-	g_scenes.push_back(new GranularSweepGhost("Granular Sweep Ghost"));
-	g_scenes.push_back(new GranularSweepGhostNoRotCont("Granular Sweep Ghost No Rotation Control"));
+//	g_scenes.push_back(new GranularSweepGhost("Granular Sweep Ghost"));
+	g_scenes.push_back(new GranularSweepThreeBars("Granular Sweep Ghost Three Bars"));
 
 //	g_scenes.push_back(new ShapeChannels("Shape Channels"));
 
