@@ -2130,8 +2130,8 @@ Eigen::MatrixXd UpdateFrame(bool visualize) {
 
 		Eigen::VectorXd act(7 * 25);
 
-		act.setRandom();
-//		act.setZero();
+//		act.setRandom();
+		act.setZero();
 
 		state = UpdateControlScene(act);
 
@@ -2771,6 +2771,32 @@ int main(int argc, char* argv[]) {
 //	g_scenes.push_back(new ForceField("Force Field"));
 //	g_scenes.push_back(new GranularSweepGhost("Granular Sweep Ghost"));
 	g_scenes.push_back(new GranularSweepThreeBars("Granular Sweep Ghost Three Bars"));
+
+//	SoftBody::Instance bunny1("../../data/bunny.ply");
+//	bunny1.mScale = Vec3(10.0f);
+//	bunny1.mClusterSpacing = 1.0f;
+//	bunny1.mClusterRadius = 0.0f;
+//	bunny1.mClusterStiffness = 0.0f;
+//	bunny1.mGlobalStiffness = 1.0f;
+//	bunny1.mClusterPlasticThreshold = 0.0015f;
+//	bunny1.mClusterPlasticCreep = 0.15f;
+//	bunny1.mTranslation[1] = 5.0f;
+//	SoftBody::Instance bunny2("../../data/bunny.ply");
+//	bunny2.mScale = Vec3(10.0f);
+//	bunny2.mClusterSpacing = 1.0f;
+//	bunny2.mClusterRadius = 0.0f;
+//	bunny2.mClusterStiffness = 0.0f;
+//	bunny2.mGlobalStiffness = 1.0f;
+//	bunny2.mClusterPlasticThreshold = 0.0015f;
+//	bunny2.mClusterPlasticCreep = 0.30f;
+//	bunny2.mTranslation[1] = 5.0f;
+//	bunny2.mTranslation[0] = 2.0f;
+//	SoftBody* plasticComparisonScene = new SoftBody("Plastic Comparison");
+//	plasticComparisonScene->AddInstance(bunny1);
+//	plasticComparisonScene->AddInstance(bunny2);
+//	plasticComparisonScene->mPlinth = true;
+//
+//	g_scenes.push_back(plasticComparisonScene);
 
 //	g_scenes.push_back(new ShapeChannels("Shape Channels"));
 

@@ -121,3 +121,4 @@ public:
 #include "scenes/granularsweep_torque_control.h"
 #include "scenes/granularsweep_ghost.h"
 #include "scenes/granularsweep_three_bars.h"
+#include "scenes/plastic_mold.h"
