@@ -161,12 +161,12 @@ public:
 			int channel1 = eNvFlexPhaseShapeChannel0;
 			int channel2 = eNvFlexPhaseShapeChannel0;
 
-			if (relativeDir1 < 0) {
-				channel1 = channel1 << 1;
-			}
-			if (relativeDir2 < 0) {
-							channel2 = channel2 << 1;
-			}
+			//if (relativeDir1 < 0) {
+				//channel1 = channel1 << 1;
+			//}
+			//if (relativeDir2 < 0) {
+							//channel2 = channel2 << 1;
+			//}
 
 			Vec3 force1 = (lrtarg - currPosesBar1[i]) * kp_pos
 					- currVelsBar1[i] * kd_pos;
