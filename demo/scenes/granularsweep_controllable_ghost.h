@@ -3,10 +3,10 @@
 using namespace std;
 //
 
-class GranularSweepGhost: public Scene {
+class GranularSweepControllableGhost: public Scene {
 public:
 
-	GranularSweepGhost(const char* name) :
+	GranularSweepControllableGhost(const char* name) :
 			Scene(name) {
 	}
 
@@ -31,12 +31,6 @@ public:
 		currVels.clear();
 		currAngVels.clear();
 
-		//if (seed != -1) {
-		//srand(seed);
-
-		//}
-//		srand(time_get());
-		// granular pile
 		float radius = 0.05f;
 
 //		int group =0;
@@ -50,9 +44,6 @@ public:
 				int phase = NvFlexMakePhaseWithChannels(group,
 						eNvFlexPhaseSelfCollide, channel);
 
-//				CreateParticleGrid(center + Vec3(0, radius, 0), particleDim, 1,
-//						particleDim, radius, Vec3(0, 0, 0), 1, false, 0.0f,
-//						phase, 0.005f);
 				Vec2 xRange = Vec2(-2, 2);
 				Vec2 zRange = Vec2(-2, 2);
 				Vec2 gap = Vec2(particleDim, particleDim);
@@ -60,6 +51,7 @@ public:
 				CreateGranularGrid(center, xRange, zRange, radius, gap,
 						Vec3(0, 0, 0), 1, false, 0.0f, phase, 0.0f);
 				//Random sample a initial position in range [-2,2] x [-2,2].
+
 				Eigen::Vector2f randInitPos;
 				randInitPos.setRandom();
 				randInitPos *= 2;
@@ -75,24 +67,11 @@ public:
 //
 //				}
 
-//				CreateParticleGridRand(center+Vec3(0,radius,-1.5),particleDim,4,particleDim/4,radius*3,Vec3(0,0,0),1,false,0.0f,phase,0.005f);
-//				cout<<"ASFASF"<<endl;
 				Vec3 currPos;
 				Quat currRot;
 
 				Vec3 currVel;
 				float currAngVel;
-
-//				Eigen::Vector2d randPos;
-//				randPos.setRandom();
-//				randPos = randPos*1;
-//
-//				Eigen::VectorXd randRot(1);
-//				randRot.setRandom();
-//				randRot *= EIGEN_PI/2;
-//				currPos = center
-//						+ Vec3(randPos[0], 0, randPos[1]);
-//				currRot = QuatFromAxisAngle(Vec3(0, 1, 0), 0 + randRot(0));
 
 				Eigen::VectorXf initAngOnCirc(1);
 				initAngOnCirc.setRandom();
@@ -178,7 +157,6 @@ public:
 //					Vec2(currVels[i].x, currVels[i].z));
 
 			int channel = eNvFlexPhaseShapeChannel0;
-//			cout<<ghost<<endl;
 
 			if (ghost) {
 				channel = channel << 1;
@@ -226,6 +204,11 @@ public:
 
 			AddBox(barDim, newPos, newRot, false, channel);
 
+			if (ghost) {
+				AddBox(Vec3(1, 1, 1), centers[i] + Vec3(-4, 2, -4), Quat(),
+						false, eNvFlexPhaseShapeChannel0 << 1);
+			}
+
 		}
 		UpdateShapes();
 
@@ -235,15 +218,15 @@ public:
 	void setSceneSeed(int seed) {
 		this->seed = seed;
 	}
+
 	Eigen::MatrixXd getState() {
-//		cout << "HERERE" << endl;
 		using namespace Eigen;
 		int numPart = g_buffers->positions.size();
 
 		int numBars = numSceneDim * numSceneDim;
 		//The last four rows are the translational and rotational position and velocity for the moving bar
-		MatrixXd state(numPart + 4 * numBars, 2);
-//		cout << state.rows() << endl;
+		MatrixXd state(numPart + 4 * numBars, 3);
+
 		state.setZero();
 
 		for (int i = 0; i < numBars; i++) {
@@ -256,24 +239,25 @@ public:
 			int numPartInScene = numPart / numBars;
 
 			for (int j = 0; j < numPartInScene; j++) {
-				state.row(i * (numPartInScene + 4) + j + 4) = Vector2d(
+				state.row(i * (numPartInScene + 4) + j + 4) = Vector3d(
 						g_buffers->positions[i * numPartInScene + j].x,
+						g_buffers->positions[i * numPartInScene + j].y,
 						g_buffers->positions[i * numPartInScene + j].z)
-						- Vector2d(cent.x, cent.z);
+						- Vector3d(cent.x, cent.y, cent.z);
 			}
-			state.row(i * (numPartInScene + 4)) = Vector2d(currPoses[i].x,
-					currPoses[i].z) - Vector2d(cent.x, cent.z);
-			;
-			state.row(i * (numPartInScene + 4) + 1) = Vector2d(currCosAng,
+			state.row(i * (numPartInScene + 4)) = Vector3d(currPoses[i].x,
+					currPoses[i].y, currPoses[i].z)
+					- Vector3d(cent.x, cent.y, cent.z);
+
+			state.row(i * (numPartInScene + 4) + 1) = Vector3d(currCosAng, 0,
 					currSinAng);
-			state.row(i * (numPartInScene + 4) + 2) = Vector2d(currVels[i].x,
-					currVels[0].z);
-			state.row(i * (numPartInScene + 4) + 3) = Vector2d(
-					cos(currAngVels[0]), sin(currAngVels[0]));
+			state.row(i * (numPartInScene + 4) + 2) = Vector3d(currVels[i].x,
+					currVels[i].y, currVels[0].z);
+			state.row(i * (numPartInScene + 4) + 3) = Vector3d(
+					cos(currAngVels[0]), 0, sin(currAngVels[0]));
 
 		}
 		return state;
-
 	}
 
 	int getNumInstances() {

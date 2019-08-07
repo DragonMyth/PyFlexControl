@@ -73,6 +73,16 @@ void GetParticleBounds(Vec3& lower, Vec3& upper) {
 	}
 }
 
+void GetAssignedParticleBounds(Vec3& lower, Vec3& upper, int start, int end){
+	lower = Vec3(FLT_MAX);
+	upper = Vec3(-FLT_MAX);
+
+	for (int i = start; i < end; ++i) {
+		lower = Min(Vec3(g_buffers->positions[i]), lower);
+		upper = Max(Vec3(g_buffers->positions[i]), upper);
+	}
+}
+
 void CreateParticleGrid(Vec3 lower, int dimx, int dimy, int dimz, float radius, Vec3 velocity, float invMass, bool rigid, float rigidStiffness, int phase, float jitter=0.005f)
 {
 	if (rigid && g_buffers->rigidIndices.empty())
@@ -559,8 +569,8 @@ void SkinMesh() {
 }
 
 void AddBox(Vec3 halfEdge = Vec3(2.0f), Vec3 center = Vec3(0.0f), Quat quat =
-		Quat(), bool dynamic = false, int channels =
-		eNvFlexPhaseShapeChannelMask) {
+		Quat(),  bool dynamic = false, int channels =
+		eNvFlexPhaseShapeChannelMask,Vec3 color = Vec3(0.9f)) {
 	// transform
 	g_buffers->shapePositions.push_back(
 			Vec4(center.x, center.y, center.z, 0.0f));
@@ -573,6 +583,7 @@ void AddBox(Vec3 halfEdge = Vec3(2.0f), Vec3 center = Vec3(0.0f), Quat quat =
 	geo.box.halfExtents[0] = halfEdge.x;
 	geo.box.halfExtents[1] = halfEdge.y;
 	geo.box.halfExtents[2] = halfEdge.z;
+
 
 	g_buffers->shapeGeometry.push_back(geo);
 	g_buffers->shapeFlags.push_back(

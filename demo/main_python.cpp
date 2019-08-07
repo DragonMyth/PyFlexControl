@@ -2877,11 +2877,11 @@ bool SDLMain() {
 void initialize() {
 
 	g_scenes.push_back(new GranularSweep("Granular Sweep"));
-	g_scenes.push_back(new FluidSweep("Fluid Sweep"));
-	g_scenes.push_back(new GranularSweepTorqueControl("Granular Sweep Torque Control"));
-	g_scenes.push_back(new GranularSweepGhost("Granular Sweep Ghost"));
 
 	g_scenes.push_back(new GranularSweepThreeBars("Granular Sweep Ghost Three Bars"));
+	g_scenes.push_back(new GranularSweepControllableGhost("Granular Sweep Conrollable Ghost"));
+	g_scenes.push_back(new PlasticBodyReshaping("Plastic Reshaping"));
+
 
 //    g_scenes.push_back(new ForceField("Force Field"));
 

@@ -116,8 +116,11 @@ public:
 #include "scenes/triggervolume.h"
 #include "scenes/viscosity.h"
 #include "scenes/waterballoon.h"
+
+// Added for the deformable material manipulation project
 #include "scenes/granularsweep.h"
 #include "scenes/fluidsweep.h"
 #include "scenes/granularsweep_torque_control.h"
-#include "scenes/granularsweep_ghost.h"
 #include "scenes/granularsweep_three_bars.h"
+#include "scenes/granularsweep_controllable_ghost.h"
+#include "scenes/plastic_body_reshaping.h"

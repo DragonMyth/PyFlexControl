@@ -53,6 +53,7 @@
 
 #include "shadersDemoContext.h"
 
+
 #if ENABLE_AFTERMATH_SUPPORT
 #include <external/GFSDK_Aftermath_v1.21/include/GFSDK_Aftermath.h>
 #endif
@@ -219,6 +220,7 @@ struct SimBuffers {
 	NvFlexVector<Vec4> shapePrevPositions;
 	NvFlexVector<Quat> shapePrevRotations;
 	NvFlexVector<int> shapeFlags;
+	NvFlexVector<Vec3> shapeColors;
 
 	// rigids
 	NvFlexVector<int> rigidOffsets;
@@ -254,7 +256,7 @@ struct SimBuffers {
 					l), smoothPositions(l), diffusePositions(l), diffuseVelocities(
 					l), diffuseCount(l), activeIndices(l), shapeGeometry(l), shapePositions(
 					l), shapeRotations(l), shapePrevPositions(l), shapePrevRotations(
-					l), shapeFlags(l), rigidOffsets(l), rigidIndices(l), rigidMeshSize(
+					l), shapeFlags(l), shapeColors(l),rigidOffsets(l), rigidIndices(l), rigidMeshSize(
 					l), rigidCoefficients(l), rigidPlasticThresholds(l), rigidPlasticCreeps(
 					l), rigidRotations(l), rigidTranslations(l), rigidLocalPositions(
 					l), rigidLocalNormals(l), inflatableTriOffsets(l), inflatableTriCounts(
@@ -289,6 +291,8 @@ void MapBuffers(SimBuffers* buffers) {
 	buffers->shapePrevPositions.map();
 	buffers->shapePrevRotations.map();
 	buffers->shapeFlags.map();
+
+	buffers->shapeColors.map();
 
 	buffers->rigidOffsets.map();
 	buffers->rigidIndices.map();
@@ -341,6 +345,8 @@ void UnmapBuffers(SimBuffers* buffers) {
 	buffers->shapePrevPositions.unmap();
 	buffers->shapePrevRotations.unmap();
 	buffers->shapeFlags.unmap();
+
+	buffers->shapeColors.unmap();
 
 	// rigids
 	buffers->rigidOffsets.unmap();
@@ -401,6 +407,8 @@ void DestroyBuffers(SimBuffers* buffers) {
 	buffers->shapePrevPositions.destroy();
 	buffers->shapePrevRotations.destroy();
 	buffers->shapeFlags.destroy();
+
+	buffers->shapeColors.destroy();
 
 	// rigids
 	buffers->rigidOffsets.destroy();
@@ -1666,7 +1674,6 @@ void DrawShapes() {
 		//bool dynamic = int(flags&eNvFlexShapeFlagDynamic) > 0;
 
 		Vec3 color = Vec3(0.9f);
-
 		if (flags & eNvFlexShapeFlagTrigger) {
 			color = Vec3(0.6f, 1.0, 0.6f);
 
@@ -2128,10 +2135,10 @@ Eigen::MatrixXd UpdateFrame(bool visualize) {
 		UpdateWind();
 //		UpdateScene();
 
-		Eigen::VectorXd act(7 * 25);
+		Eigen::VectorXd act(6 * 25);
 
-		act.setRandom();
-//		act.setZero();
+//		act.setRandom();
+		act.setZero();
 
 		state = UpdateControlScene(act);
 
@@ -2325,17 +2332,6 @@ Eigen::MatrixXd UpdateFrame(bool visualize) {
 //	}
 	return state;
 }
-
-#if ENABLE_AFTERMATH_SUPPORT
-void DumpAftermathData()
-{
-	GFSDK_Aftermath_ContextData dataOut;
-	GFSDK_Aftermath_Status statusOut;
-
-	NvFlexGetDataAftermath(g_flexLib, &dataOut, &statusOut);
-	wprintf(L"Last Aftermath event: %s\n", (wchar_t *)dataOut.markerData);
-}
-#endif
 
 void ReshapeWindow(int width, int height) {
 	if (!g_benchmark)
@@ -2767,13 +2763,20 @@ void SDLMainLoop() {
 int main(int argc, char* argv[]) {
 	// process command line args
 //	g_scenes.push_back(new GranularSweep("Granular Sweep"));
-//	g_scenes.push_back(new FluidSweep("Fluid Sweep"));
-//	g_scenes.push_back(new ForceField("Force Field"));
-	g_scenes.push_back(new GranularSweepGhost("Granular Sweep Ghost"));
+
 //	g_scenes.push_back(new GranularSweepThreeBars("Granular Sweep Ghost Three Bars"));
+//	g_scenes.push_back(new GranularSweepControllableGhost("Granular Sweep Conrollable Ghost"));
 
-//	g_scenes.push_back(new ShapeChannels("Shape Channels"));
 
+
+//	plasticThinBox.mTranslation[1] = 0.0f;
+
+
+	PlasticBodyReshaping* plasticReshaping = new PlasticBodyReshaping("Plastic Reshaping");
+
+
+
+	g_scenes.push_back(plasticReshaping);
 
 	// init graphics
 

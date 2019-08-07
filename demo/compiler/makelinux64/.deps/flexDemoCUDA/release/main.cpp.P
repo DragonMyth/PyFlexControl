@@ -80,8 +80,9 @@ build/flexDemoCUDA_release/main.cpp.o: ../../main.cpp \
  ../../scenes/viscosity.h ../../scenes/waterballoon.h \
  ../../scenes/granularsweep.h ../../scenes/fluidsweep.h \
  ../../scenes/granularsweep_torque_control.h \
- ../../scenes/granularsweep_ghost.h \
- ../../scenes/granularsweep_three_bars.h ../../benchmark.h
+ ../../scenes/granularsweep_three_bars.h \
+ ../../scenes/granularsweep_controllable_ghost.h \
+ ../../scenes/plastic_body_reshaping.h ../../benchmark.h
 ../../main.cpp :
  ../../../core/types.h ../../../core/maths.h ../../../core/core.h :
  ../../../core/vec2.h ../../../core/vec3.h ../../../core/vec4.h :
@@ -164,5 +165,6 @@ build/flexDemoCUDA_release/main.cpp.o: ../../main.cpp \
  ../../scenes/viscosity.h ../../scenes/waterballoon.h :
  ../../scenes/granularsweep.h ../../scenes/fluidsweep.h :
  ../../scenes/granularsweep_torque_control.h :
- ../../scenes/granularsweep_ghost.h :
- ../../scenes/granularsweep_three_bars.h ../../benchmark.h :
+ ../../scenes/granularsweep_three_bars.h :
+ ../../scenes/granularsweep_controllable_ghost.h :
+ ../../scenes/plastic_body_reshaping.h ../../benchmark.h :
