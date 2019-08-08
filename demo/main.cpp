@@ -2772,11 +2772,13 @@ int main(int argc, char* argv[]) {
 //	plasticThinBox.mTranslation[1] = 0.0f;
 
 
-	PlasticBodyReshaping* plasticReshaping = new PlasticBodyReshaping("Plastic Reshaping");
+//	PlasticBodyReshaping* plasticReshaping = new PlasticBodyReshaping("Plastic Reshaping");
 
 
 
-	g_scenes.push_back(plasticReshaping);
+	g_scenes.push_back(new PlasticBodyReshaping("Plastic Reshaping"));
+//	g_scenes.push_back(new 	ClothLayers("Cloth Layers"));
+	g_scenes.push_back(new 	PlasticSpringShaping("Cloth Layers"));
 
 	// init graphics
 

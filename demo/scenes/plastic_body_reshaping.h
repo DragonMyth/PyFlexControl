@@ -126,8 +126,9 @@ public:
 		g_params.collisionDistance = radius*1.01f;
 
 		g_params.relaxationFactor = mRelaxationFactor;
+		g_lightDistance *= 100.5f;
 
-		g_windStrength = 0.1f;
+		g_windStrength = 0.0f;
 		g_numSubsteps = 2;
 
 		// draw options
@@ -201,7 +202,6 @@ public:
 		for (int i = 0; i < int(g_buffers->positions.size()); ++i)
 			if (g_buffers->positions[i].y < g_params.radius * 0.7f)
 				g_buffers->positions[i].w = 0.0f;
-		g_lightDistance *= 100.5f;
 
 		return getState();
 	}
@@ -213,11 +213,11 @@ public:
 		int actionDim = 7;
 		for (int i = 0; i < centers.size(); i++) {
 
-			Vec3 targetPos = centers[i]
-					+ Vec3(action(i * actionDim), 0, action(i * actionDim + 1));
-
 //			Vec3 targetPos = centers[i]
-//					+ Vec3(0, 0, cos(g_frame / 60.0f / (EIGEN_PI)));
+//					+ Vec3(action(i * actionDim), 0, action(i * actionDim + 1));
+
+			Vec3 targetPos = centers[i]
+					+ Vec3(0, 0, cos(g_frame / 60.0f / (EIGEN_PI)));
 
 			Vec2 targetRotVec = Vec2(action(i * actionDim + 2),
 					action(i * actionDim + 3));
@@ -272,6 +272,11 @@ public:
 					false, eNvFlexPhaseShapeChannel0 << 1);
 
 			AddBox(barDim, newPos, newRot, false, channel);
+
+			if (ghost) {
+				AddBox(Vec3(1, 1, 1), centers[i] + Vec3(-4, 2, -4), Quat(),
+						false, eNvFlexPhaseShapeChannel0 << 1);
+			}
 
 		}
 		UpdateShapes();

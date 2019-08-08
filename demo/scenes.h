@@ -32,36 +32,59 @@
 #pragma warning(disable: 4267)  // conversion from 'size_t' to 'int', possible loss of data
 #endif
 
-class Scene
-{
+class Scene {
 public:
 
-	Scene(const char* name) : mName(name) {}
-	virtual void Initialize(){};
-	virtual Eigen::MatrixXd Initialize(int placeholder=0) {};
-	virtual void PostInitialize() {}
-	
+	Scene(const char* name) :
+			mName(name) {
+	}
+	virtual void Initialize() {
+	}
+	;
+	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
+	}
+	;
+	virtual void PostInitialize() {
+	}
+
 	// update any buffers (all guaranteed to be mapped here)
-	virtual void Update() {}	
-	virtual Eigen::MatrixXd Update(Eigen::VectorXd act){}
-	virtual Eigen::MatrixXd getState(){}
-	// send any changes to flex (all buffers guaranteed to be unmapped here)
-	virtual void Sync() {}
-	
-	virtual void Draw(int pass) {}
-	virtual void KeyDown(int key) {}
-	virtual void DoGui() {}
-	virtual void CenterCamera() {}
-	virtual void setSceneSeed(int seed){}
+	virtual void Update() {
+	}
+	virtual Eigen::MatrixXd Update(Eigen::VectorXd act) {
+		return getState();
+	}
+	virtual Eigen::MatrixXd getState() {
+		return Eigen::MatrixXd(1, 1);
+	}
+// send any changes to flex (all buffers guaranteed to be unmapped here)
+	virtual void Sync() {
+	}
 
-	virtual Matrix44 GetBasis() { return Matrix44::kIdentity; }	
+	virtual void Draw(int pass) {
+	}
+	virtual void KeyDown(int key) {
+	}
+	virtual void DoGui() {
+	}
+	virtual void CenterCamera() {
+	}
+	virtual void setSceneSeed(int seed) {
+	}
 
-	virtual const char* GetName() { return mName; }
-	virtual int getNumInstances(){return 1;}
-	virtual Eigen::MatrixXd getAllCenters(){}
+	virtual Matrix44 GetBasis() {
+		return Matrix44::kIdentity;
+	}
+
+	virtual const char* GetName() {
+		return mName;
+	}
+	virtual int getNumInstances() {
+		return 1;
+	}
+	virtual Eigen::MatrixXd getAllCenters() {
+	}
 	const char* mName;
 };
-
 
 #include "scenes/adhesion.h"
 #include "scenes/armadilloshower.h"
@@ -124,3 +147,4 @@ public:
 #include "scenes/granularsweep_three_bars.h"
 #include "scenes/granularsweep_controllable_ghost.h"
 #include "scenes/plastic_body_reshaping.h"
+#include "scenes/plastic_spring_shaping.h"

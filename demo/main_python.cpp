@@ -2881,6 +2881,7 @@ void initialize() {
 	g_scenes.push_back(new GranularSweepThreeBars("Granular Sweep Ghost Three Bars"));
 	g_scenes.push_back(new GranularSweepControllableGhost("Granular Sweep Conrollable Ghost"));
 	g_scenes.push_back(new PlasticBodyReshaping("Plastic Reshaping"));
+	g_scenes.push_back(new 	PlasticSpringShaping("Plastic Spring Reshaping"));
 
 
 //    g_scenes.push_back(new ForceField("Force Field"));
