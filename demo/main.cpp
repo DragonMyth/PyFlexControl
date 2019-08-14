@@ -592,7 +592,7 @@ void setSceneRandSeed(int seed) {
 	g_scenes[g_scene]->setSceneSeed(seed);
 }
 
-void Init(int scene, bool centerCamera = false) {
+void Init(int scene, bool centerCamera = true) {
 	RandInit();
 	if (g_solver) {
 		if (g_buffers)
@@ -2776,9 +2776,10 @@ int main(int argc, char* argv[]) {
 
 
 
-	g_scenes.push_back(new PlasticBodyReshaping("Plastic Reshaping"));
+//	g_scenes.push_back(new PlasticBodyReshaping("Plastic Reshaping"));
 //	g_scenes.push_back(new 	ClothLayers("Cloth Layers"));
-	g_scenes.push_back(new 	PlasticSpringShaping("Cloth Layers"));
+	g_scenes.push_back(new 	PlasticSpringShaping("Plastic Reshaping Using Springs"));
+	g_scenes.push_back(new 	PlasticSpringShapingManualControl("Plastic Reshaping Using Springs Manual Control"));
 
 	// init graphics
 

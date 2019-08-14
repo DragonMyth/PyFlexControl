@@ -146,5 +146,7 @@ public:
 #include "scenes/granularsweep_torque_control.h"
 #include "scenes/granularsweep_three_bars.h"
 #include "scenes/granularsweep_controllable_ghost.h"
+#include "scenes/granularsweep_controllable_ghost_manual_control.h"
 #include "scenes/plastic_body_reshaping.h"
 #include "scenes/plastic_spring_shaping.h"
+#include "scenes/plastic_spring_shaping_manual_control.h"
