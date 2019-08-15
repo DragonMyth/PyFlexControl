@@ -5,10 +5,10 @@ using namespace std;
 
 //
 
-class PlasticSpringShaping: public Scene {
+class PlasticSpringShapingManualControl: public Scene {
 public:
 
-	PlasticSpringShaping(const char* name) :
+	PlasticSpringShapingManualControl(const char* name) :
 			Scene(name) {
 	}
 
@@ -21,7 +21,7 @@ public:
 	float kd_pos = 1.2;
 	float kp_rot = 0.7;
 	float kd_rot = 1;
-	int numSceneDim = 4;
+	int numSceneDim = 1;
 	int seed = -1;
 	vector<Vec3> centers;
 	Vec3 barDim = Vec3(1.5, 1, 0.01);
@@ -150,6 +150,7 @@ public:
 
 		// draw options
 		g_drawPoints = true;
+//		g_drawSprings = true;
 		g_drawMesh = false;
 		g_warmup = false;
 
@@ -280,13 +281,9 @@ public:
 
 		int actionDim = 7;
 		for (int i = 0; i < centers.size(); i++) {
-//
-//			Vec3 targetPos = centers[i]
-//					+ Vec3(action(i * actionDim), 0, action(i * actionDim + 1));
-
 
 			Vec3 targetPos = centers[i]
-					+ Vec3(0, 0, cos(g_frame / 60.0f / (EIGEN_PI)));
+					+ Vec3(action(i * actionDim), 0, action(i * actionDim + 1));
 
 			Vec2 targetRotVec = Vec2(action(i * actionDim + 2),
 					action(i * actionDim + 3));
