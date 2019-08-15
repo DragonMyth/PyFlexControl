@@ -536,7 +536,6 @@ NV_FLEX_API void NvFlexGetActive(NvFlexSolver* solver, NvFlexBuffer* indices, co
 
 /**
  * Set the total number of active particles
- * 
  * @param[in] solver A valid solver
  * @param[in] n The number of active particles, the first n indices in the active particles array will be used as the active count
  */
@@ -885,6 +884,15 @@ NV_FLEX_API void NvFlexGetConvexMeshBounds(NvFlexLibrary* lib, NvFlexConvexMeshI
 /**
  * A basic sphere shape with origin at the center of the sphere and radius
  */
+struct NvFlexGeoColor
+{
+	float color[3];
+
+};
+
+/**
+ * A basic sphere shape with origin at the center of the sphere and radius
+ */
 struct NvFlexSphereGeometry
 {
 	float radius;
@@ -947,6 +955,8 @@ union NvFlexCollisionGeometry
 	NvFlexConvexMeshGeometry convexMesh;
 	NvFlexTriangleMeshGeometry triMesh;
 	NvFlexSDFGeometry sdf;
+
+
 };
 
 enum NvFlexCollisionShapeType

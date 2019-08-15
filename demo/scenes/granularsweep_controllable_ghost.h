@@ -3,10 +3,10 @@
 using namespace std;
 //
 
-class GranularSweep: public Scene {
+class GranularSweepControllableGhost: public Scene {
 public:
 
-	GranularSweep(const char* name) :
+	GranularSweepControllableGhost(const char* name) :
 			Scene(name) {
 	}
 
@@ -47,7 +47,6 @@ public:
 				Vec2 xRange = Vec2(-2, 2);
 				Vec2 zRange = Vec2(-2, 2);
 				Vec2 gap = Vec2(particleDim, particleDim);
-
 				CreateGranularGrid(center, xRange, zRange, radius, gap,
 						Vec3(0, 0, 0), 1, false, 0.0f, phase, 0.0f);
 				//Random sample a initial position in range [-2,2] x [-2,2].
@@ -59,6 +58,13 @@ public:
 				Eigen::VectorXf randInitShape(1);
 				randInitShape.setRandom();
 				randInitShape /= 2.0f;
+
+//				if(randInitShape(0)<0){
+//					CreateParticleGridRand(center+Vec3(randInitPos(0),radius,randInitPos(1)),particleDim/2,4,particleDim/2,radius*3,Vec3(0,0,0),1,false,0.0f,phase,0.005f);
+//				}else{
+//					CreateGranularGrid(center,xRange,zRange,radius,gap,Vec3(0,0,0),1,false,0.0f,phase,0.0f);
+//
+//				}
 
 				Vec3 currPos;
 				Quat currRot;
@@ -105,7 +111,7 @@ public:
 		g_params.staticFriction = 10.5f;
 		g_params.dynamicFriction = 1.2f;
 		g_params.viscosity = 0.0f;
-		g_params.numIterations = 3;
+		g_params.numIterations = 4;
 		g_params.particleCollisionMargin = g_params.radius * 0.05f;	// 5% collision margin
 		g_params.sleepThreshold = g_params.radius * 0.25f;
 		g_params.shockPropagation = 6.f;
@@ -129,21 +135,32 @@ public:
 		using namespace Eigen;
 		ClearShapes();
 
-		int actionDim = 6;
 		for (int i = 0; i < centers.size(); i++) {
 
 			Vec3 targetPos = centers[i]
-					+ Vec3(action(i * actionDim), 0, action(i * actionDim + 1));
+					+ Vec3(action(i * 7), 0, action(i * 7 + 1));
 
-			Vec2 targetRotVec = Vec2(action(i * actionDim + 2),
-					action(i * actionDim + 3));
+			Vec2 targetRotVec = Vec2(action(i * 7 + 2), action(i * 7 + 3));
 
-			Vec2 goal_target = Vec2(action(i * actionDim + 4),
-					action(i * actionDim + 5))
+			bool ghost = action(i * 7 + 4) > 0 ? true : false;
+
+//				Vec2 targetRotVec = Vec2(1,0);
+
+			Vec2 goal_target = Vec2(action(i * 7 + 5), action(i * 7 + 6))
 					+ Vec2(centers[i][0], centers[i][2]);
+
+//				Vec2 goal_target = Vec2(0,0)+Vec2(centers[i][0],centers[i][2]);
 			Vec2 targetDir = goal_target - Vec2(currPoses[i].x, currPoses[i].z);
 
+
+//			float relativeDir = Dot(targetDir,
+//					Vec2(currVels[i].x, currVels[i].z));
+
 			int channel = eNvFlexPhaseShapeChannel0;
+
+			if (ghost) {
+				channel = channel << 1;
+			}
 
 			float currCosHalfAng = currRots[i].w;
 			float currSinHalfAng = currRots[i].y;
@@ -187,6 +204,11 @@ public:
 
 			AddBox(barDim, newPos, newRot, false, channel);
 
+			if (ghost) {
+				AddBox(Vec3(1, 1, 1), centers[i] + Vec3(-4, 2, -4), Quat(),
+						false, eNvFlexPhaseShapeChannel0 << 1);
+			}
+
 		}
 		UpdateShapes();
 
@@ -196,14 +218,15 @@ public:
 	void setSceneSeed(int seed) {
 		this->seed = seed;
 	}
+
 	Eigen::MatrixXd getState() {
 		using namespace Eigen;
 		int numPart = g_buffers->positions.size();
 
 		int numBars = numSceneDim * numSceneDim;
 		//The last four rows are the translational and rotational position and velocity for the moving bar
+
 		MatrixXd state(numPart + 4 * numBars, 3);
-		//		cout << state.rows() << endl;
 		state.setZero();
 
 		for (int i = 0; i < numBars; i++) {
@@ -235,7 +258,6 @@ public:
 
 		}
 		return state;
-
 	}
 
 	int getNumInstances() {

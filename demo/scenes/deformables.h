@@ -27,8 +27,8 @@ public:
 		}
 		else
 		{
-			CreateTetMesh(GetFilePathByPlatform("../../data/tets/duck.tet").c_str(), Vec3(2.0f, 1.0f, 2.0f), 2.00000105f, 1.0f, 0);
-			CreateTetMesh(GetFilePathByPlatform("../../data/tets/duck.tet").c_str(), Vec3(2.0f, 3.0f, 2.0f), 2.00000105f, 1.0f, 1);
+			CreateTetMesh(GetFilePathByPlatform("data/tets/duck.tet").c_str(), Vec3(2.0f, 1.0f, 2.0f), 2.00000105f, 1.0f, 0);
+			CreateTetMesh(GetFilePathByPlatform("data/tets/duck.tet").c_str(), Vec3(2.0f, 3.0f, 2.0f), 2.00000105f, 1.0f, 1);
 		}
 	
 		g_params.numIterations = 5;

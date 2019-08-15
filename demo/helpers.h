@@ -73,61 +73,74 @@ void GetParticleBounds(Vec3& lower, Vec3& upper) {
 	}
 }
 
-void CreateParticleGrid(Vec3 lower, int dimx, int dimy, int dimz, float radius, Vec3 velocity, float invMass, bool rigid, float rigidStiffness, int phase, float jitter=0.005f)
-{
+void GetAssignedParticleBounds(Vec3& lower, Vec3& upper, int start, int end) {
+	lower = Vec3(FLT_MAX);
+	upper = Vec3(-FLT_MAX);
+
+	for (int i = start; i < end; ++i) {
+		lower = Min(Vec3(g_buffers->positions[i]), lower);
+		upper = Max(Vec3(g_buffers->positions[i]), upper);
+	}
+}
+
+void CreateParticleGrid(Vec3 lower, int dimx, int dimy, int dimz, float radius,
+		Vec3 velocity, float invMass, bool rigid, float rigidStiffness,
+		int phase, float jitter = 0.005f) {
 	if (rigid && g_buffers->rigidIndices.empty())
 		g_buffers->rigidOffsets.push_back(0);
 
-	for (int x = 0; x < dimx; ++x)
-	{
-		for (int y = 0; y < dimy; ++y)
-		{
-			for (int z=0; z < dimz; ++z)
-			{
+	for (int x = 0; x < dimx; ++x) {
+		for (int y = 0; y < dimy; ++y) {
+			for (int z = 0; z < dimz; ++z) {
 				if (rigid)
-					g_buffers->rigidIndices.push_back(int(g_buffers->positions.size()));
+					g_buffers->rigidIndices.push_back(
+							int(g_buffers->positions.size()));
 
-				Vec3 position = lower + Vec3(float(x), float(y), float(z))*radius + RandomUnitVector()*jitter;
+				Vec3 position = lower
+						+ Vec3(float(x), float(y), float(z)) * radius
+						+ RandomUnitVector() * jitter;
 
-				g_buffers->positions.push_back(Vec4(position.x, position.y, position.z, invMass));
+				g_buffers->positions.push_back(
+						Vec4(position.x, position.y, position.z, invMass));
 				g_buffers->velocities.push_back(velocity);
 				g_buffers->phases.push_back(phase);
 			}
 		}
 	}
 
-	if (rigid)
-	{
+	if (rigid) {
 		g_buffers->rigidCoefficients.push_back(rigidStiffness);
 		g_buffers->rigidOffsets.push_back(int(g_buffers->rigidIndices.size()));
 	}
 }
 
-void CreateParticleGridRand(Vec3 target, int dimx, int dimy, int dimz, float radius, Vec3 velocity, float invMass, bool rigid, float rigidStiffness, int phase, float jitter=0.005f)
-{
+void CreateParticleGridRand(Vec3 target, int dimx, int dimy, int dimz,
+		float radius, Vec3 velocity, float invMass, bool rigid,
+		float rigidStiffness, int phase, float jitter = 0.005f) {
 	if (rigid && g_buffers->rigidIndices.empty())
 		g_buffers->rigidOffsets.push_back(0);
 
-	for (int x = 0; x < dimx; ++x)
-	{
-		for (int y = 0; y < dimy; ++y)
-		{
-			for (int z=0; z < dimz; ++z)
-			{
+	for (int x = 0; x < dimx; ++x) {
+		for (int y = 0; y < dimy; ++y) {
+			for (int z = 0; z < dimz; ++z) {
 				if (rigid)
-					g_buffers->rigidIndices.push_back(int(g_buffers->positions.size()));
+					g_buffers->rigidIndices.push_back(
+							int(g_buffers->positions.size()));
 
-				Vec3 position = target + Vec3(float(x), float(y), float(z))*radius-Vec3(float(dimx), 0, float(dimz))*radius/2.0f + RandomUnitVector()*jitter;
+				Vec3 position = target
+						+ Vec3(float(x), float(y), float(z)) * radius
+						- Vec3(float(dimx), 0, float(dimz)) * radius / 2.0f
+						+ RandomUnitVector() * jitter;
 
-				g_buffers->positions.push_back(Vec4(position.x, position.y, position.z, invMass));
+				g_buffers->positions.push_back(
+						Vec4(position.x, position.y, position.z, invMass));
 				g_buffers->velocities.push_back(velocity);
 				g_buffers->phases.push_back(phase);
 			}
 		}
 	}
 
-	if (rigid)
-	{
+	if (rigid) {
 		g_buffers->rigidCoefficients.push_back(rigidStiffness);
 		g_buffers->rigidOffsets.push_back(int(g_buffers->rigidIndices.size()));
 	}
@@ -135,7 +148,8 @@ void CreateParticleGridRand(Vec3 target, int dimx, int dimy, int dimz, float rad
 
 void CreateGranularGrid(Vec3 center, Vec2 dimx, Vec2 dimz, float radius,
 		Vec2 particleDims, Vec3 velocity, float invMass, bool rigid,
-		float rigidStiffness, int phase, float jitter = 0.005f,Vec2 rot=Vec2(1,0)) {
+		float rigidStiffness, int phase, float jitter = 0.005f,
+		Vec2 rot = Vec2(1, 0)) {
 	if (rigid && g_buffers->rigidIndices.empty())
 		g_buffers->rigidOffsets.push_back(0);
 
@@ -153,11 +167,11 @@ void CreateGranularGrid(Vec3 center, Vec2 dimx, Vec2 dimz, float radius,
 
 			Vec3 position = Vec3(posX, radius, posZ)
 					+ RandomUnitVector() * jitter;
-			float newX = position.x*rot.x-position.z*rot.y;
-			float newZ = position.x*rot.y+position.z*rot.x;
-			position.x=newX;
+			float newX = position.x * rot.x - position.z * rot.y;
+			float newZ = position.x * rot.y + position.z * rot.x;
+			position.x = newX;
 			position.z = newZ;
-			position+=center;
+			position += center;
 			float invMassPart = invMass;
 			g_buffers->positions.push_back(
 					Vec4(position.x, position.y, position.z, invMassPart));
@@ -560,7 +574,7 @@ void SkinMesh() {
 
 void AddBox(Vec3 halfEdge = Vec3(2.0f), Vec3 center = Vec3(0.0f), Quat quat =
 		Quat(), bool dynamic = false, int channels =
-		eNvFlexPhaseShapeChannelMask) {
+		eNvFlexPhaseShapeChannelMask, Vec3 color = Vec3(0.9f)) {
 	// transform
 	g_buffers->shapePositions.push_back(
 			Vec4(center.x, center.y, center.z, 0.0f));
@@ -591,7 +605,8 @@ void AddPlinth() {
 	AddBox(Vec3(2.0f, 0.5f, 2.0f), center);
 }
 
-void AddSphere(float radius, Vec3 position, Quat rotation,int channels = eNvFlexPhaseShapeChannelMask) {
+void AddSphere(float radius, Vec3 position, Quat rotation, int channels =
+		eNvFlexPhaseShapeChannelMask) {
 	NvFlexCollisionGeometry geo;
 	geo.sphere.radius = radius;
 	g_buffers->shapeGeometry.push_back(geo);
@@ -603,8 +618,8 @@ void AddSphere(float radius, Vec3 position, Quat rotation,int channels = eNvFlex
 	g_buffers->shapePrevRotations.push_back(g_buffers->shapeRotations.back());
 
 //	int flags = NvFlexMakeShapeFlags(eNvFlexShapeSphere, false);
-	int flags=NvFlexMakeShapeFlagsWithChannels(eNvFlexShapeSphere, false,
-						channels);
+	int flags = NvFlexMakeShapeFlagsWithChannels(eNvFlexShapeSphere, false,
+			channels);
 	g_buffers->shapeFlags.push_back(flags);
 }
 
@@ -1021,6 +1036,140 @@ void CreateSpringGrid(Vec3 lower, int dx, int dy, int dz, float radius,
 				int index2 = (y - 2) * dx + x;
 				CreateSpring(baseIndex + index0, baseIndex + index2,
 						bendStiffness);
+			}
+		}
+	}
+}
+
+void CreateSpringCube(Vec3 lower, int dx, int dy, int dz, float radius,
+		int phase, float stretchStiffness, float bendStiffness,
+		float shearStiffness, Vec3 velocity, float invMass) {
+	int baseIndex = int(g_buffers->positions.size());
+
+	for (int z = 0; z < dz; ++z) {
+		for (int y = 0; y < dy; ++y) {
+			for (int x = 0; x < dx; ++x) {
+
+				Vec3 position = lower
+						+ radius * Vec3(float(x), float(y), float(z));
+
+				Vec4 part = Vec4(position.x, position.y, position.z, invMass);
+//				if (y == 0 && x < dx / 2 + 5 && x > dx / 2 - 5 && z < dz / 2 + 5
+//						&& z > dz / 2 - 5) {
+//				if (y == 0) {
+//					part.w = 0;
+//				}
+				g_buffers->positions.push_back(part);
+				g_buffers->velocities.push_back(velocity);
+				g_buffers->phases.push_back(phase);
+
+			}
+		}
+	}
+
+	// x axis strech
+	// zx shear
+	for (int z = 0; z < dz; ++z) {
+		for (int y = 0; y < dy; ++y) {
+			for (int x = 0; x < dx; ++x) {
+
+				int index0 = z * dy * dx + y * dx + x;
+
+				if (x > 0) {
+					int index1 = z * dy * dx + y * dx + x - 1;
+					CreateSpring(baseIndex + index0, baseIndex + index1,
+							stretchStiffness);
+				}
+//
+				if (x > 1) {
+					int index2 = z * dy * dx + y * dx + x - 2;
+					CreateSpring(baseIndex + index0, baseIndex + index2,
+							bendStiffness);
+				}
+//
+				if (z > 0 && x < dx - 1) {
+					int indexDiag = (z - 1) * dy * dx + y * dx + x + 1;
+					CreateSpring(baseIndex + index0, baseIndex + indexDiag,
+							shearStiffness);
+				}
+
+				if (z > 0 && x > 0) {
+					int indexDiag = (z - 1) * dy * dx + y * dx + x - 1;
+					CreateSpring(baseIndex + index0, baseIndex + indexDiag,
+							shearStiffness);
+				}
+			}
+		}
+	}
+
+	// y axis
+	// xy shear
+	for (int z = 0; z < dz; ++z) {
+		for (int y = 0; y < dy; ++y) {
+			for (int x = 0; x < dx; ++x) {
+
+				int index0 = z * dy * dx + y * dx + x;
+
+				if (y > 0) {
+					int index1 = z * dy * dx + (y - 1) * dx + x;
+					CreateSpring(baseIndex + index0, baseIndex + index1,
+							stretchStiffness);
+				}
+
+				if (y > 1) {
+					int index2 = z * dy * dx + (y - 2) * dx + x;
+					CreateSpring(baseIndex + index0, baseIndex + index2,
+							bendStiffness);
+				}
+
+				if (y > 0 && x < dx - 1) {
+					int indexDiag = z * dy * dx + (y - 1) * dx + x + 1;
+					CreateSpring(baseIndex + index0, baseIndex + indexDiag,
+							shearStiffness);
+				}
+
+				if (y > 0 && x > 0) {
+					int indexDiag = z * dy * dx + (y - 1) * dx + x - 1;
+					CreateSpring(baseIndex + index0, baseIndex + indexDiag,
+							shearStiffness);
+				}
+
+			}
+		}
+	}
+
+	// z axis
+	// yz shear
+	for (int z = 0; z < dz; ++z) {
+		for (int y = 0; y < dy; ++y) {
+			for (int x = 0; x < dx; ++x) {
+
+				int index0 = (z * dy * dx) + ((y) * dx) + x;
+
+				if (z > 0) {
+					int index1 = ((z - 1) * dy * dx) + (y * dx) + x;
+					CreateSpring(baseIndex + index0, baseIndex + index1,
+							stretchStiffness);
+				}
+
+				if (z > 1) {
+					int index2 = (z - 2) * dy * dx + y * dx + x;
+					CreateSpring(baseIndex + index0, baseIndex + index2,
+							bendStiffness);
+				}
+
+				if (z > 0 && y < dy - 1) {
+					int indexDiag = (z - 1) * dy * dx + (y + 1) * dx + x;
+					CreateSpring(baseIndex + index0, baseIndex + indexDiag,
+							shearStiffness);
+				}
+
+				if (z > 0 && y > 0) {
+					int indexDiag = (z - 1) * dy * dx + (y - 1) * dx + x;
+					CreateSpring(baseIndex + index0, baseIndex + indexDiag,
+							shearStiffness);
+				}
+
 			}
 		}
 	}

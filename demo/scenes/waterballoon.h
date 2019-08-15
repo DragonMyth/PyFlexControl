@@ -112,6 +112,7 @@ public:
 
 		// fill inflatables with water
 		std::vector<Vec3> positions(10000);
+
 		int n = PoissonSample3D(0.45f, g_params.radius*0.42f, &positions[0], positions.size(), 10000);
 		//int n = TightPack3D(0.45f, g_params.radius*0.42f, &positions[0], positions.size());
 

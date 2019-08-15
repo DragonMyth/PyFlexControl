@@ -7,7 +7,7 @@ public:
 	ClothLayers(const char* name) :
 		Scene(name) {}
 
-	virtual void Initialize()
+	virtual Eigen::MatrixXd Initialize(int placeholder=0)
 	{
 
 		float stretchStiffness = 1.0f;
@@ -19,7 +19,6 @@ public:
 		float radius = 0.05f;
 		int phase = NvFlexMakePhase(0, eNvFlexPhaseSelfCollide);
 
-#if 1
 		CreateSpringGrid(Vec3(-0.6f, 2.9f, -0.6f), dimx, dimz, 1, radius, phase, stretchStiffness, bendStiffness, shearStiffness, 0.0f, 1.0f);
 		CreateSpringGrid(Vec3(-0.6f, 2.6f, -0.6f), dimx, dimz, 1, radius, phase, stretchStiffness, bendStiffness, shearStiffness, 0.0f, 1.0f);
 		CreateSpringGrid(Vec3(-0.6f, 2.3f, -0.6f), dimx, dimz, 1, radius, phase, stretchStiffness, bendStiffness, shearStiffness, 0.0f, 1.0f);
@@ -28,36 +27,13 @@ public:
 		Vec3 lower, upper;
 		GetParticleBounds(lower, upper);
 
-		Mesh* sphere = ImportMesh(GetFilePathByPlatform("../../data/sphere.ply").c_str());
+		Mesh* sphere = ImportMesh(GetFilePathByPlatform("data/sphere.ply").c_str());
 		sphere->Normalize();
 
 		NvFlexTriangleMeshId mesh = CreateTriangleMesh(sphere);
 		AddTriangleMesh(mesh, Vec3(), Quat(), 2.0f);
 
 		delete sphere;
-#else
-		// This scene can cause the cloth to bounce
-		// Might need to run it a few times to repro
-		CreateSpringGrid(Vec3(-0.6f, 2.9f, -0.6f), dimx, dimz, 1, radius, phase, stretchStiffness, bendStiffness, shearStiffness, 0.0f, 1.0f);
-
-		Vec3 lower, upper;
-		GetParticleBounds(lower, upper);
-
-		Mesh* disc = CreateDiscMesh(2.0f, 300);
-		disc->m_positions[0].y -= 0.25f;
-		disc->CalculateNormals();
-		NvFlexTriangleMeshId mesh = CreateTriangleMesh(disc);
-		AddTriangleMesh(mesh, Vec3(0.0f, 2.88f, 1.0f), Quat(), 1.0f);
-		delete disc;
-
-		Mesh* disc1 = CreateDiscMesh(2.0f, 250);
-		disc1->m_positions[0].y -= 0.25f;
-		disc1->CalculateNormals();
-		NvFlexTriangleMeshId mesh1 = CreateTriangleMesh(disc1);
-		AddTriangleMesh(mesh1, Vec3(1.0f, 1.5f, 0.0f), Quat(), 1.0f);
-		delete disc1;
-#endif
-
 		g_params.radius = radius*1.0f;
 		g_params.dynamicFriction = 0.1625f;
 		g_params.dissipation = 0.0f;
@@ -76,6 +52,9 @@ public:
 		// draw options
 		g_drawPoints = true;
 		g_drawSprings = false;
+
+		return getState();
 	}
+
 };
 
