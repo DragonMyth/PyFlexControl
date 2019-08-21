@@ -2776,8 +2776,9 @@ int main(int argc, char* argv[]) {
 
 
 //	g_scenes.push_back(new 	ClothLayers("Cloth Layers"));
+	g_scenes.push_back(new GooShapingManualControl("Goo Reshaping Single Instance"));
 	g_scenes.push_back(new 	PlasticSpringShaping("Plastic Reshaping Using Springs"));
-	g_scenes.push_back(new 	PlasticSpringShapingManualControl("Plastic Reshaping Using Springs Manual Control"));
+	g_scenes.push_back(new 	PlasticSpringShapingManualControl("Plastic Reshaping Using Springs Single Instance"));
 
 	// init graphics
 
