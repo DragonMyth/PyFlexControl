@@ -29,19 +29,33 @@ public:
 	float springBreakRatio = 0.6f;
 
 	float springRestLength;
-	map<int, std::vector<int>> *spaceMap;
+	map<int, std::vector<int>> *springFuseMap;
+	map<int, std::vector<int>> *springBreakMap;
+
 	map<std::pair<int, int>, int> *bidirSpringMap;
+	Eigen::VectorXi perPartSpringCnt;
 
-	int spacePartitionSize = 29;
-	int dimx = 13;
+	int dimx = 12;
 	int dimy = 2;
-	int dimz = 13;
+	int dimz = 12;
 
-	float stretchStiffness = 1.0f;
-	float bendStiffness = 2.0f;
-	float shearStiffness = 0.5f;
+	float stiffness = 1.0f;
+
+	float radius = 0.15f;
+
+	float springFuseDist = radius * 1.5f;
+	float springBreakDist = radius * 4.0f;
+
+	float springCompressThreshold = radius * 2.25f;
+	float springStrechThreshold = radius * 3.0f;
+
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
-		spaceMap = new map<int, std::vector<int>> [numSceneDim * numSceneDim];
+
+		springFuseMap = new map<int, std::vector<int>> [numSceneDim
+				* numSceneDim];
+		springBreakMap = new map<int, std::vector<int>> [numSceneDim
+				* numSceneDim];
+
 		bidirSpringMap = new map<std::pair<int, int>, int> [numSceneDim
 				* numSceneDim];
 		g_lightDistance *= 100.5f;
@@ -52,10 +66,8 @@ public:
 		currVels.clear();
 		currAngVels.clear();
 
-		float radius = 0.15f;
-
 		Vec3 lower, upper;
-		springRestLength = radius * 1.7f;
+		springRestLength = radius * 2.0f;
 		for (int i = 0; i < numSceneDim; i++) {
 			for (int j = 0; j < numSceneDim; j++) {
 
@@ -68,8 +80,8 @@ public:
 						channel);
 
 				CreateSpringCube(center + Vec3(0, 0, 0), dimx, dimy, dimz,
-						springRestLength, phase, stretchStiffness,
-						bendStiffness, shearStiffness, 0.0f, 1.0f);
+						springRestLength, phase, stiffness, stiffness,
+						stiffness, 0.0f, 1.0f);
 
 				if (i == 0 && j == 0) {
 					GetParticleBounds(lower, upper);
@@ -114,10 +126,12 @@ public:
 				Eigen::VectorXf randRot(1);
 				randRot.setRandom();
 				randRot *= EIGEN_PI;
+//				randRot *= 0;
 
 				currPos = center + Vec3(randPos[0], 0, randPos[1]);
-
+//				currPos = center + Vec3(0, 0, 0);
 				currRot = QuatFromAxisAngle(Vec3(0, 1, 0), 0 + randRot(0));
+
 				currVel = Vec3(0, 0, 0);
 				currAngVel = 0;
 
@@ -131,12 +145,14 @@ public:
 			}
 
 		}
+		perPartSpringCnt = Eigen::VectorXi(g_buffers->positions.size());
+		perPartSpringCnt.setZero();
 		updateSpaceMap();
 		updateSprings();
 
 		g_params.radius = radius;
 		g_params.dynamicFriction = 4.55f;
-		g_params.staticFriction = 8.5f;
+		g_params.staticFriction = 9.5f;
 		g_params.dissipation = 0.0f;
 		g_params.numIterations = 4;
 		g_params.viscosity = 0.0f;
@@ -154,107 +170,192 @@ public:
 		g_drawMesh = false;
 		g_warmup = false;
 
-
 		return getState();
 	}
 
 	void updateSpaceMap() {
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
-			spaceMap[i].clear();
+			springFuseMap[i].clear();
 		}
-		for (int i = 0; i < g_buffers->positions.size(); i++) {
-			Vec3 idxVec = getMapIdx(i);
 
-			int idx = idxVec.z * spacePartitionSize * spacePartitionSize
-					+ idxVec.y * spacePartitionSize + idxVec.x;
+		int fuseGridSize = ceil(8.0 / springFuseDist);
+
+		for (int i = 0; i < g_buffers->positions.size(); i++) {
+			Vec3 idxVecFuseMap = getMapIdx(i, fuseGridSize);
+
+			int idxFuseMap = idxVecFuseMap.z * fuseGridSize * fuseGridSize
+					+ idxVecFuseMap.y * fuseGridSize + idxVecFuseMap.x;
 
 			int group = i / (dimx * dimy * dimz);
 
-			if (spaceMap[group].count(idx) == 0) {
+			if (springFuseMap[group].count(idxFuseMap) == 0) {
 				std::vector<int> list;
 				list.resize(0);
-				spaceMap[group].insert(
-						std::pair<int, std::vector<int>>(idx, list));
+				springFuseMap[group].insert(
+						std::pair<int, std::vector<int>>(idxFuseMap, list));
 			}
 
-			spaceMap[group][idx].push_back(i);
+			springFuseMap[group][idxFuseMap].push_back(i);
+
 		}
 
 	}
-	Vec3 getMapIdx(int partIdx) {
+
+	Vec3 getMapIdx(int partIdx, int gridSize) {
 		int group = partIdx / (dimx * dimy * dimz);
 		Vec3 center = centers[group];
 		Vec3 pos = Vec3(g_buffers->positions[partIdx]) - center + Vec3(4, 0, 4);
-		Vec3 mapIdx = Vec3(int(pos.x / 8.0 * spacePartitionSize),
-				int(pos.y / 8.0 * spacePartitionSize),
-				int(pos.z / 8.0 * spacePartitionSize));
-//		cout << "Map Idx: " << mapIdx.x << " " << mapIdx.y << " " << mapIdx.z
-//				<< endl;
-
+		Vec3 mapIdx = Vec3(int(pos.x / 8.0 * gridSize),
+				int(pos.y / 8.0 * gridSize), int(pos.z / 8.0 * gridSize));
 		return mapIdx;
 
 	}
 
-	void updateSprings() {
-		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
-			bidirSpringMap[i].clear();
+	bool cutParticles(Vec3 p, Vec3 q, int group) {
+		Vec3 barPose = currPoses[group];
+		float currCosHalfAng = currRots[group].w;
+		float currSinHalfAng = currRots[group].y;
+		float barRotCos = Sqr(currCosHalfAng) - Sqr(currSinHalfAng);
+		float barRotSin = 2 * currCosHalfAng * currSinHalfAng;
+		Vec3 endPoint1Pos = barPose + barDim.x * Vec3(barRotCos, 0, barRotSin);
+		Vec3 endPoint2Pos = barPose - barDim.x * Vec3(barRotCos, 0, barRotSin);
+
+		float a1 = endPoint1Pos.z - endPoint2Pos.z;
+		float b1 = endPoint2Pos.x - endPoint1Pos.x;
+
+		float c1 = a1 * endPoint2Pos.x + b1 * endPoint2Pos.z;
+
+		float a2 = p.z - q.z;
+		float b2 = q.x - p.x;
+		float c2 = a2 * q.x + b2 * q.z;
+
+		float det = a1 * b2 - a2 * b1;
+		float x = (c1 * b2 - c2 * b1) / det;
+		float z = (a1 * c2 - a2 * c1) / det;
+
+		if (det == 0) {
+			return false;
 		}
+
+		if (minf(endPoint2Pos.x, endPoint1Pos.x) <= x
+				&& maxf(endPoint2Pos.x, endPoint1Pos.x) >= x
+				&& minf(p.x, q.x) <= x && maxf(p.x, q.x) >= x
+
+				&& minf(endPoint2Pos.z, endPoint1Pos.z) <= z
+				&& maxf(endPoint2Pos.z, endPoint1Pos.z) >= z
+				&& minf(p.z, q.z) <= z && maxf(p.z, q.z) >= z) {
+			return true;
+		} else {
+			return false;
+		}
+//		return false;
+
+	}
+
+	float calNewSpringRestLength(float length, float currRestLength) {
+		float res = currRestLength;
+		if (length <= springCompressThreshold) {
+			res = length;
+		} else if (length >= springStrechThreshold) {
+			res = length;
+		}
+		return res;
+	}
+	void updateSprings() {
+		int fuseGridSize = ceil(8.0 / springFuseDist);
+
 		std::vector<int> mConstraintIndices;
 		std::vector<float> mConstraintCoefficients;
 		std::vector<float> mConstraintRestLengths;
 		mConstraintIndices.resize(0);
 		mConstraintCoefficients.resize(0);
-		mConstraintCoefficients.resize(0);
+		mConstraintRestLengths.resize(0);
+		perPartSpringCnt.setZero();
+
+		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
+			bidirSpringMap[i].clear();
+		}
+
+		for (int i = 0; i < g_buffers->springLengths.size(); i++) {
+			int a = g_buffers->springIndices[i * 2];
+			int b = g_buffers->springIndices[i * 2 + 1];
+
+			Vec3 p = Vec3(g_buffers->positions[a]);
+			Vec3 q = Vec3(g_buffers->positions[b]);
+			int group = a / (dimx * dimy * dimz);
+
+			float length = Length(p - q);
+			if (length <= springBreakDist && !cutParticles(p, q, group)) {
+				mConstraintIndices.push_back(a);
+				mConstraintIndices.push_back(b);
+				mConstraintCoefficients.push_back(stiffness);
+
+				mConstraintRestLengths.push_back(
+						calNewSpringRestLength(length,
+								g_buffers->springLengths[i]));
+
+				std::pair<int, int> ab = std::pair<int, int>(a, b);
+				std::pair<int, int> ba = std::pair<int, int>(b, a);
+
+				bidirSpringMap[group][ab] = 1;
+				bidirSpringMap[group][ba] = 1;
+				perPartSpringCnt[a]++;
+				perPartSpringCnt[b]++;
+
+			}
+		}
 		//For all particles
 		for (int i = 0; i < g_buffers->positions.size(); i++) {
 			int group = i / (dimx * dimy * dimz);
-			Vec3 idxVec = getMapIdx(i);
-			int remainning_spring = 10;
+			Vec3 idxVecFuseMap = getMapIdx(i, fuseGridSize);
+
+			int remainning_spring = 25 - perPartSpringCnt[i];
 			//Look at surrounding 27 neighbours
 			for (int x = -1; x <= 1; x++) {
 				for (int y = -1; y <= 1; y++) {
 					for (int z = -1; z <= 1; z++) {
-						Vec3 neighbourIdx = idxVec + Vec3(x, y, z);
+						Vec3 neighbourIdx = idxVecFuseMap + Vec3(x, y, z);
 						//If neighbour index is out of bound
-						if (neighbourIdx.x >= 0
-								&& neighbourIdx.x < spacePartitionSize
+						if (neighbourIdx.x >= 0 && neighbourIdx.x < fuseGridSize
 								&& neighbourIdx.y >= 0
-								&& neighbourIdx.y < spacePartitionSize
+								&& neighbourIdx.y < fuseGridSize
 								&& neighbourIdx.z >= 0
-								&& neighbourIdx.z < spacePartitionSize) {
-							int idx = neighbourIdx.z * spacePartitionSize
-									* spacePartitionSize
-									+ neighbourIdx.y * spacePartitionSize
+								&& neighbourIdx.z < fuseGridSize) {
+							int idx = neighbourIdx.z * fuseGridSize
+									* fuseGridSize
+									+ neighbourIdx.y * fuseGridSize
 									+ neighbourIdx.x;
 							//If neighbour is not empty
-							if (spaceMap[group].count(idx) > 0) {
+							if (springFuseMap[group].count(idx) > 0) {
 
 								for (int k = 0;
-										k < spaceMap[group][idx].size()
+										k < springFuseMap[group][idx].size()
 												&& remainning_spring > 0; k++) {
-									int j = spaceMap[group][idx][k];
+									int j = springFuseMap[group][idx][k];
 									if (i != j) {
+										Vec3 p = Vec3(g_buffers->positions[i]);
+										Vec3 q = Vec3(g_buffers->positions[j]);
+										float length = Length(p - q);
 										std::pair<int, int> ij = std::pair<int,
 												int>(i, j);
 										std::pair<int, int> ji = std::pair<int,
 												int>(j, i);
 										//If spring pair is not already created
-										if (bidirSpringMap[group].count(ij)
-												== 0) {
+										if (bidirSpringMap[group].count(ij) == 0
+												&& length <= springFuseDist
+												&& !cutParticles(p, q, group)) {
 											bidirSpringMap[group][ij] = 1;
 											bidirSpringMap[group][ji] = 1;
 
-											Vec3 p = Vec3(
-													g_buffers->positions[i]);
-											Vec3 q = Vec3(
-													g_buffers->positions[j]);
 											mConstraintIndices.push_back(i);
 											mConstraintIndices.push_back(j);
 											mConstraintCoefficients.push_back(
-													stretchStiffness);
+													stiffness);
 											mConstraintRestLengths.push_back(
 													Length(p - q));
-											remainning_spring--;
+
+											perPartSpringCnt[i]++;
+											perPartSpringCnt[j]++;
 
 										}
 									}
@@ -363,9 +464,9 @@ public:
 			updateSprings();
 		}
 
-//		if (g_frame % 100==0) {
-//			cout << g_frame << endl;
-//		}
+		if (g_frame % 100==0) {
+			cout << g_frame << endl;
+		}
 		return getState();
 	}
 
