@@ -473,7 +473,7 @@ public:
 			}
 		}
 
-		// add link data to the solver 
+		// add link data to the solver
 		for (int i = 0; i < asset->numSprings; ++i) {
 			g_buffers->springIndices.push_back(asset->springIndices[i * 2 + 0]);
 			g_buffers->springIndices.push_back(asset->springIndices[i * 2 + 1]);

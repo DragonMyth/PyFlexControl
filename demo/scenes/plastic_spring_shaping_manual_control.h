@@ -126,10 +126,10 @@ public:
 				Eigen::VectorXf randRot(1);
 				randRot.setRandom();
 				randRot *= EIGEN_PI;
-//				randRot *= 0;
+				randRot *= 0;
 
 				currPos = center + Vec3(randPos[0], 0, randPos[1]);
-//				currPos = center + Vec3(0, 0, 0);
+				currPos = center + Vec3(0, 0, 0);
 				currRot = QuatFromAxisAngle(Vec3(0, 1, 0), 0 + randRot(0));
 
 				currVel = Vec3(0, 0, 0);
@@ -151,8 +151,10 @@ public:
 		updateSprings();
 
 		g_params.radius = radius;
-		g_params.dynamicFriction = 4.55f;
-		g_params.staticFriction = 9.5f;
+//		g_params.fluidRestDistance = radius;
+
+		g_params.dynamicFriction = 7.55f;
+		g_params.staticFriction = 50.5f;
 		g_params.dissipation = 0.0f;
 		g_params.numIterations = 4;
 		g_params.viscosity = 0.0f;
@@ -215,8 +217,10 @@ public:
 		Vec3 barPose = currPoses[group];
 		float currCosHalfAng = currRots[group].w;
 		float currSinHalfAng = currRots[group].y;
+
 		float barRotCos = Sqr(currCosHalfAng) - Sqr(currSinHalfAng);
-		float barRotSin = 2 * currCosHalfAng * currSinHalfAng;
+		float barRotSin = -2 * currCosHalfAng * currSinHalfAng;
+
 		Vec3 endPoint1Pos = barPose + barDim.x * Vec3(barRotCos, 0, barRotSin);
 		Vec3 endPoint2Pos = barPose - barDim.x * Vec3(barRotCos, 0, barRotSin);
 
@@ -244,6 +248,7 @@ public:
 				&& minf(endPoint2Pos.z, endPoint1Pos.z) <= z
 				&& maxf(endPoint2Pos.z, endPoint1Pos.z) >= z
 				&& minf(p.z, q.z) <= z && maxf(p.z, q.z) >= z) {
+
 			return true;
 		} else {
 			return false;
@@ -459,7 +464,7 @@ public:
 
 		UpdateShapes();
 
-		if (g_frame % 30 == 0) {
+		if (g_frame % 5 == 0) {
 			updateSpaceMap();
 			updateSprings();
 		}
@@ -545,8 +550,8 @@ public:
 
 		GetParticleBounds(scenelower, sceneupper);
 
-		g_camPos = Vec3((scenelower.x + sceneupper.x) * 0.5f, 30.0f,
+		g_camPos = Vec3((scenelower.x + sceneupper.x) * 0.5f, 20.0f,
 				(scenelower.z + sceneupper.z) * 0.5f);
-		g_camAngle = Vec3(0, -DegToRad(75.0f), 0.0f);
+		g_camAngle = Vec3(0, -DegToRad(85.0f), 0.0f);
 	}
 };
