@@ -151,8 +151,8 @@ public:
 		updateSprings();
 
 		g_params.radius = radius;
-		g_params.dynamicFriction = 4.55f;
-		g_params.staticFriction = 9.5f;
+		g_params.dynamicFriction = 7.55f;
+		g_params.staticFriction = 50.5f;
 		g_params.dissipation = 0.0f;
 		g_params.numIterations = 4;
 		g_params.viscosity = 0.0f;
@@ -215,8 +215,10 @@ public:
 		Vec3 barPose = currPoses[group];
 		float currCosHalfAng = currRots[group].w;
 		float currSinHalfAng = currRots[group].y;
+
 		float barRotCos = Sqr(currCosHalfAng) - Sqr(currSinHalfAng);
-		float barRotSin = 2 * currCosHalfAng * currSinHalfAng;
+		float barRotSin = -2 * currCosHalfAng * currSinHalfAng;
+
 		Vec3 endPoint1Pos = barPose + barDim.x * Vec3(barRotCos, 0, barRotSin);
 		Vec3 endPoint2Pos = barPose - barDim.x * Vec3(barRotCos, 0, barRotSin);
 
@@ -244,11 +246,11 @@ public:
 				&& minf(endPoint2Pos.z, endPoint1Pos.z) <= z
 				&& maxf(endPoint2Pos.z, endPoint1Pos.z) >= z
 				&& minf(p.z, q.z) <= z && maxf(p.z, q.z) >= z) {
+
 			return true;
 		} else {
 			return false;
 		}
-//		return false;
 
 	}
 
@@ -261,6 +263,7 @@ public:
 		}
 		return res;
 	}
+
 	void updateSprings() {
 		int fuseGridSize = ceil(8.0 / springFuseDist);
 
@@ -459,14 +462,14 @@ public:
 
 		UpdateShapes();
 
-		if (g_frame % 30 == 0) {
+		if (g_frame % 15 == 0) {
 			updateSpaceMap();
 			updateSprings();
 		}
 
-		if (g_frame % 100==0) {
-			cout << g_frame << endl;
-		}
+//		if (g_frame % 100==0) {
+//			cout << g_frame << endl;
+//		}
 		return getState();
 	}
 
@@ -547,6 +550,6 @@ public:
 
 		g_camPos = Vec3((scenelower.x + sceneupper.x) * 0.5f, 30.0f,
 				(scenelower.z + sceneupper.z) * 0.5f);
-		g_camAngle = Vec3(0, -DegToRad(75.0f), 0.0f);
+		g_camAngle = Vec3(0, -DegToRad(85.0f), 0.0f);
 	}
 };
