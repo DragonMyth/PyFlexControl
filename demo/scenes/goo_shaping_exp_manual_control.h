@@ -5,10 +5,10 @@ using namespace std;
 
 //
 
-class GooShapingManualControl: public Scene {
+class GooShapingExpManualControl: public Scene {
 public:
 
-	GooShapingManualControl(const char* name) :
+	GooShapingExpManualControl(const char* name) :
 			Scene(name) {
 	}
 
@@ -26,13 +26,13 @@ public:
 	vector<Vec3> centers;
 	Vec3 barDim = Vec3(1.5, 1, 0.03);
 
-	int dimx = 16;
-	int dimy = 5;
-	int dimz = 16;
+	int dimx = 40;
+	int dimy = 15;
+	int dimz = 40;
 
 	float stiffness = 1.0f;
 
-	float radius = 0.3f;
+	float radius = 0.1f;
 
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
 
@@ -45,7 +45,7 @@ public:
 		currAngVels.clear();
 
 		Vec3 lower, upper;
-		float restDist = radius*0.5;
+		float restDist = radius * 0.55f;
 		for (int i = 0; i < numSceneDim; i++) {
 			for (int j = 0; j < numSceneDim; j++) {
 
@@ -56,8 +56,9 @@ public:
 				int phase = NvFlexMakePhaseWithChannels(group,
 						eNvFlexPhaseSelfCollide | eNvFlexPhaseFluid, channel);
 
-				CreateParticleGrid(center + Vec3(0, 0.5*radius, 0), dimx, dimy, dimz,
-						restDist, Vec3(0.0f), 1.0f, false, 0.0f, phase, 0.0f);
+				CreateParticleGrid(center + Vec3(0, 0.5 * radius, 0), dimx,
+						dimy, dimz, restDist, Vec3(0.0f), 1.0f, false, 0.0f,
+						phase, 0.0f);
 
 				if (i == 0 && j == 0) {
 					GetParticleBounds(lower, upper);
@@ -124,25 +125,25 @@ public:
 
 		g_params.staticFriction = 1.2f;
 		g_params.dynamicFriction = 0.3f;
-		g_params.sleepThreshold = g_params.radius * 0.25f;
+		g_params.sleepThreshold = 0;
 		g_params.damping = 0.5f;
-		g_params.dissipation=0.5f;
+		g_params.dissipation = 0.5f;
 		g_params.radius = radius;
 
 		g_params.vorticityConfinement = 0.0f;
 		g_params.fluidRestDistance = restDist;
-		g_params.smoothing = 0.5f;
+		g_params.smoothing = 0.0f;
 		g_params.relaxationFactor = 1.f;
 		g_params.restitution = 0.5f;
-		g_params.collisionDistance = 0.1f * radius;
-
-		g_params.viscosity = 100.0f;
-		g_params.cohesion = 0.1f;
+		g_params.collisionDistance = 0.01f * radius;
+		g_params.particleCollisionMargin = 0.01f * radius;
+		g_params.viscosity = 50.0f;
+		g_params.cohesion = 0.5f;
 		g_params.adhesion = 0.0f;
 		g_params.surfaceTension = 0;
 
 //		g_params.gravity[1] = 0.0f;
-		g_params.numIterations = 3;
+		g_params.numIterations = 5;
 
 		g_numSubsteps = 3;
 

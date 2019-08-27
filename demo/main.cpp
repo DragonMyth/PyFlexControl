@@ -2135,7 +2135,7 @@ Eigen::MatrixXd UpdateFrame(bool visualize) {
 		UpdateWind();
 //		UpdateScene();
 
-		Eigen::VectorXd act(6 * 25);
+		Eigen::VectorXd act(16*9);
 
 //		act.setRandom();
 		act.setZero();
@@ -2778,7 +2778,9 @@ int main(int argc, char* argv[]) {
 
 //	g_scenes.push_back(new PlasticBodyReshaping("Plastic Reshaping"));
 //	g_scenes.push_back(new 	ClothLayers("Cloth Layers"));
-	g_scenes.push_back(new GooShapingManualControl("Goo Reshaping Single Instance"));
+//	g_scenes.push_back(new GooShapingManualControl("Goo Reshaping Single Instance"));
+	g_scenes.push_back(new GooShapingExpManualControl("Goo Reshaping Single Instance"));
+
 	g_scenes.push_back(new 	PlasticSpringShaping("Plastic Reshaping Using Springs"));
 	g_scenes.push_back(new 	PlasticSpringShapingManualControl("Plastic Reshaping Using Springs Single Instance"));
 

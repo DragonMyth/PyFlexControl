@@ -2885,6 +2885,7 @@ void initialize() {
 	g_scenes.push_back(new 	PlasticSpringShapingManualControl("Plastic Reshaping Using Springs Single Instance"));
 	g_scenes.push_back(new GranularSweepControllableGhostManualControl("Granular Sweep Conrollable Ghost Single Instance"));
 	g_scenes.push_back(new GooShapingManualControl("Goo Reshaping Single Instance"));
+	g_scenes.push_back(new GooShapingExpManualControl("Goo Reshaping Expensive Single Instance"));
 
 
 //    g_scenes.push_back(new ForceField("Force Field"));
