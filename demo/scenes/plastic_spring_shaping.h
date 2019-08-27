@@ -35,19 +35,20 @@ public:
 	map<std::pair<int, int>, int> *bidirSpringMap;
 	Eigen::VectorXi perPartSpringCnt;
 
-	int dimx = 12;
+	int dimx = 10;
 	int dimy = 2;
-	int dimz = 12;
+	int dimz = 10;
 
 	float stiffness = 1.0f;
 
-	float radius = 0.15f;
+	float radius = 0.2f;
 
-	float springFuseDist = radius * 1.5f;
-	float springBreakDist = radius * 4.0f;
+	float springFuseDist = radius * 1.2f;
+	float springBreakDist = radius * 3.0f;
 
-	float springCompressThreshold = radius * 2.25f;
-	float springStrechThreshold = radius * 3.0f;
+	float springCompressThreshold = radius * 2.00f;
+	float springStrechThreshold = radius * 2.5f;
+	int actionDim = 9;
 
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
 
@@ -67,7 +68,7 @@ public:
 		currAngVels.clear();
 
 		Vec3 lower, upper;
-		springRestLength = radius * 2.0f;
+		springRestLength = radius * 1.7f;
 		for (int i = 0; i < numSceneDim; i++) {
 			for (int j = 0; j < numSceneDim; j++) {
 
@@ -148,13 +149,18 @@ public:
 		perPartSpringCnt = Eigen::VectorXi(g_buffers->positions.size());
 		perPartSpringCnt.setZero();
 		updateSpaceMap();
-		updateSprings();
+
+		Eigen::VectorXd tempAct(numSceneDim * numSceneDim * actionDim);
+		tempAct.setZero();
+		updateSprings(tempAct);
 
 		g_params.radius = radius;
+//		g_params.fluidRestDistance = radius;
+
 		g_params.dynamicFriction = 7.55f;
-		g_params.staticFriction = 50.5f;
+		g_params.staticFriction = 30.5f;
 		g_params.dissipation = 0.0f;
-		g_params.numIterations = 4;
+		g_params.numIterations = 2;
 		g_params.viscosity = 0.0f;
 		g_params.drag = 0.05f;
 		g_params.collisionDistance = radius;
@@ -162,7 +168,7 @@ public:
 		g_params.relaxationFactor = 0.5f;
 		g_windStrength = 0.0f;
 
-		g_numSubsteps = 3;
+		g_numSubsteps = 2;
 
 		// draw options
 		g_drawPoints = true;
@@ -210,7 +216,10 @@ public:
 
 	}
 
-	bool cutParticles(Vec3 p, Vec3 q, int group) {
+	bool cutParticles(Vec3 p, Vec3 q, int group, int ghost) {
+		if (ghost > 0) {
+			return false;
+		}
 		Vec3 barPose = currPoses[group];
 		float currCosHalfAng = currRots[group].w;
 		float currSinHalfAng = currRots[group].y;
@@ -256,14 +265,15 @@ public:
 	float calNewSpringRestLength(float length, float currRestLength) {
 		float res = currRestLength;
 		if (length <= springCompressThreshold) {
-			res = length;
+			res = fmax(length, springFuseDist);
 		} else if (length >= springStrechThreshold) {
 			res = length;
 		}
 		return res;
 	}
 
-	void updateSprings() {
+	void updateSprings(Eigen::VectorXd action) {
+
 		int fuseGridSize = ceil(8.0 / springFuseDist);
 
 		std::vector<int> mConstraintIndices;
@@ -287,7 +297,9 @@ public:
 			int group = a / (dimx * dimy * dimz);
 
 			float length = Length(p - q);
-			if (length <= springBreakDist && !cutParticles(p, q, group)) {
+			if (length <= springBreakDist
+					&& !cutParticles(p, q, group,
+							action(group * actionDim + 4))) {
 				mConstraintIndices.push_back(a);
 				mConstraintIndices.push_back(b);
 				mConstraintCoefficients.push_back(stiffness);
@@ -311,7 +323,7 @@ public:
 			int group = i / (dimx * dimy * dimz);
 			Vec3 idxVecFuseMap = getMapIdx(i, fuseGridSize);
 
-			int remainning_spring = 25 - perPartSpringCnt[i];
+			int remainning_spring = 50 - perPartSpringCnt[i];
 			//Look at surrounding 27 neighbours
 			for (int x = -1; x <= 1; x++) {
 				for (int y = -1; y <= 1; y++) {
@@ -345,7 +357,11 @@ public:
 										//If spring pair is not already created
 										if (bidirSpringMap[group].count(ij) == 0
 												&& length <= springFuseDist
-												&& !cutParticles(p, q, group)) {
+												&& !cutParticles(p, q, group,
+														action(
+																group
+																		* actionDim
+																		+ 4))) {
 											bidirSpringMap[group][ij] = 1;
 											bidirSpringMap[group][ji] = 1;
 
@@ -382,7 +398,6 @@ public:
 		using namespace Eigen;
 		ClearShapes();
 
-		int actionDim = 7;
 		for (int i = 0; i < centers.size(); i++) {
 //
 //			Vec3 targetPos = centers[i]
@@ -400,15 +415,9 @@ public:
 //
 //			Vec2 targetRotVec = Vec2(1, 0);
 
-			bool ghost = action(i * actionDim + 4) > 0 ? true : false;
+			bool ghost = action(i * actionDim + 4) > 0;
 
 			//				Vec2 targetRotVec = Vec2(1,0);
-
-			Vec2 goal_target = Vec2(action(i * actionDim + 5),
-					action(i * actionDim + 6))
-					+ Vec2(centers[i][0], centers[i][2]);
-
-			Vec2 targetDir = goal_target - Vec2(currPoses[i].x, currPoses[i].z);
 
 			int channel = eNvFlexPhaseShapeChannel0;
 
@@ -449,8 +458,14 @@ public:
 			currPoses[i] = newPos;
 			currRots[i] = newRot;
 
-			AddSphere(0.12, Vec3(goal_target.x, 0, goal_target.y), Quat(),
-					eNvFlexPhaseShapeChannel0 << 1);
+			for (int t = 5; t < actionDim; t += 2) {
+				Vec2 goal_target = Vec2(action(i * actionDim + t),
+						action(i * actionDim + t + 1))
+						+ Vec2(centers[i][0], centers[i][2]);
+				AddSphere(0.12, Vec3(goal_target.x, 0, goal_target.y), Quat(),
+						eNvFlexPhaseShapeChannel0 << 1);
+
+			}
 
 			AddBox(Vec3(4, 0.01, 4), centers[i] + Vec3(0, 0.005, 0), Quat(),
 					false, eNvFlexPhaseShapeChannel0 << 1);
@@ -465,9 +480,9 @@ public:
 
 		UpdateShapes();
 
-		if (g_frame % 15 == 0) {
+		if (g_frame % 10 == 0) {
 			updateSpaceMap();
-			updateSprings();
+			updateSprings(action);
 		}
 
 //		if (g_frame % 100==0) {
@@ -551,7 +566,7 @@ public:
 
 		GetParticleBounds(scenelower, sceneupper);
 
-		g_camPos = Vec3((scenelower.x + sceneupper.x) * 0.5f, 30.0f,
+		g_camPos = Vec3((scenelower.x + sceneupper.x) * 0.5f, 20.0f,
 				(scenelower.z + sceneupper.z) * 0.5f);
 		g_camAngle = Vec3(0, -DegToRad(85.0f), 0.0f);
 	}
