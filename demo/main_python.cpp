@@ -190,6 +190,7 @@ std::map<NvFlexDistanceFieldId, GpuMesh*> g_fields;
 
 // flag to request collision shapes be updated
 bool g_shapesChanged = false;
+bool visualize = false;
 
 /* Note that this array of colors is altered by demo code, and is also read from global by graphics API impls */
 Colour g_colors[] = { Colour(0.0f, 0.5f, 1.0f), Colour(0.797f, 0.354f, 0.000f),
@@ -607,8 +608,10 @@ void Init(int scene, bool centerCamera = true) {
 		if (g_buffers)
 			DestroyBuffers(g_buffers);
 
-		DestroyFluidRenderBuffers(g_fluidRenderBuffers);
-		DestroyDiffuseRenderBuffers(g_diffuseRenderBuffers);
+		if (visualize) {
+			DestroyFluidRenderBuffers(g_fluidRenderBuffers);
+			DestroyDiffuseRenderBuffers(g_diffuseRenderBuffers);
+		}
 
 		for (auto& iter : g_meshes) {
 			NvFlexDestroyTriangleMesh(g_flexLib, iter.first);
@@ -1045,12 +1048,13 @@ void Init(int scene, bool centerCamera = true) {
 				g_buffers->shapeFlags.buffer,
 				int(g_buffers->shapeFlags.size()));
 	}
-
-	// create render buffers
-	g_fluidRenderBuffers = CreateFluidRenderBuffers(maxParticles, g_interop);
-	g_diffuseRenderBuffers = CreateDiffuseRenderBuffers(g_maxDiffuseParticles,
-			g_interop);
-
+	if (visualize) {
+		// create render buffers
+		g_fluidRenderBuffers = CreateFluidRenderBuffers(maxParticles,
+				g_interop);
+		g_diffuseRenderBuffers = CreateDiffuseRenderBuffers(
+				g_maxDiffuseParticles, g_interop);
+	}
 	// perform initial sim warm up
 	if (g_warmup) {
 		printf("Warming up sim..\n");
@@ -1078,6 +1082,7 @@ void Init(int scene, bool centerCamera = true) {
 
 		printf("Finished warm up.\n");
 	}
+
 }
 
 Eigen::MatrixXd Reset() {
@@ -1310,6 +1315,10 @@ Eigen::MatrixXd getAllCenters() {
 Eigen::MatrixXd getState() {
 //	return g_scenes[g_scene]->getState();
 	return curr_state;
+}
+
+void setVisualization(bool vis){
+	visualize = vis;
 }
 
 void RenderScene() {
@@ -2265,34 +2274,35 @@ void UpdateFrame(bool capture, char *path, Eigen::VectorXd action) {
 
 	//-------------------------------------------------------------------
 	// Render
-
 	double renderBeginTime = GetSeconds();
 
-	if (g_profile && (!g_pause || g_step)) {
-		if (g_benchmark) {
-			g_numDetailTimers = NvFlexGetDetailTimers(g_solver,
-					&g_detailTimers);
-		} else {
-			memset(&g_timers, 0, sizeof(g_timers));
-			NvFlexGetTimers(g_solver, &g_timers);
+	if (visualize) {
+
+		if (g_profile && (!g_pause || g_step)) {
+			if (g_benchmark) {
+				g_numDetailTimers = NvFlexGetDetailTimers(g_solver,
+						&g_detailTimers);
+			} else {
+				memset(&g_timers, 0, sizeof(g_timers));
+				NvFlexGetTimers(g_solver, &g_timers);
+			}
 		}
+
+		StartFrame(Vec4(g_clearColor, 1.0f));
+
+		// main scene render
+		RenderScene();
+		RenderDebug();
+
+//		int newScene = DoUI();
+
+		EndFrame();
+
+		// If user has disabled async compute, ensure that no compute can overlap
+		// graphics by placing a sync between them
+		if (!g_useAsyncCompute)
+			NvFlexComputeWaitForGraphics(g_flexLib);
 	}
-
-	StartFrame(Vec4(g_clearColor, 1.0f));
-
-	// main scene render
-	RenderScene();
-	RenderDebug();
-
-	int newScene = DoUI();
-
-	EndFrame();
-
-	// If user has disabled async compute, ensure that no compute can overlap
-	// graphics by placing a sync between them
-	if (!g_useAsyncCompute)
-		NvFlexComputeWaitForGraphics(g_flexLib);
-
 	UnmapBuffers(g_buffers);
 
 	// move mouse particle (must be done here as GetViewRay() uses the GL projection state)
@@ -2437,18 +2447,15 @@ void UpdateFrame(bool capture, char *path, Eigen::VectorXd action) {
 					newSimLatency :
 					Lerp(g_simLatency, newSimLatency, timerSmoothing);
 
-	if (g_benchmark)
-		newScene = BenchmarkUpdate();
+//	if (g_benchmark)
+//		newScene = BenchmarkUpdate();
 
 	// flush out the last frame before freeing up resources in the event of a scene change
 	// this is necessary for d3d12
-	PresentFrame(g_vsync);
-
-	// if gui or benchmark requested a scene change process it now
-	if (newScene != -1) {
-		g_scene = newScene;
-		Init(g_scene);
+	if (visualize) {
+		PresentFrame(g_vsync);
 	}
+	// if gui or benchmark requested a scene change process it now
 
 	if (capture) {
 
@@ -2816,59 +2823,63 @@ void SDLInit(const char* title) {
 bool SDLMain() {
 
 	bool quit = false;
-	while (SDL_PollEvent(&e)) {
-		switch (e.type) {
-		case SDL_QUIT:
-			quit = true;
-			break;
+	if (visualize) {
+		while (SDL_PollEvent(&e)) {
+			switch (e.type) {
+			case SDL_QUIT:
+				quit = true;
+				break;
 
-		case SDL_KEYDOWN:
-			if (e.key.keysym.sym < 256
-					&& (e.key.keysym.mod == KMOD_NONE
-							|| (e.key.keysym.mod & KMOD_NUM)))
-				quit = InputKeyboardDown(e.key.keysym.sym, 0, 0);
-			InputArrowKeysDown(e.key.keysym.sym, 0, 0);
-			break;
+			case SDL_KEYDOWN:
+				if (e.key.keysym.sym < 256
+						&& (e.key.keysym.mod == KMOD_NONE
+								|| (e.key.keysym.mod & KMOD_NUM)))
+					quit = InputKeyboardDown(e.key.keysym.sym, 0, 0);
+				InputArrowKeysDown(e.key.keysym.sym, 0, 0);
+				break;
 
-		case SDL_KEYUP:
-			if (e.key.keysym.sym < 256
-					&& (e.key.keysym.mod == 0 || (e.key.keysym.mod & KMOD_NUM)))
-				InputKeyboardUp(e.key.keysym.sym, 0, 0);
-			InputArrowKeysUp(e.key.keysym.sym, 0, 0);
-			break;
+			case SDL_KEYUP:
+				if (e.key.keysym.sym < 256
+						&& (e.key.keysym.mod == 0
+								|| (e.key.keysym.mod & KMOD_NUM)))
+					InputKeyboardUp(e.key.keysym.sym, 0, 0);
+				InputArrowKeysUp(e.key.keysym.sym, 0, 0);
+				break;
 
-		case SDL_MOUSEMOTION:
-			if (e.motion.state)
-				MouseMotionFunc(e.motion.state, e.motion.x, e.motion.y);
-			else
-				MousePassiveMotionFunc(e.motion.x, e.motion.y);
-			break;
+			case SDL_MOUSEMOTION:
+				if (e.motion.state)
+					MouseMotionFunc(e.motion.state, e.motion.x, e.motion.y);
+				else
+					MousePassiveMotionFunc(e.motion.x, e.motion.y);
+				break;
 
-		case SDL_MOUSEBUTTONDOWN:
-		case SDL_MOUSEBUTTONUP:
-			MouseFunc(e.button.button, e.button.state, e.motion.x, e.motion.y);
-			break;
+			case SDL_MOUSEBUTTONDOWN:
+			case SDL_MOUSEBUTTONUP:
+				MouseFunc(e.button.button, e.button.state, e.motion.x,
+						e.motion.y);
+				break;
 
-		case SDL_WINDOWEVENT:
-			if (e.window.windowID == g_windowId) {
-				if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
-					ReshapeWindow(e.window.data1, e.window.data2);
+			case SDL_WINDOWEVENT:
+				if (e.window.windowID == g_windowId) {
+					if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+						ReshapeWindow(e.window.data1, e.window.data2);
+				}
+				break;
+
+			case SDL_WINDOWEVENT_LEAVE:
+				g_camVel = Vec3(0.0f, 0.0f, 0.0f);
+				break;
+
+			case SDL_CONTROLLERBUTTONUP:
+			case SDL_CONTROLLERBUTTONDOWN:
+				ControllerButtonEvent(e.cbutton);
+				break;
+
+			case SDL_JOYDEVICEADDED:
+			case SDL_JOYDEVICEREMOVED:
+				ControllerDeviceUpdate();
+				break;
 			}
-			break;
-
-		case SDL_WINDOWEVENT_LEAVE:
-			g_camVel = Vec3(0.0f, 0.0f, 0.0f);
-			break;
-
-		case SDL_CONTROLLERBUTTONUP:
-		case SDL_CONTROLLERBUTTONDOWN:
-			ControllerButtonEvent(e.cbutton);
-			break;
-
-		case SDL_JOYDEVICEADDED:
-		case SDL_JOYDEVICEREMOVED:
-			ControllerDeviceUpdate();
-			break;
 		}
 	}
 	return quit;
@@ -2878,15 +2889,25 @@ void initialize() {
 
 	g_scenes.push_back(new GranularSweep("Granular Sweep"));
 
-	g_scenes.push_back(new GranularSweepThreeBars("Granular Sweep Ghost Three Bars"));
-	g_scenes.push_back(new GranularSweepControllableGhost("Granular Sweep Conrollable Ghost"));
+	g_scenes.push_back(
+			new GranularSweepThreeBars("Granular Sweep Ghost Three Bars"));
+	g_scenes.push_back(
+			new GranularSweepControllableGhost(
+					"Granular Sweep Conrollable Ghost"));
 	g_scenes.push_back(new PlasticBodyReshaping("Plastic Reshaping"));
-	g_scenes.push_back(new 	PlasticSpringShaping("Plastic Spring Reshaping"));
-	g_scenes.push_back(new 	PlasticSpringShapingManualControl("Plastic Reshaping Using Springs Single Instance"));
-	g_scenes.push_back(new GranularSweepControllableGhostManualControl("Granular Sweep Conrollable Ghost Single Instance"));
-	g_scenes.push_back(new GooShapingManualControl("Goo Reshaping Single Instance"));
-	g_scenes.push_back(new GooShapingExpManualControl("Goo Reshaping Expensive Single Instance"));
-
+	g_scenes.push_back(new PlasticSpringShaping("Plastic Spring Reshaping"));
+	g_scenes.push_back(
+			new PlasticSpringShapingManualControl(
+					"Plastic Reshaping Using Springs Single Instance"));
+	g_scenes.push_back(
+			new GranularSweepControllableGhostManualControl(
+					"Granular Sweep Conrollable Ghost Single Instance"));
+	g_scenes.push_back(
+			new GooShapingManualControl("Goo Reshaping Single Instance"));
+	g_scenes.push_back(
+			new GooShapingExpManualControl(
+					"Goo Reshaping Expensive Single Instance"));
+	g_scenes.push_back(new GooShaping("Goo Reshaping"));
 
 //    g_scenes.push_back(new ForceField("Force Field"));
 
@@ -2895,55 +2916,32 @@ void initialize() {
 
 //    cout << "*********** Starting FleX with Python ************ " << endl;
 
-	DemoContext* demoContext = nullptr;
-
-	switch (g_graphics) {
-	case 0:
-		break;
-	case 1:
-		break;
-	case 2:
-		// workaround for a driver issue with D3D12 with msaa, force it to off
-		// options.numMsaaSamples = 1;
-		// Currently interop doesn't work on d3d12
-		g_interop = false;
-		break;
-	default:
-		assert(0);
-	}
-	// Create the demo context
 	CreateDemoContext(g_graphics);
 
 	std::string str;
 
 	str = "Flex Demo (Compute: CUDA) ";
-	switch (g_graphics) {
-	case 0:
-		str += "(Graphics: OpenGL)";
-		break;
-	case 1:
-		str += "(Graphics: DX11)";
-		break;
-	case 2:
-		str += "(Graphics: DX12)";
-		break;
+
+	str += "(Graphics: OpenGL)";
+	if (visualize) {
+
+		const char* title = str.c_str();
+		RenderInitOptions options;
+		SDLInit(title);
+		options.window = g_window;
+		options.numMsaaSamples = g_msaaSamples;
+		options.asyncComputeBenchmark = g_asyncComputeBenchmark;
+		options.defaultFontHeight = -1;
+		options.fullscreen = g_fullscreen;
+		InitRender(options);
+
+		if (g_fullscreen)
+			SDL_SetWindowFullscreen(g_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+		ReshapeWindow(g_screenWidth, g_screenHeight);
+
+		g_shadowMap = ShadowCreate();
+
 	}
-	const char* title = str.c_str();
-
-	SDLInit(title);
-
-	options.window = g_window;
-	options.numMsaaSamples = g_msaaSamples;
-	options.asyncComputeBenchmark = g_asyncComputeBenchmark;
-	options.defaultFontHeight = -1;
-	options.fullscreen = g_fullscreen;
-
-	InitRender(options);
-
-	if (g_fullscreen)
-		SDL_SetWindowFullscreen(g_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-
-	ReshapeWindow(g_screenWidth, g_screenHeight);
 
 	NvFlexInitDesc desc;
 	desc.deviceIndex = g_device;
@@ -2970,14 +2968,11 @@ void initialize() {
 		g_scene = BenchmarkInit();
 
 	// create shadow maps
-	g_shadowMap = ShadowCreate();
 
 	// init default scene
 	StartGpuWork();
 	Init(g_scene);
 	EndGpuWork();
-
-	cout << "C++ Finished Initializing!" << endl;
 
 }
 

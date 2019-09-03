@@ -152,3 +152,4 @@ public:
 #include "scenes/plastic_spring_shaping_manual_control.h"
 #include "scenes/goo_shaping_manual_control.h"
 #include "scenes/goo_shaping_exp_manual_control.h"
+#include "scenes/goo_shaping.h"

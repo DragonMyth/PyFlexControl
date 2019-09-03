@@ -5,10 +5,10 @@ using namespace std;
 
 //
 
-class GooShapingManualControl: public Scene {
+class GooShaping: public Scene {
 public:
 
-	GooShapingManualControl(const char* name) :
+	GooShaping(const char* name) :
 			Scene(name) {
 	}
 
@@ -21,7 +21,7 @@ public:
 	float kd_pos = 1.2;
 	float kp_rot = 0.7;
 	float kd_rot = 1;
-	int numSceneDim = 1;
+	int numSceneDim = 4;
 	int seed = -1;
 	vector<Vec3> centers;
 	Vec3 barDim = Vec3(1.5, 1, 0.03);

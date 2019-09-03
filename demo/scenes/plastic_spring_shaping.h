@@ -120,17 +120,18 @@ public:
 				Eigen::Vector2d randPos(cosf(initAngOnCirc(0)) * 3,
 						sinf(initAngOnCirc(0)) * 3);
 
-//				Eigen::Vector2d randPos;
-//				randPos.setRandom();
-//				randPos = randPos*1;
+				Eigen::Vector2d randPerterb;
+				randPerterb.setRandom();
+				randPerterb = randPerterb*0.1f;;
+
 
 				Eigen::VectorXf randRot(1);
 				randRot.setRandom();
-				randRot *= EIGEN_PI;
+				randRot *= (0.1f*EIGEN_PI);
 //				randRot *= 0;
 
-				currPos = center + Vec3(randPos[0], 0, randPos[1]);
-//				currPos = center + Vec3(0, 0, 0);
+//				currPos = center + Vec3(randPos[0], 0, randPos[1]);
+				currPos = center + Vec3(randPerterb[0], 0, randPerterb[1]);
 				currRot = QuatFromAxisAngle(Vec3(0, 1, 0), 0 + randRot(0));
 
 				currVel = Vec3(0, 0, 0);
