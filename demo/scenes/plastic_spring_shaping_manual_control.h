@@ -64,7 +64,12 @@ public:
 		bidirSpringMap = new map<std::pair<int, int>, int> [numSceneDim
 				* numSceneDim];
 		g_lightDistance *= 100.5f;
+		centers.resize(0);
 
+		currPoses.resize(0);
+		currRots.resize(0);
+		currVels.resize(0);
+		currAngVels.resize(0);
 		centers.clear();
 
 		Vec3 lower, upper;
@@ -167,6 +172,10 @@ public:
 	 * 6,7,8: Dimension of the bar
 	 */
 	void setControllerInit(Eigen::MatrixXd initConfig) {
+		currPoses.resize(0);
+		currRots.resize(0);
+		currVels.resize(0);
+		currAngVels.resize(0);
 		currPoses.clear();
 		currRots.clear();
 		currVels.clear();
