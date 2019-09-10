@@ -2583,12 +2583,12 @@ void chooseScene(int scene) {
 }
 
 void setController(Eigen::MatrixXd controllerConfig){
+	g_scenes[g_scene]->setControllerInit(controllerConfig);
 	MapBuffers(g_buffers);
 	curr_state = g_scenes[g_scene]->getState();
 	UnmapBuffers(g_buffers);
-	return g_scenes[g_scene]->setControllerInit(controllerConfig);
 }
 
 void setGoal(Eigen::MatrixXd goals){
-	return g_scenes[g_scene]->setGoal(goals);
+	g_scenes[g_scene]->setGoal(goals);
 }
