@@ -188,7 +188,7 @@ std::map<NvFlexDistanceFieldId, GpuMesh*> g_fields;
 
 // flag to request collision shapes be updated
 bool g_shapesChanged = false;
-bool visualize = false;
+bool visualize = true;
 
 /* Note that this array of colors is altered by demo code, and is also read from global by graphics API impls */
 Colour g_colors[] = { Colour(0.0f, 0.5f, 1.0f), Colour(0.797f, 0.354f, 0.000f),
@@ -800,6 +800,10 @@ void Init(int scene, bool centerCamera = true) {
 	// create scene
 	StartGpuWork();
 	g_scenes[g_scene]->Initialize(0);
+
+//	g_scenes[g_scene]->set(0);
+
+
 	EndGpuWork();
 
 	uint32_t numParticles = g_buffers->positions.size();

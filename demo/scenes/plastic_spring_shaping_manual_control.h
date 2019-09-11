@@ -12,6 +12,18 @@ public:
 			Scene(name) {
 	}
 
+	// General Param for the simulation
+	int numSceneDim = 1;
+	int seed = -1;
+	int dimx = 10;
+	int dimy = 2;
+	int dimz = 10;
+	float radius = 0.2f;
+	int actionDim = 5;
+	vector<Vec3> centers;
+	Eigen::MatrixXd goalPos;
+
+	// Parameters for the controlling bar
 	vector<Vec3> currPoses;
 	vector<Quat> currRots;
 	vector<Vec3> currVels;
@@ -21,34 +33,26 @@ public:
 	float kd_pos = 1.2;
 	float kp_rot = 0.7;
 	float kd_rot = 1;
-	int numSceneDim = 1;
-	int seed = -1;
-	vector<Vec3> centers;
-	Vec3 barDim = Vec3(1.5, 1, 0.01);
+	Vec3 barDim = Vec3(0,0,0);
+
+	// Parameter for the spring-modeled plastic material
 	float maxDeformRate = 0.1f;
 	float springBreakRatio = 0.6f;
+	float springRestLength = radius * 1.7f;
 
-	float springRestLength;
 	map<int, std::vector<int>> *springFuseMap;
 	map<int, std::vector<int>> *springBreakMap;
-
 	map<std::pair<int, int>, int> *bidirSpringMap;
 	Eigen::VectorXi perPartSpringCnt;
-
-	int dimx = 10;
-	int dimy = 2;
-	int dimz = 10;
-
 	float stiffness = 1.0f;
 
-	float radius = 0.2f;
+
 
 	float springFuseDist = radius * 1.2f;
 	float springBreakDist = radius * 3.0f;
-
 	float springCompressThreshold = radius * 2.00f;
 	float springStrechThreshold = radius * 2.5f;
-	int actionDim = 9;
+
 
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
 
@@ -60,15 +64,19 @@ public:
 		bidirSpringMap = new map<std::pair<int, int>, int> [numSceneDim
 				* numSceneDim];
 		g_lightDistance *= 100.5f;
+		centers.resize(0);
 
+		currPoses.resize(0);
+		currRots.resize(0);
+		currVels.resize(0);
+		currAngVels.resize(0);
 		centers.clear();
+
+		Vec3 lower, upper;
 		currPoses.clear();
 		currRots.clear();
 		currVels.clear();
 		currAngVels.clear();
-
-		Vec3 lower, upper;
-		springRestLength = radius * 2.0f;
 		for (int i = 0; i < numSceneDim; i++) {
 			for (int j = 0; j < numSceneDim; j++) {
 
@@ -76,12 +84,17 @@ public:
 				int group = centers.size();
 				int channel = eNvFlexPhaseShapeChannel0;
 
-				int phase = NvFlexMakePhaseWithChannels(group,
+				int phase1 = NvFlexMakePhaseWithChannels(group,
 						eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 						channel);
 
+//				int phase2 = NvFlexMakePhaseWithChannels(group+1,
+//							eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
+//							channel);
+
+				int offset = g_buffers->positions.size();
 				CreateSpringCube(center + Vec3(0, 0, 0), dimx, dimy, dimz,
-						springRestLength, phase, stiffness, stiffness,
+						springRestLength, phase1, stiffness, stiffness,
 						stiffness, 0.0f, 1.0f);
 
 				if (i == 0 && j == 0) {
@@ -95,57 +108,28 @@ public:
 				center += (upper - lower) / 2;
 				center[1] = 0;
 				centers.push_back(center);
+//
+//				for(int k=offset;k<(offset+dimx*dimy*dimz);k++){
+//					if(g_buffers->positions[k].z-center[2]>0){
+//						g_buffers->phases[k] = phase2;
+//					}
+//
+//				}
 
-				//Random sample a initial position in range [-2,2] x [-2,2].
-
-				Eigen::Vector2f randInitPos;
-				randInitPos.setRandom();
-				randInitPos *= 2;
-
-				Eigen::VectorXf randInitShape(1);
-				randInitShape.setRandom();
-				randInitShape /= 2.0f;
-
-				Vec3 currPos;
-				Quat currRot;
-
-				Vec3 currVel;
-				float currAngVel;
-
-				Eigen::VectorXf initAngOnCirc(1);
-				initAngOnCirc.setRandom();
-				initAngOnCirc *= EIGEN_PI;
-//				initAngOnCirc = EIGEN_PI;
-
-				Eigen::Vector2d randPos(cosf(initAngOnCirc(0)) * 3,
-						sinf(initAngOnCirc(0)) * 3);
-
-//				Eigen::Vector2d randPos;
-//				randPos.setRandom();
-//				randPos = randPos*1;
-
-				Eigen::VectorXf randRot(1);
-				randRot.setRandom();
-				randRot *= EIGEN_PI;
-//				randRot *= 0;
-
-				currPos = center + Vec3(randPos[0], 0, randPos[1]);
-//				currPos = center + Vec3(0, 0, 0);
-				currRot = QuatFromAxisAngle(Vec3(0, 1, 0), 0 + randRot(0));
-
-				currVel = Vec3(0, 0, 0);
-				currAngVel = 0;
-
+				Vec3 currPos = center + Vec3(0,0,0);
+				Quat currRot = QuatFromAxisAngle(Vec3(0, 1, 0), 0);
+				Vec3 currVel = Vec3(0, 0, 0);
+				float currAngVel = 0;
 				currPoses.push_back(currPos);
 				currRots.push_back(currRot);
 				currVels.push_back(currVel);
 				currAngVels.push_back(currAngVel);
-
-				group++;
+				barDim = Vec3(1.5, 1, 0.01);
 
 			}
 
 		}
+
 		perPartSpringCnt = Eigen::VectorXi(g_buffers->positions.size());
 		perPartSpringCnt.setZero();
 		updateSpaceMap();
@@ -163,7 +147,7 @@ public:
 		g_params.numIterations = 2;
 		g_params.viscosity = 0.0f;
 		g_params.drag = 0.05f;
-		g_params.collisionDistance = radius;
+		g_params.collisionDistance = radius*0.5f;
 		g_params.shapeCollisionMargin = radius * 0.1;
 		g_params.relaxationFactor = 0.5f;
 		g_windStrength = 0.0f;
@@ -172,11 +156,51 @@ public:
 
 		// draw options
 		g_drawPoints = true;
-		g_drawSprings = true;
+//		g_drawSprings = true;
 		g_drawMesh = false;
 		g_warmup = false;
 
 		return getState();
+	}
+
+	/**
+	 * initConfig contains configuration for the bar in each instance
+	 * 0, 1: x, z position of the bar
+	 * 2   : rotation around y axis
+	 * 3, 4: x, z linear velocity
+	 * 5,  : angular velocity around y axis
+	 * 6,7,8: Dimension of the bar
+	 */
+	void setControllerInit(Eigen::MatrixXd initConfig) {
+		currPoses.resize(0);
+		currRots.resize(0);
+		currVels.resize(0);
+		currAngVels.resize(0);
+		currPoses.clear();
+		currRots.clear();
+		currVels.clear();
+		currAngVels.clear();
+//		cout<<initConfig<<endl;
+		for (int i = 0; i < centers.size(); i++) {
+			Eigen::VectorXd config = initConfig.row(i);
+
+			Vec3 center = centers[i];
+			Vec3 currPos = center + Vec3(config[0], 0, config[1]);
+			Quat currRot = QuatFromAxisAngle(Vec3(0, 1, 0), 0 + config[2]);
+			Vec3 currVel = Vec3(config[3], 0, config[4]);
+			float currAngVel = config[5];
+			currPoses.push_back(currPos);
+			currRots.push_back(currRot);
+			currVels.push_back(currVel);
+			currAngVels.push_back(currAngVel);
+//			barDim = Vec3(1.5, 1, 0.01);
+			barDim = Vec3(config[6], config[7], config[8]);
+
+		}
+	}
+
+	void setGoal(Eigen::MatrixXd goalConfig) {
+		goalPos= goalConfig;
 	}
 
 	void updateSpaceMap() {
@@ -214,7 +238,6 @@ public:
 		Vec3 mapIdx = Vec3(int(pos.x / 8.0 * gridSize),
 				int(pos.y / 8.0 * gridSize), int(pos.z / 8.0 * gridSize));
 		return mapIdx;
-
 	}
 
 	bool cutParticles(Vec3 p, Vec3 q, int group, int ghost) {
@@ -455,9 +478,10 @@ public:
 			currPoses[i] = newPos;
 			currRots[i] = newRot;
 
-			for (int t = 5; t < actionDim; t += 2) {
-				Vec2 goal_target = Vec2(action(i * actionDim + t),
-						action(i * actionDim + t + 1))
+			Eigen::VectorXd goals = goalPos.row(i);
+			for (int t = 0; t < goals.size(); t += 2) {
+				Vec2 goal_target = Vec2(goals[t],
+						goals[t+1])
 						+ Vec2(centers[i][0], centers[i][2]);
 				AddSphere(0.12, Vec3(goal_target.x, 0, goal_target.y), Quat(),
 						eNvFlexPhaseShapeChannel0 << 1);
@@ -509,7 +533,6 @@ public:
 		MatrixXd state(numPart + 4 * numBars, 3);
 		//		cout << state.rows() << endl;
 		state.setZero();
-
 		for (int i = 0; i < numBars; i++) {
 			Vec3 cent = centers[i];
 			float currCosHalfAng = currRots[i].w;
@@ -520,12 +543,15 @@ public:
 			int numPartInScene = numPart / numBars;
 
 			for (int j = 0; j < numPartInScene; j++) {
+//				cout<<"ASGF"<<g_buffers->positions[i * numPartInScene + j].x<<endl;
+
 				state.row(i * (numPartInScene + 4) + j + 4) = Vector3d(
 						g_buffers->positions[i * numPartInScene + j].x,
 						g_buffers->positions[i * numPartInScene + j].y,
 						g_buffers->positions[i * numPartInScene + j].z)
 						- Vector3d(cent.x, cent.y, cent.z);
 			}
+
 			state.row(i * (numPartInScene + 4)) = Vector3d(currPoses[i].x,
 					currPoses[i].y, currPoses[i].z)
 					- Vector3d(cent.x, cent.y, cent.z);

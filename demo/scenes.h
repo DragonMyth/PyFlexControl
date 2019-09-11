@@ -47,7 +47,9 @@ public:
 	virtual void PostInitialize() {
 	}
 
+	virtual void setControllerInit(Eigen::MatrixXd initConfig){};
 	// update any buffers (all guaranteed to be mapped here)
+	virtual void setGoal(Eigen::MatrixXd goalConfig){};
 	virtual void Update() {
 	}
 	virtual Eigen::MatrixXd Update(Eigen::VectorXd act) {

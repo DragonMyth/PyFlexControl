@@ -39,6 +39,8 @@ PYBIND11_MODULE(bindings, m) {
 	m.def("getNumInstances", &getNumInstances, "getNumInstances");
 	m.def("getAllCenters",&getAllCenters,"getAllCenters");
 	m.def("setVisualize",&setVisualization,"setVisualization");
+//	m.def("setController",&setController,"setController");
+//	m.def("setGoal",&setGoal,"setGoal");
 #ifdef VERSION_INFO
 	m.attr("__version__") = VERSION_INFO;
 #else
