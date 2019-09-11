@@ -87,10 +87,10 @@ public:
 				int phase1 = NvFlexMakePhaseWithChannels(group,
 						eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 						channel);
-//
-//				int phase2 = NvFlexMakePhaseWithChannels(group+1,
-//							eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
-//							channel);
+
+				int phase2 = NvFlexMakePhaseWithChannels(group+1,
+							eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
+							channel);
 
 				int offset = g_buffers->positions.size();
 				CreateSpringCube(center + Vec3(0, 0, 0), dimx, dimy, dimz,
@@ -108,13 +108,13 @@ public:
 				center += (upper - lower) / 2;
 				center[1] = 0;
 				centers.push_back(center);
-
-				/*for(int k=offset;k<(offset+dimx*dimy*dimz);k++){
+				for(int k=offset;k<(offset+dimx*dimy*dimz);k++){
 					if(g_buffers->positions[k].z-center[2]>0){
 						g_buffers->phases[k] = phase2;
 					}
 
-				}*/
+
+				}
 
 				Vec3 currPos = center + Vec3(0,0,0);
 				Quat currRot = QuatFromAxisAngle(Vec3(0, 1, 0), 0);
@@ -125,7 +125,10 @@ public:
 				currVels.push_back(currVel);
 				currAngVels.push_back(currAngVel);
 				barDim = Vec3(1.5, 1, 0.01);
-				group++;
+
+
+				//Random sample a initial position in range [-2,2] x [-2,2].
+
 			}
 
 		}
@@ -176,6 +179,7 @@ public:
 		currRots.resize(0);
 		currVels.resize(0);
 		currAngVels.resize(0);
+
 		currPoses.clear();
 		currRots.clear();
 		currVels.clear();
@@ -478,15 +482,16 @@ public:
 			currPoses[i] = newPos;
 			currRots[i] = newRot;
 
-//			Eigen::VectorXd goals = goalPos.row(i);
-//			for (int t = 0; t < goals.size(); t += 2) {
-//				Vec2 goal_target = Vec2(goals[t],
-//						goals[t+1])
-//						+ Vec2(centers[i][0], centers[i][2]);
-//				AddSphere(0.12, Vec3(goal_target.x, 0, goal_target.y), Quat(),
-//						eNvFlexPhaseShapeChannel0 << 1);
-//
-//			}
+
+			Eigen::VectorXd goals = goalPos.row(i);
+			for (int t = 0; t < goals.size(); t += 2) {
+				Vec2 goal_target = Vec2(goals[t],
+						goals[t+1])
+						+ Vec2(centers[i][0], centers[i][2]);
+				AddSphere(0.12, Vec3(goal_target.x, 0, goal_target.y), Quat(),
+						eNvFlexPhaseShapeChannel0 << 1);
+
+			}
 
 			AddBox(Vec3(4, 0.01, 4), centers[i] + Vec3(0, 0.005, 0), Quat(),
 					false, eNvFlexPhaseShapeChannel0 << 1);

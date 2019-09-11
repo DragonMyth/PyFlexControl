@@ -538,7 +538,7 @@ int g_lastx;
 int g_lasty;
 int g_lastb = -1;
 
-bool g_profile = true;
+bool g_profile = false;
 bool g_outputAllFrameTimes = false;
 bool g_asyncComputeBenchmark = false;
 
@@ -2581,14 +2581,15 @@ Eigen::MatrixXd getState() {
 void chooseScene(int scene) {
 	g_scene = scene;
 }
-//
-//void setController(Eigen::MatrixXd controllerConfig){
-//	g_scenes[g_scene]->setControllerInit(controllerConfig);
-////	MapBuffers(g_buffers);
-////	curr_state = g_scenes[g_scene]->getState();
-////	UnmapBuffers(g_buffers);
-//}
-//
-//void setGoal(Eigen::MatrixXd goals){
-//	g_scenes[g_scene]->setGoal(goals);
-//}
+
+
+void setController(Eigen::MatrixXd controllerConfig){
+	g_scenes[g_scene]->setControllerInit(controllerConfig);
+	MapBuffers(g_buffers);
+	curr_state = g_scenes[g_scene]->getState();
+	UnmapBuffers(g_buffers);
+}
+
+void setGoal(Eigen::MatrixXd goals){
+	g_scenes[g_scene]->setGoal(goals);
+}

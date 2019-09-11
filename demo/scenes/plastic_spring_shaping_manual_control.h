@@ -88,9 +88,10 @@ public:
 						eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 						channel);
 
-//				int phase2 = NvFlexMakePhaseWithChannels(group+1,
-//							eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
-//							channel);
+
+				int phase2 = NvFlexMakePhaseWithChannels(group+1,
+							eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
+							channel);
 
 				int offset = g_buffers->positions.size();
 				CreateSpringCube(center + Vec3(0, 0, 0), dimx, dimy, dimz,
@@ -108,13 +109,13 @@ public:
 				center += (upper - lower) / 2;
 				center[1] = 0;
 				centers.push_back(center);
-//
-//				for(int k=offset;k<(offset+dimx*dimy*dimz);k++){
-//					if(g_buffers->positions[k].z-center[2]>0){
-//						g_buffers->phases[k] = phase2;
-//					}
-//
-//				}
+
+				for(int k=offset;k<(offset+dimx*dimy*dimz);k++){
+					if(g_buffers->positions[k].z-center[2]>0){
+						g_buffers->phases[k] = phase2;
+					}
+
+				}
 
 				Vec3 currPos = center + Vec3(0,0,0);
 				Quat currRot = QuatFromAxisAngle(Vec3(0, 1, 0), 0);
