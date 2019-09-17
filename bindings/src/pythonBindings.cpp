@@ -42,6 +42,8 @@ PYBIND11_MODULE(bindings, m) {
 
 	m.def("setController",&setController,"setController");
 	m.def("setGoal",&setGoal,"setGoal");
+
+	m.def("getParticleDensity",&getParticleDensity,"getParticleDensity");
 #ifdef VERSION_INFO
 	m.attr("__version__") = VERSION_INFO;
 #else

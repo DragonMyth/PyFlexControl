@@ -93,9 +93,14 @@ public:
 							channel);
 
 				int offset = g_buffers->positions.size();
-				CreateSpringCube(center + Vec3(0, 0, 0), dimx, dimy, dimz,
+
+				CreateSpringCube(center + Vec3(0, 0, 0), dimx/2, dimy, dimz/2,
 						springRestLength, phase1, stiffness, stiffness,
 						stiffness, 0.0f, 1.0f);
+
+				CreateSpringCube(center + Vec3(3, 0, 3), dimx/2, dimy, dimz/2,
+									springRestLength, phase1, stiffness, stiffness,
+									stiffness, 0.0f, 1.0f);
 
 				if (i == 0 && j == 0) {
 					GetParticleBounds(lower, upper);
@@ -108,6 +113,7 @@ public:
 				center += (upper - lower) / 2;
 				center[1] = 0;
 				centers.push_back(center);
+
 				for(int k=offset;k<(offset+dimx*dimy*dimz);k++){
 					if(g_buffers->positions[k].z-center[2]>0){
 						g_buffers->phases[k] = phase2;
@@ -444,6 +450,7 @@ public:
 			//				Vec2 targetRotVec = Vec2(1,0);
 
 			int channel = eNvFlexPhaseShapeChannel0;
+//			cout<< action(i * actionDim + 4)<<endl;
 
 			if (ghost) {
 				channel = channel << 1;
@@ -478,6 +485,9 @@ public:
 
 			Quat newRot = currRots[i]
 					* QuatFromAxisAngle(Vec3(0, 1, 0), currAngVels[i] * g_dt);
+
+			newPos.x = minf(maxf(newPos.x-centers[i].x,-4),4)+centers[i].x;
+			newPos.z = minf(maxf(newPos.z-centers[i].z,-4),4)+centers[i].z;
 
 			currPoses[i] = newPos;
 			currRots[i] = newRot;
