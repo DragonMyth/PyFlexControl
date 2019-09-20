@@ -2589,7 +2589,8 @@ void setController(Eigen::MatrixXd controllerConfig) {
 	UnmapBuffers(g_buffers);
 }
 
-Eigen::MatrixXd getParticleDensity(Eigen::MatrixXd particles, int resolution) {
+Eigen::MatrixXd getParticleDensity(Eigen::MatrixXd particles, int resolution,
+		float width) {
 	Eigen::MatrixXd density(resolution, resolution);
 	density.setZero();
 	float dx = 1.0f / resolution;
@@ -2598,22 +2599,30 @@ Eigen::MatrixXd getParticleDensity(Eigen::MatrixXd particles, int resolution) {
 		if (abs(particles(i, 0)) <= 4 && abs(particles(i, 1)) <= 4) {
 
 			Eigen::Vector2d base_coord(
-					((particles(i, 0) + 4.0) / (8.0) * inv_dx),
-					((particles(i, 1) + 4.0) / (8.0) * inv_dx));
+					((particles(i, 0) + 4.0) / (8.0) * inv_dx - 0.5),
+					((particles(i, 1) + 4.0) / (8.0) * inv_dx - 0.5));
 
 			Eigen::Vector2d fx(base_coord[0] - (int) base_coord[0],
 					base_coord[1] - (int) base_coord[1]);
 
-			for (int j = -1; j < 3; j++) {
-				for (int k = -1; k < 3; k++) {
+			int gridWidth = ceil(width);
+			for (int j = -gridWidth + 1; j < gridWidth + 1; j++) {
+				for (int k = -gridWidth + 1; k < gridWidth + 1; k++) {
 					Eigen::Vector2d neighbour(j, k);
 					Eigen::Vector2d dpos(0, 0);
 					dpos = neighbour - fx;
 
 					float wx = 0, wy = 0;
 
-					wx = 2 - abs(dpos[0]);
-					wy = 2 - abs(dpos[1]);
+					wx = width - abs(dpos[0]);
+
+					if (wx < 0) {
+						wx = 0;
+					}
+					wy = width - abs(dpos[1]);
+					if (wy < 0) {
+						wy = 0;
+					}
 //					if (k < 2 && k >= 0) {
 //						wx = 0.5 * abs(dpos[0] * dpos[0] * dpos[0])
 //								- abs(dpos[0] * dpos[0]) + 2.0f / 3.0f;
@@ -2635,7 +2644,8 @@ Eigen::MatrixXd getParticleDensity(Eigen::MatrixXd particles, int resolution) {
 							&& (int) base_coord[1] + j >= 0
 							&& (int) base_coord[0] + k >= 0) {
 						density((int) base_coord[1] + j,
-								(int) base_coord[0] + k) += wx * wy;
+								(int) base_coord[0] + k) += sqrt(
+								wx * wx + wy * wy);
 					}
 
 				}
