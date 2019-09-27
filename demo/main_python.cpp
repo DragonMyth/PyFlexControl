@@ -64,53 +64,6 @@ unsigned int g_windowId;		// window id
 #define SDL_CONTROLLER_BUTTON_LEFT_TRIGGER (SDL_CONTROLLER_BUTTON_MAX + 1)
 #define SDL_CONTROLLER_BUTTON_RIGHT_TRIGGER (SDL_CONTROLLER_BUTTON_MAX + 2)
 
-int GetKeyFromGameControllerButton(SDL_GameControllerButton button) {
-	switch (button) {
-	case SDL_CONTROLLER_BUTTON_DPAD_UP: {
-		return SDLK_q;
-	} // -- camera translate up
-	case SDL_CONTROLLER_BUTTON_DPAD_DOWN: {
-		return SDLK_z;
-	} // -- camera translate down
-	case SDL_CONTROLLER_BUTTON_DPAD_LEFT: {
-		return SDLK_h;
-	} // -- hide GUI
-	case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: {
-		return -1;
-	} // -- unassigned
-	case SDL_CONTROLLER_BUTTON_START: {
-		return SDLK_RETURN;
-	} // -- start selected scene
-	case SDL_CONTROLLER_BUTTON_BACK: {
-		return SDLK_ESCAPE;
-	} // -- quit
-	case SDL_CONTROLLER_BUTTON_LEFTSHOULDER: {
-		return SDLK_UP;
-	} // -- select prev scene
-	case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: {
-		return SDLK_DOWN;
-	} // -- select next scene
-	case SDL_CONTROLLER_BUTTON_A: {
-		return SDLK_g;
-	} // -- toggle gravity
-	case SDL_CONTROLLER_BUTTON_B: {
-		return SDLK_p;
-	} // -- pause
-	case SDL_CONTROLLER_BUTTON_X: {
-		return SDLK_r;
-	} // -- reset
-	case SDL_CONTROLLER_BUTTON_Y: {
-		return SDLK_o;
-	} // -- step sim
-	case SDL_CONTROLLER_BUTTON_RIGHT_TRIGGER: {
-		return SDLK_SPACE;
-	} // -- emit particles
-	default: {
-		return -1;
-	} // -- nop
-	};
-}
-;
 
 //
 // Gamepad thresholds taken from XINPUT API
@@ -122,15 +75,6 @@ int GetKeyFromGameControllerButton(SDL_GameControllerButton button) {
 int deadzones[3] = { XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE,
 XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE, XINPUT_GAMEPAD_TRIGGER_THRESHOLD };
 
-inline float joyAxisFilter(int value, int stick) {
-	//clamp values in deadzone to zero, and remap rest of range so that it linearly rises in value from edge of deadzone toward max value.
-	if (value < -deadzones[stick])
-		return (value + deadzones[stick]) / (32768.0f - deadzones[stick]);
-	else if (value > deadzones[stick])
-		return (value - deadzones[stick]) / (32768.0f - deadzones[stick]);
-	else
-		return 0.0f;
-}
 
 SDL_GameController* g_gamecontroller = NULL;
 
@@ -1111,85 +1055,6 @@ void Shutdown() {
 
 }
 
-void UpdateEmitters() {
-	float spin = DegToRad(15.0f);
-
-	const Vec3 forward(-sinf(g_camAngle.x + spin) * cosf(g_camAngle.y),
-			sinf(g_camAngle.y),
-			-cosf(g_camAngle.x + spin) * cosf(g_camAngle.y));
-	const Vec3 right(Normalize(Cross(forward, Vec3(0.0f, 1.0f, 0.0f))));
-
-	g_emitters[0].mDir = Normalize(forward + Vec3(0.0, 0.4f, 0.0f));
-	g_emitters[0].mRight = right;
-	g_emitters[0].mPos = g_camPos + forward * 1.f + Vec3(0.0f, 0.2f, 0.0f)
-			+ right * 0.65f;
-
-	// process emitters
-	if (g_emit) {
-		int activeCount = NvFlexGetActiveCount(g_solver);
-
-		size_t e = 0;
-
-		// skip camera emitter when moving forward or things get messy
-		if (g_camSmoothVel.z >= 0.025f)
-			e = 1;
-
-		for (; e < g_emitters.size(); ++e) {
-			if (!g_emitters[e].mEnabled)
-				continue;
-
-			Vec3 emitterDir = g_emitters[e].mDir;
-			Vec3 emitterRight = g_emitters[e].mRight;
-			Vec3 emitterPos = g_emitters[e].mPos;
-
-			float r = g_params.fluidRestDistance;
-			int phase = NvFlexMakePhase(0,
-					eNvFlexPhaseSelfCollide | eNvFlexPhaseFluid);
-
-			float numParticles = (g_emitters[e].mSpeed / r) * g_dt;
-
-			// whole number to emit
-			int n = int(numParticles + g_emitters[e].mLeftOver);
-
-			if (n)
-				g_emitters[e].mLeftOver = (numParticles
-						+ g_emitters[e].mLeftOver) - n;
-			else
-				g_emitters[e].mLeftOver += numParticles;
-
-			// create a grid of particles (n particles thick)
-			for (int k = 0; k < n; ++k) {
-				int emitterWidth = g_emitters[e].mWidth;
-				int numParticles = emitterWidth * emitterWidth;
-				for (int i = 0; i < numParticles; ++i) {
-					float x = float(i % emitterWidth) - float(emitterWidth / 2);
-					float y = float((i / emitterWidth) % emitterWidth)
-							- float(emitterWidth / 2);
-
-					if ((sqr(x) + sqr(y))
-							<= (emitterWidth / 2) * (emitterWidth / 2)) {
-						Vec3 up = Normalize(Cross(emitterDir, emitterRight));
-						Vec3 offset = r * (emitterRight * x + up * y)
-								+ float(k) * emitterDir * r;
-
-						if (activeCount < g_buffers->positions.size()) {
-							g_buffers->positions[activeCount] = Vec4(
-									emitterPos + offset, 1.0f);
-							g_buffers->velocities[activeCount] = emitterDir
-									* g_emitters[e].mSpeed;
-							g_buffers->phases[activeCount] = phase;
-
-							g_buffers->activeIndices.push_back(activeCount);
-
-							activeCount++;
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
 void UpdateCamera() {
 	Vec3 forward(-sinf(g_camAngle.x) * cosf(g_camAngle.y), sinf(g_camAngle.y),
 			-cosf(g_camAngle.x) * cosf(g_camAngle.y));
@@ -1815,7 +1680,6 @@ void UpdateFrame(bool capture, char *path, Eigen::VectorXd action) {
 
 	UpdateCamera();
 	if (!g_pause || g_step) {
-		UpdateEmitters();
 		UpdateMouse();
 		UpdateWind();
 //		Eigen::VectorXd action(4);
@@ -2217,11 +2081,6 @@ bool InputKeyboardDown(unsigned char key, int x, int y) {
 		// return quit = true
 		return true;
 	}
-#if ENABLE_AFTERMATH_SUPPORT
-	case 'l':
-		DumpAftermathData();
-		break;
-#endif
 	};
 
 	g_scenes[g_scene]->KeyDown(key);
@@ -2306,51 +2165,6 @@ void ErrorCallback(NvFlexErrorSeverity severity, const char* msg,
 	//assert(0); asserts are bad for TeamCity
 }
 
-void ControllerButtonEvent(SDL_ControllerButtonEvent event) {
-	// map controller buttons to keyboard keys
-	if (event.type == SDL_CONTROLLERBUTTONDOWN) {
-		InputKeyboardDown(
-				GetKeyFromGameControllerButton(
-						SDL_GameControllerButton(event.button)), 0, 0);
-		InputArrowKeysDown(
-				GetKeyFromGameControllerButton(
-						SDL_GameControllerButton(event.button)), 0, 0);
-
-		if (event.button == SDL_CONTROLLER_BUTTON_LEFT_TRIGGER) {
-			// Handle picking events using the game controller
-			g_lastx = g_screenWidth / 2;
-			g_lasty = g_screenHeight / 2;
-			g_lastb = 1;
-
-			// record that we need to update the picked particle
-			g_mousePicked = true;
-		}
-	} else {
-		InputKeyboardUp(
-				GetKeyFromGameControllerButton(
-						SDL_GameControllerButton(event.button)), 0, 0);
-		InputArrowKeysUp(
-				GetKeyFromGameControllerButton(
-						SDL_GameControllerButton(event.button)), 0, 0);
-
-		if (event.button == SDL_CONTROLLER_BUTTON_LEFT_TRIGGER) {
-			// Handle picking events using the game controller
-			g_lastx = g_screenWidth / 2;
-			g_lasty = g_screenHeight / 2;
-			g_lastb = -1;
-		}
-	}
-}
-
-void ControllerDeviceUpdate() {
-	if (SDL_NumJoysticks() > 0) {
-		SDL_JoystickEventState(SDL_ENABLE);
-		if (SDL_IsGameController(0)) {
-			g_gamecontroller = SDL_GameControllerOpen(0);
-		}
-	}
-}
-
 void SDLInit(const char* title) {
 
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0)	// Initialize SDL's Video subsystem and game controllers
@@ -2419,20 +2233,12 @@ bool SDLMain() {
 			case SDL_WINDOWEVENT_LEAVE:
 				g_camVel = Vec3(0.0f, 0.0f, 0.0f);
 				break;
-
-			case SDL_CONTROLLERBUTTONUP:
-			case SDL_CONTROLLERBUTTONDOWN:
-				ControllerButtonEvent(e.cbutton);
-				break;
-
-			case SDL_JOYDEVICEADDED:
-			case SDL_JOYDEVICEREMOVED:
-				ControllerDeviceUpdate();
-				break;
 			}
+
 		}
 	}
 	return quit;
+
 }
 
 void initialize() {
@@ -2655,6 +2461,18 @@ Eigen::MatrixXd getParticleDensity(Eigen::MatrixXd particles, int resolution,
 	}
 	return density;
 
+}
+bool simulateKSteps(bool capture, char *path, Eigen::VectorXd action, int k) {
+	bool done = false;
+	for (int i = 0; i < k; i++) {
+		UpdateFrame(capture, path, action);
+		capture = false;
+		done = SDLMain();
+		if (done) {
+			break;
+		}
+	}
+	return done;
 }
 
 void setGoal(Eigen::MatrixXd goals) {

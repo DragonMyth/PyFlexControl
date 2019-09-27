@@ -76,11 +76,12 @@ public:
 		currRots.clear();
 		currVels.clear();
 		currAngVels.clear();
+		int group = 0;
 		for (int i = 0; i < numSceneDim; i++) {
 			for (int j = 0; j < numSceneDim; j++) {
 
 				Vec3 center = Vec3(i * 15, 0, j * 15);
-				int group = centers.size();
+//				int group = centers.size();
 				int channel = eNvFlexPhaseShapeChannel0;
 
 				int phase1 = NvFlexMakePhaseWithChannels(group,
@@ -96,7 +97,7 @@ public:
 				CreateSpringCube(center + Vec3(0, 0, 0), dimx , dimy,
 						dimz , springRestLength, phase1, stiffness,
 						stiffness, stiffness, 0.0f, 1.0f);
-
+//
 //				CreateSpringCube(center + Vec3(3, 0, 3), dimx / 2, dimy,
 //						dimz / 2, springRestLength, phase1, stiffness,
 //						stiffness, stiffness, 0.0f, 1.0f);
@@ -114,12 +115,12 @@ public:
 				center[1] = 0;
 				centers.push_back(center);
 
-//				for (int k = offset; k < (offset + numPartPerScene); k++) {
-//					if (g_buffers->positions[k].z - center[2] > 0) {
-//						g_buffers->phases[k] = phase2;
-//					}
-//
-//				}
+				for (int k = offset; k < (offset + numPartPerScene); k++) {
+					if (g_buffers->positions[k].z - center[2] > 0) {
+						g_buffers->phases[k] = phase2;
+					}
+
+				}
 
 				Vec3 currPos = center + Vec3(0, 0, 0);
 				Quat currRot = QuatFromAxisAngle(Vec3(0, 1, 0), 0);
