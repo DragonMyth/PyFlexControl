@@ -50,6 +50,8 @@ public:
 	virtual void setControllerInit(Eigen::MatrixXd initConfig){};
 	// update any buffers (all guaranteed to be mapped here)
 	virtual void setGoal(Eigen::MatrixXd goalConfig){};
+	virtual void setInitClusterParam(Eigen::MatrixXd initClusterParam){};
+	virtual void setMapHalfExtent(float mapHalfExtent){};
 	virtual void Update() {
 	}
 	virtual Eigen::MatrixXd Update(Eigen::VectorXd act) {

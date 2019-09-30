@@ -8,22 +8,22 @@ using namespace std;
 class PlasticSpringShaping: public Scene {
 public:
 
-	PlasticSpringShaping(const char* name) :
-			Scene(name) {
-	}
-
 	// General Param for the simulation
 	int numSceneDim = 4;
 	int seed = -1;
-	int dimx = 10;
-	int dimy = 2;
-	int dimz = 10;
+//	int dimx = 10;
+//	int dimy = 2;
+//	int dimz = 10;
 	float radius = 0.2f;
 	int actionDim = 5;
+	float playgroundHalfExtent = 4;
 
-	int numPartPerScene=0;
+	int numPartPerScene = 0;
 	vector<Vec3> centers;
 	Eigen::MatrixXd goalPos;
+
+	// m x n matrix, m: number of instances, n: 6k, k is the number of sub-instances, 3 numbers for position offsets, 3 numbers for dimension
+	Eigen::MatrixXd partInitialization;
 
 	// Parameters for the controlling bar
 	vector<Vec3> currPoses;
@@ -53,6 +53,21 @@ public:
 	float springCompressThreshold = radius * 2.00f;
 	float springStrechThreshold = radius * 2.5f;
 
+	PlasticSpringShaping(const char* name) :
+			Scene(name) {
+
+		goalPos = Eigen::MatrixXd(numSceneDim * numSceneDim, 2);
+		goalPos.setZero();
+		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
+		partInitialization.setZero();
+		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
+			partInitialization(i, 3) = 10;
+			partInitialization(i, 4) = 2;
+			partInitialization(i, 5) = 10;
+		}
+
+	}
+
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
 
 		springFuseMap = new map<int, std::vector<int>> [numSceneDim
@@ -76,51 +91,52 @@ public:
 		currRots.clear();
 		currVels.clear();
 		currAngVels.clear();
-		int group = 0;
+		int channel = eNvFlexPhaseShapeChannel0;
+		int group =0;
+
 		for (int i = 0; i < numSceneDim; i++) {
 			for (int j = 0; j < numSceneDim; j++) {
+				int idx = i * numSceneDim + j;
+				Eigen::VectorXd particleClusterParam = partInitialization.row(
+						idx);
 
 				Vec3 center = Vec3(i * 15, 0, j * 15);
-//				int group = centers.size();
-				int channel = eNvFlexPhaseShapeChannel0;
 
 				int phase1 = NvFlexMakePhaseWithChannels(group,
 						eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 						channel);
 
-				int phase2 = NvFlexMakePhaseWithChannels(group+1,
+				int phase2 = NvFlexMakePhaseWithChannels(group + 1,
 						eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 						channel);
 
 				int offset = g_buffers->positions.size();
+				for (int cluster = 0; cluster < particleClusterParam.size();
+						cluster += 6) {
 
-				CreateSpringCube(center + Vec3(0, 0, 0), dimx , dimy,
-						dimz , springRestLength, phase1, stiffness,
-						stiffness, stiffness, 0.0f, 1.0f);
-//
-//				CreateSpringCube(center + Vec3(3, 0, 3), dimx / 2, dimy,
-//						dimz / 2, springRestLength, phase1, stiffness,
-//						stiffness, stiffness, 0.0f, 1.0f);
+					Vec3 offsetPos = Vec3(particleClusterParam(cluster),
+							particleClusterParam(cluster + 1),
+							particleClusterParam(cluster + 2));
+					int clusterDimx = (int) (particleClusterParam(cluster + 3));
+					int clusterDimy = (int) (particleClusterParam(cluster + 4));
+					int clusterDimz = (int) (particleClusterParam(cluster + 5));
 
-				if (i == 0 && j == 0) {
-					GetParticleBounds(lower, upper);
-					cout << "Lower: " << lower.x << " " << lower.y << " "
-							<< lower.z << endl;
-					cout << "Upper: " << upper.x << " " << upper.y << " "
-							<< upper.z << endl;
-					numPartPerScene = g_buffers->positions.size();;
-
+					CreateSpringCubeAroundCenter(center + offsetPos,
+							clusterDimx, clusterDimy, clusterDimz,
+							springRestLength, phase1, stiffness, stiffness,
+							stiffness, 0.0f, 1.0f);
 				}
-				center += (upper - lower) / 2;
-				center[1] = 0;
+				if (i == 0 && j == 0) {
+					numPartPerScene = g_buffers->positions.size();
+				}
+
 				centers.push_back(center);
 
-				for (int k = offset; k < (offset + numPartPerScene); k++) {
-					if (g_buffers->positions[k].z - center[2] > 0) {
-						g_buffers->phases[k] = phase2;
-					}
-
-				}
+//				for (int k = offset; k < (offset + numPartPerScene); k++) {
+//					if (g_buffers->positions[k].z - center[2] > 0) {
+//						g_buffers->phases[k] = phase2;
+//					}
+//				}
 
 				Vec3 currPos = center + Vec3(0, 0, 0);
 				Quat currRot = QuatFromAxisAngle(Vec3(0, 1, 0), 0);
@@ -137,17 +153,17 @@ public:
 			}
 
 		}
-		cout<<numPartPerScene<<endl;
+		cout << numPartPerScene << endl;
 
 		perPartSpringCnt = Eigen::VectorXi(g_buffers->positions.size());
 		perPartSpringCnt.setZero();
 		updateSpaceMap();
-		cout<<numPartPerScene<<endl;
+		cout << numPartPerScene << endl;
 
 		Eigen::VectorXd tempAct(numSceneDim * numSceneDim * actionDim);
 		tempAct.setZero();
 		updateSprings(tempAct);
-		cout<<numPartPerScene<<endl;
+		cout << numPartPerScene << endl;
 
 		g_params.radius = radius;
 //		g_params.fluidRestDistance = radius;
@@ -215,6 +231,13 @@ public:
 		goalPos = goalConfig;
 	}
 
+	void setInitClusterParam(Eigen::MatrixXd initClusterParam) {
+		partInitialization = initClusterParam;
+	}
+
+	void setMapHalfExtent(float mapHalfExtent) {
+		playgroundHalfExtent = mapHalfExtent;
+	}
 	void updateSpaceMap() {
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
 			springFuseMap[i].clear();
@@ -488,10 +511,12 @@ public:
 			Quat newRot = currRots[i]
 					* QuatFromAxisAngle(Vec3(0, 1, 0), currAngVels[i] * g_dt);
 
-			newPos.x = minf(maxf(newPos.x - centers[i].x, -4), 4)
-					+ centers[i].x;
-			newPos.z = minf(maxf(newPos.z - centers[i].z, -4), 4)
-					+ centers[i].z;
+			newPos.x = minf(
+					maxf(newPos.x - centers[i].x, -playgroundHalfExtent),
+					playgroundHalfExtent) + centers[i].x;
+			newPos.z = minf(
+					maxf(newPos.z - centers[i].z, -playgroundHalfExtent),
+					playgroundHalfExtent) + centers[i].z;
 
 			currPoses[i] = newPos;
 			currRots[i] = newRot;
@@ -500,19 +525,23 @@ public:
 			for (int t = 0; t < goals.size(); t += 2) {
 				Vec2 goal_target = Vec2(goals[t], goals[t + 1])
 						+ Vec2(centers[i][0], centers[i][2]);
-				AddSphere(0.12, Vec3(goal_target.x, 0, goal_target.y), Quat(),
+				AddSphere(0.3, Vec3(goal_target.x, 0, goal_target.y), Quat(),
 						eNvFlexPhaseShapeChannel0 << 1);
 
 			}
 
-			AddBox(Vec3(4, 0.01, 4), centers[i] + Vec3(0, 0.005, 0), Quat(),
-					false, eNvFlexPhaseShapeChannel0 << 1);
+			AddBox(Vec3(playgroundHalfExtent, 0.01, playgroundHalfExtent),
+					centers[i] + Vec3(0, 0.005, 0), Quat(), false,
+					eNvFlexPhaseShapeChannel0 << 1);
 
 			AddBox(barDim, newPos, newRot, false, channel);
 
 			if (ghost) {
-				AddBox(Vec3(1, 1, 1), centers[i] + Vec3(-4, 2, -4), Quat(),
-						false, eNvFlexPhaseShapeChannel0 << 1);
+				AddBox(Vec3(1, 1, 1),
+						centers[i]
+								+ Vec3(-playgroundHalfExtent, 2,
+										-playgroundHalfExtent), Quat(), false,
+						eNvFlexPhaseShapeChannel0 << 1);
 			}
 		}
 

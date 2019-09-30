@@ -1040,7 +1040,6 @@ void CreateSpringGrid(Vec3 lower, int dx, int dy, int dz, float radius,
 		}
 	}
 }
-
 void CreateSpringCube(Vec3 lower, int dx, int dy, int dz, float radius,
 		int phase, float stretchStiffness, float bendStiffness,
 		float shearStiffness, Vec3 velocity, float invMass) {
@@ -1051,6 +1050,141 @@ void CreateSpringCube(Vec3 lower, int dx, int dy, int dz, float radius,
 			for (int x = 0; x < dx; ++x) {
 
 				Vec3 position = lower
+						+ radius * Vec3(float(x), float(y), float(z));
+
+				Vec4 part = Vec4(position.x, position.y, position.z, invMass);
+
+				g_buffers->positions.push_back(part);
+				g_buffers->velocities.push_back(velocity);
+				g_buffers->phases.push_back(phase);
+
+			}
+		}
+	}
+
+	// x axis strech
+	// zx shear
+	for (int z = 0; z < dz; ++z) {
+		for (int y = 0; y < dy; ++y) {
+			for (int x = 0; x < dx; ++x) {
+
+				int index0 = z * dy * dx + y * dx + x;
+
+				if (x > 0) {
+					int index1 = z * dy * dx + y * dx + x - 1;
+					CreateSpring(baseIndex + index0, baseIndex + index1,
+							stretchStiffness);
+				}
+//
+//				if (x > 1) {
+//					int index2 = z * dy * dx + y * dx + x - 2;
+//					CreateSpring(baseIndex + index0, baseIndex + index2,
+//							bendStiffness);
+//				}
+//
+				if (z > 0 && x < dx - 1) {
+					int indexDiag = (z - 1) * dy * dx + y * dx + x + 1;
+					CreateSpring(baseIndex + index0, baseIndex + indexDiag,
+							shearStiffness);
+				}
+
+				if (z > 0 && x > 0) {
+					int indexDiag = (z - 1) * dy * dx + y * dx + x - 1;
+					CreateSpring(baseIndex + index0, baseIndex + indexDiag,
+							shearStiffness);
+				}
+			}
+		}
+	}
+
+	// y axis
+	// xy shear
+	for (int z = 0; z < dz; ++z) {
+		for (int y = 0; y < dy; ++y) {
+			for (int x = 0; x < dx; ++x) {
+
+				int index0 = z * dy * dx + y * dx + x;
+
+				if (y > 0) {
+					int index1 = z * dy * dx + (y - 1) * dx + x;
+					CreateSpring(baseIndex + index0, baseIndex + index1,
+							stretchStiffness);
+				}
+//
+//				if (y > 1) {
+//					int index2 = z * dy * dx + (y - 2) * dx + x;
+//					CreateSpring(baseIndex + index0, baseIndex + index2,
+//							bendStiffness);
+//				}
+
+				if (y > 0 && x < dx - 1) {
+					int indexDiag = z * dy * dx + (y - 1) * dx + x + 1;
+					CreateSpring(baseIndex + index0, baseIndex + indexDiag,
+							shearStiffness);
+				}
+
+				if (y > 0 && x > 0) {
+					int indexDiag = z * dy * dx + (y - 1) * dx + x - 1;
+					CreateSpring(baseIndex + index0, baseIndex + indexDiag,
+							shearStiffness);
+				}
+
+			}
+		}
+	}
+
+	// z axis
+	// yz shear
+	for (int z = 0; z < dz; ++z) {
+		for (int y = 0; y < dy; ++y) {
+			for (int x = 0; x < dx; ++x) {
+
+				int index0 = (z * dy * dx) + ((y) * dx) + x;
+
+				if (z > 0) {
+					int index1 = ((z - 1) * dy * dx) + (y * dx) + x;
+					CreateSpring(baseIndex + index0, baseIndex + index1,
+							stretchStiffness);
+				}
+
+//				if (z > 1) {
+//					int index2 = (z - 2) * dy * dx + y * dx + x;
+//					CreateSpring(baseIndex + index0, baseIndex + index2,
+//							bendStiffness);
+//				}
+
+				if (z > 0 && y < dy - 1) {
+					int indexDiag = (z - 1) * dy * dx + (y + 1) * dx + x;
+					CreateSpring(baseIndex + index0, baseIndex + indexDiag,
+							shearStiffness);
+				}
+
+				if (z > 0 && y > 0) {
+					int indexDiag = (z - 1) * dy * dx + (y - 1) * dx + x;
+					CreateSpring(baseIndex + index0, baseIndex + indexDiag,
+							shearStiffness);
+				}
+
+			}
+		}
+	}
+}
+
+void CreateSpringCubeAroundCenter(Vec3 center, int dx, int dy, int dz, float radius,
+		int phase, float stretchStiffness, float bendStiffness,
+		float shearStiffness, Vec3 velocity, float invMass) {
+	int baseIndex = int(g_buffers->positions.size());
+
+//	float lengthx = dx*radius;
+//	float lengthy = dy*radius;
+//	float lengthz = dz*radius;
+
+	Vec3 length = Vec3((dx-1)*radius,0,(dz-1)*radius);
+	for (int z = 0; z < dz; ++z) {
+		for (int y = 0; y < dy; ++y) {
+			for (int x = 0; x < dx; ++x) {
+
+				Vec3 position = center-length/2
 						+ radius * Vec3(float(x), float(y), float(z));
 
 				Vec4 part = Vec4(position.x, position.y, position.z, invMass);

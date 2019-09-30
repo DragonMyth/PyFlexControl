@@ -46,6 +46,8 @@ PYBIND11_MODULE(bindings, m) {
 	m.def("getParticleDensity",&getParticleDensity,"getParticleDensity");
 
 	m.def("simulateKSteps",&simulateKSteps,"simulateKSteps");
+	m.def("setInitClusterParam", &setInitClusterParam, "setInitClusterParam");
+	m.def("setMapHalfExtent",&setMapHalfExtent,"setMapHalfExtent");
 #ifdef VERSION_INFO
 	m.attr("__version__") = VERSION_INFO;
 #else

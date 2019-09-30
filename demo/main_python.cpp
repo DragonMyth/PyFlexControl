@@ -2396,17 +2396,17 @@ void setController(Eigen::MatrixXd controllerConfig) {
 }
 
 Eigen::MatrixXd getParticleDensity(Eigen::MatrixXd particles, int resolution,
-		float width) {
+		float width,float mapHalfExtent) {
 	Eigen::MatrixXd density(resolution, resolution);
 	density.setZero();
 	float dx = 1.0f / resolution;
 	float inv_dx = 1.0f / dx;
 	for (int i = 0; i < particles.rows(); i++) {
-		if (abs(particles(i, 0)) <= 4 && abs(particles(i, 1)) <= 4) {
+		if (abs(particles(i, 0)) <= mapHalfExtent && abs(particles(i, 1)) <= mapHalfExtent) {
 
 			Eigen::Vector2d base_coord(
-					((particles(i, 0) + 4.0) / (8.0) * inv_dx - 0.5),
-					((particles(i, 1) + 4.0) / (8.0) * inv_dx - 0.5));
+					((particles(i, 0) + mapHalfExtent) / (2*mapHalfExtent) * inv_dx - 0.5),
+					((particles(i, 1) + mapHalfExtent) / (2*mapHalfExtent) * inv_dx - 0.5));
 
 			Eigen::Vector2d fx(base_coord[0] - (int) base_coord[0],
 					base_coord[1] - (int) base_coord[1]);
@@ -2429,22 +2429,7 @@ Eigen::MatrixXd getParticleDensity(Eigen::MatrixXd particles, int resolution,
 					if (wy < 0) {
 						wy = 0;
 					}
-//					if (k < 2 && k >= 0) {
-//						wx = 0.5 * abs(dpos[0] * dpos[0] * dpos[0])
-//								- abs(dpos[0] * dpos[0]) + 2.0f / 3.0f;
-//					} else {
-//						wx = 1.0f / 6.0f * (2 - dpos[0]) * (2 - dpos[0])
-//								* (2 - dpos[0]);
-//					}
-//
-//					if (j < 2 && j >= 0) {
-//						wy = 0.5 * abs(dpos[1] * dpos[1] * dpos[1])
-//								- abs(dpos[1] * dpos[1]) + 2.0f / 3.0f;
-//					} else {
-//						wy = 1.0f / 6.0f * (2 - dpos[1]) * (2 - dpos[1])
-//								* (2 - dpos[1]);
-//					}
-//
+
 					if ((int) base_coord[1] + j < resolution
 							&& (int) base_coord[0] + k < resolution
 							&& (int) base_coord[1] + j >= 0
@@ -2478,3 +2463,9 @@ bool simulateKSteps(bool capture, char *path, Eigen::VectorXd action, int k) {
 void setGoal(Eigen::MatrixXd goals) {
 	g_scenes[g_scene]->setGoal(goals);
 }
+void setInitClusterParam(Eigen::MatrixXd clusterParam){
+	g_scenes[g_scene]->setInitClusterParam(clusterParam);
+}
+void setMapHalfExtent(float mapHalfExtent){
+	g_scenes[g_scene]->setMapHalfExtent(mapHalfExtent);
+};
