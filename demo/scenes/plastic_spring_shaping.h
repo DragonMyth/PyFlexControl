@@ -551,7 +551,7 @@ public:
 			updateSpaceMap();
 			updateSprings(action);
 		}
-
+//		cout<<"Cam X: "<<g_camPos.x<<"Cam Y: "<<g_camPos.y<<"Cam Z: "<<g_camPos.z<<"Cam Angle X: "<<g_camAngle.x<<"Cam Angle Y: "<<g_camAngle.y<<"Cam Angle Z: "<<g_camAngle.z<<endl;
 //		if (g_frame % 100==0) {
 //			cout << g_frame << endl;
 //		}
@@ -635,8 +635,11 @@ public:
 
 		GetParticleBounds(scenelower, sceneupper);
 
-		g_camPos = Vec3((scenelower.x + sceneupper.x) * 0.5f, 20.0f,
+		/*g_camPos = Vec3((scenelower.x + sceneupper.x) * 0.5f, 20.0f,
 				(scenelower.z + sceneupper.z) * 0.5f);
-		g_camAngle = Vec3(0, -DegToRad(85.0f), 0.0f);
+		g_camAngle = Vec3(0, -DegToRad(85.0f), 0.0f);*/
+
+		g_camPos = Vec3(21.7816f,63.1574f,27.1928f);
+		g_camAngle = Vec3(0,-1.5132,0);
 	}
 };

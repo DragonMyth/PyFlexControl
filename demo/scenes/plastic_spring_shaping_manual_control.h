@@ -551,6 +551,8 @@ public:
 //		if (g_frame % 100==0) {
 //			cout << g_frame << endl;
 //		}
+		//		cout<<"Cam X: "<<g_camPos.x<<"Cam Y: "<<g_camPos.y<<"Cam Z: "<<g_camPos.z<<"Cam Angle X: "<<g_camAngle.x<<"Cam Angle Y: "<<g_camAngle.y<<"Cam Angle Z: "<<g_camAngle.z<<endl;
+
 		return getState();
 	}
 
