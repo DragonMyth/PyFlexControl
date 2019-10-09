@@ -1305,6 +1305,35 @@ void CreateSpringCubeAroundCenter(Vec3 center, int dx, int dy, int dz, float rad
 	}
 }
 
+void CreateGranularCubeAroundCenter(Vec3 center, int dx, int dy, int dz, float radius,
+		int phase, Vec3 velocity, float invMass, float jitter = 0.1f) {
+	int baseIndex = int(g_buffers->positions.size());
+
+//	float lengthx = dx*radius;
+//	float lengthy = dy*radius;
+//	float lengthz = dz*radius;
+
+	Vec3 length = Vec3((dx-1)*radius,0,(dz-1)*radius);
+
+	for (int z = 0; z < dz; ++z) {
+		for (int y = 0; y < dy; ++y) {
+			for (int x = 0; x < dx; ++x) {
+
+				Vec3 position = center-length/2
+						+ radius * Vec3(float(x), float(y), float(z)) +  RandomUnitVector() * jitter;
+
+				Vec4 part = Vec4(position.x, position.y, position.z, invMass);
+
+				g_buffers->positions.push_back(part);
+				g_buffers->velocities.push_back(velocity);
+				g_buffers->phases.push_back(phase);
+
+			}
+		}
+	}
+
+}
+
 void CreateRope(Rope& rope, Vec3 start, Vec3 dir, float stiffness, int segments,
 		float length, int phase, float spiralAngle = 0.0f, float invmass = 1.0f,
 		float give = 0.075f) {

@@ -9,7 +9,7 @@ class PlasticSpringShaping: public Scene {
 public:
 
 	// General Param for the simulation
-	int numSceneDim = 4;
+	int numSceneDim = 7;
 	int seed = -1;
 //	int dimx = 10;
 //	int dimy = 2;
@@ -470,8 +470,9 @@ public:
 //
 //			Vec2 targetRotVec = Vec2(1, 0);
 
-			bool ghost = action(i * actionDim + 4) > 0;
+//			bool ghost = action(i * actionDim + 4) > 0;
 
+			bool ghost = (action(i * actionDim + 4) > 0);
 			//				Vec2 targetRotVec = Vec2(1,0);
 
 			int channel = eNvFlexPhaseShapeChannel0;
@@ -639,7 +640,15 @@ public:
 				(scenelower.z + sceneupper.z) * 0.5f);
 		g_camAngle = Vec3(0, -DegToRad(85.0f), 0.0f);*/
 
-		g_camPos = Vec3(21.7816f,63.1574f,27.1928f);
-		g_camAngle = Vec3(0,-1.5132,0);
+		// 4x4
+//		g_camPos = Vec3(21.7816f,63.1574f,27.1928f);
+//		g_camAngle = Vec3(0,-1.5132,0);
+		// 7x7
+//		g_camPos = Vec3(35.1552f,118.898f,33.0568);
+//		g_camAngle = Vec3(0,-1.65806,0);
+
+		// 3x4
+		g_camPos = Vec3(21.2443f,44.0126f,24.5113f);
+		g_camAngle = Vec3(0,-1.38404,0);
 	}
 };
