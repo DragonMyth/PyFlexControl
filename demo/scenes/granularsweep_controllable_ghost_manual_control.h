@@ -137,21 +137,18 @@ public:
 		tempAct.setZero();
 		cout << numPartPerScene << endl;
 
+		g_numSubsteps = 1;
 		g_params.radius = radius;
-//		g_params.fluidRestDistance = radius;
-
-		g_params.dynamicFriction = 7.55f;
-		g_params.staticFriction = 30.5f;
-		g_params.dissipation = 0.0f;
-		g_params.numIterations = 2;
-		g_params.viscosity = 0.0f;
-		g_params.drag = 0.05f;
-		g_params.collisionDistance = radius * 0.5f;
-		g_params.shapeCollisionMargin = radius * 0.1;
-		g_params.relaxationFactor = 0.5f;
-		g_windStrength = 0.0f;
-
-		g_numSubsteps = 2;
+		g_params.staticFriction = 10.5f;
+		g_params.dynamicFriction = 1.2f;
+		g_params.numIterations = 4;
+		g_params.particleCollisionMargin = g_params.radius * 0.05f;	// 5% collision margin
+		g_params.sleepThreshold = g_params.radius * 0.25f;
+		g_params.shockPropagation = 6.f;
+		g_params.restitution = 0.2f;
+		g_params.relaxationFactor = 1.f;
+		g_params.damping = 0.14f;
+		g_params.numPlanes = 1;
 
 		// draw options
 		g_drawPoints = true;
