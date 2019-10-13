@@ -53,7 +53,6 @@
 
 #include "shadersDemoContext.h"
 
-
 #if ENABLE_AFTERMATH_SUPPORT
 #include <external/GFSDK_Aftermath_v1.21/include/GFSDK_Aftermath.h>
 #endif
@@ -189,6 +188,7 @@ std::map<NvFlexDistanceFieldId, GpuMesh*> g_fields;
 
 // flag to request collision shapes be updated
 bool g_shapesChanged = false;
+bool visualize = true;
 
 /* Note that this array of colors is altered by demo code, and is also read from global by graphics API impls */
 Colour g_colors[] = { Colour(0.0f, 0.5f, 1.0f), Colour(0.797f, 0.354f, 0.000f),
@@ -256,13 +256,14 @@ struct SimBuffers {
 					l), smoothPositions(l), diffusePositions(l), diffuseVelocities(
 					l), diffuseCount(l), activeIndices(l), shapeGeometry(l), shapePositions(
 					l), shapeRotations(l), shapePrevPositions(l), shapePrevRotations(
-					l), shapeFlags(l), shapeColors(l),rigidOffsets(l), rigidIndices(l), rigidMeshSize(
-					l), rigidCoefficients(l), rigidPlasticThresholds(l), rigidPlasticCreeps(
-					l), rigidRotations(l), rigidTranslations(l), rigidLocalPositions(
-					l), rigidLocalNormals(l), inflatableTriOffsets(l), inflatableTriCounts(
-					l), inflatableVolumes(l), inflatableCoefficients(l), inflatablePressures(
-					l), springIndices(l), springLengths(l), springStiffness(l), triangles(
-					l), triangleNormals(l), uvs(l) {
+					l), shapeFlags(l), shapeColors(l), rigidOffsets(l), rigidIndices(
+					l), rigidMeshSize(l), rigidCoefficients(l), rigidPlasticThresholds(
+					l), rigidPlasticCreeps(l), rigidRotations(l), rigidTranslations(
+					l), rigidLocalPositions(l), rigidLocalNormals(l), inflatableTriOffsets(
+					l), inflatableTriCounts(l), inflatableVolumes(l), inflatableCoefficients(
+					l), inflatablePressures(l), springIndices(l), springLengths(
+					l), springStiffness(l), triangles(l), triangleNormals(l), uvs(
+					l) {
 	}
 };
 
@@ -597,10 +598,10 @@ void Init(int scene, bool centerCamera = true) {
 	if (g_solver) {
 		if (g_buffers)
 			DestroyBuffers(g_buffers);
-
-		DestroyFluidRenderBuffers(g_fluidRenderBuffers);
-		DestroyDiffuseRenderBuffers(g_diffuseRenderBuffers);
-
+		if (visualize) {
+			DestroyFluidRenderBuffers(g_fluidRenderBuffers);
+			DestroyDiffuseRenderBuffers(g_diffuseRenderBuffers);
+		}
 		for (auto& iter : g_meshes) {
 			NvFlexDestroyTriangleMesh(g_flexLib, iter.first);
 			DestroyGpuMesh(iter.second);
@@ -799,6 +800,10 @@ void Init(int scene, bool centerCamera = true) {
 	// create scene
 	StartGpuWork();
 	g_scenes[g_scene]->Initialize(0);
+
+//	g_scenes[g_scene]->set(0);
+
+
 	EndGpuWork();
 
 	uint32_t numParticles = g_buffers->positions.size();
@@ -1037,10 +1042,13 @@ void Init(int scene, bool centerCamera = true) {
 				int(g_buffers->shapeFlags.size()));
 	}
 
-	// create render buffers
-	g_fluidRenderBuffers = CreateFluidRenderBuffers(maxParticles, g_interop);
-	g_diffuseRenderBuffers = CreateDiffuseRenderBuffers(g_maxDiffuseParticles,
-			g_interop);
+	if (visualize) {
+		// create render buffers
+		g_fluidRenderBuffers = CreateFluidRenderBuffers(maxParticles,
+				g_interop);
+		g_diffuseRenderBuffers = CreateDiffuseRenderBuffers(
+				g_maxDiffuseParticles, g_interop);
+	}
 
 	// perform initial sim warm up
 	if (g_warmup) {
@@ -2097,10 +2105,10 @@ int DoUI() {
 	return newScene;
 }
 
-Eigen::MatrixXd UpdateFrame(bool visualize) {
-//	if (g_frame % 100 == 0) {
-//		cout <<"Frame Count: "<< g_frame << endl;
-//	}
+Eigen::MatrixXd UpdateFrame() {
+	if (g_frame % 100 == 0) {
+		cout << "Frame Count: " << g_frame << endl;
+	}
 	static double lastTime;
 
 	// real elapsed frame time
@@ -2135,10 +2143,10 @@ Eigen::MatrixXd UpdateFrame(bool visualize) {
 		UpdateWind();
 //		UpdateScene();
 
-		Eigen::VectorXd act(16*9);
+		Eigen::VectorXd act(49 * 5);
 
 //		act.setRandom();
-		act.setZero();
+		act.setOnes();
 
 		state = UpdateControlScene(act);
 
@@ -2149,17 +2157,16 @@ Eigen::MatrixXd UpdateFrame(bool visualize) {
 
 	double renderBeginTime = GetSeconds();
 
-	if (g_profile && (!g_pause || g_step)) {
-		if (g_benchmark) {
-			g_numDetailTimers = NvFlexGetDetailTimers(g_solver,
-					&g_detailTimers);
-		} else {
-			memset(&g_timers, 0, sizeof(g_timers));
-			NvFlexGetTimers(g_solver, &g_timers);
-		}
-	}
-
 	if (visualize) {
+		if (g_profile && (!g_pause || g_step)) {
+			if (g_benchmark) {
+				g_numDetailTimers = NvFlexGetDetailTimers(g_solver,
+						&g_detailTimers);
+			} else {
+				memset(&g_timers, 0, sizeof(g_timers));
+				NvFlexGetTimers(g_solver, &g_timers);
+			}
+		}
 		StartFrame(Vec4(g_clearColor, 1.0f));
 
 		// main scene render
@@ -2169,21 +2176,22 @@ Eigen::MatrixXd UpdateFrame(bool visualize) {
 		int newScene = DoUI();
 
 		EndFrame();
+		if (!g_useAsyncCompute)
+			NvFlexComputeWaitForGraphics(g_flexLib);
+
+		if (g_mouseParticle != -1) {
+			Vec3 origin, dir;
+			GetViewRay(g_lastx, g_screenHeight - g_lasty, origin, dir);
+
+			g_mousePos = origin + dir * g_mouseT;
+		}
 	}
 	// If user has disabled async compute, ensure that no compute can overlap
 	// graphics by placing a sync between them
-	if (!g_useAsyncCompute)
-		NvFlexComputeWaitForGraphics(g_flexLib);
 
 	UnmapBuffers(g_buffers);
 
 	// move mouse particle (must be done here as GetViewRay() uses the GL projection state)
-	if (g_mouseParticle != -1) {
-		Vec3 origin, dir;
-		GetViewRay(g_lastx, g_screenHeight - g_lasty, origin, dir);
-
-		g_mousePos = origin + dir * g_mouseT;
-	}
 
 	if (g_capture) {
 		TgaImage img;
@@ -2323,7 +2331,11 @@ Eigen::MatrixXd UpdateFrame(bool visualize) {
 
 	// flush out the last frame before freeing up resources in the event of a scene change
 	// this is necessary for d3d12
-	PresentFrame(g_vsync);
+
+	if (visualize) {
+		PresentFrame(g_vsync);
+	}
+
 //
 //	// if gui or benchmark requested a scene change process it now
 //	if (newScene != -1) {
@@ -2691,63 +2703,65 @@ void SDLMainLoop() {
 		bool quit = false;
 		SDL_Event e;
 		while (!quit) {
-			UpdateFrame(true);
+			UpdateFrame();
+			if (visualize) {
+				while (SDL_PollEvent(&e)) {
+					switch (e.type) {
+					case SDL_QUIT:
+						quit = true;
+						break;
 
-			while (SDL_PollEvent(&e)) {
-				switch (e.type) {
-				case SDL_QUIT:
-					quit = true;
-					break;
+					case SDL_KEYDOWN:
+						if (e.key.keysym.sym < 256
+								&& (e.key.keysym.mod == KMOD_NONE
+										|| (e.key.keysym.mod & KMOD_NUM)))
+							quit = InputKeyboardDown(e.key.keysym.sym, 0, 0);
+						InputArrowKeysDown(e.key.keysym.sym, 0, 0);
+						break;
 
-				case SDL_KEYDOWN:
-					if (e.key.keysym.sym < 256
-							&& (e.key.keysym.mod == KMOD_NONE
-									|| (e.key.keysym.mod & KMOD_NUM)))
-						quit = InputKeyboardDown(e.key.keysym.sym, 0, 0);
-					InputArrowKeysDown(e.key.keysym.sym, 0, 0);
-					break;
+					case SDL_KEYUP:
+						if (e.key.keysym.sym < 256
+								&& (e.key.keysym.mod == 0
+										|| (e.key.keysym.mod & KMOD_NUM)))
+							InputKeyboardUp(e.key.keysym.sym, 0, 0);
+						InputArrowKeysUp(e.key.keysym.sym, 0, 0);
+						break;
 
-				case SDL_KEYUP:
-					if (e.key.keysym.sym < 256
-							&& (e.key.keysym.mod == 0
-									|| (e.key.keysym.mod & KMOD_NUM)))
-						InputKeyboardUp(e.key.keysym.sym, 0, 0);
-					InputArrowKeysUp(e.key.keysym.sym, 0, 0);
-					break;
+					case SDL_MOUSEMOTION:
+						if (e.motion.state)
+							MouseMotionFunc(e.motion.state, e.motion.x,
+									e.motion.y);
+						else
+							MousePassiveMotionFunc(e.motion.x, e.motion.y);
+						break;
 
-				case SDL_MOUSEMOTION:
-					if (e.motion.state)
-						MouseMotionFunc(e.motion.state, e.motion.x, e.motion.y);
-					else
-						MousePassiveMotionFunc(e.motion.x, e.motion.y);
-					break;
+					case SDL_MOUSEBUTTONDOWN:
+					case SDL_MOUSEBUTTONUP:
+						MouseFunc(e.button.button, e.button.state, e.motion.x,
+								e.motion.y);
+						break;
 
-				case SDL_MOUSEBUTTONDOWN:
-				case SDL_MOUSEBUTTONUP:
-					MouseFunc(e.button.button, e.button.state, e.motion.x,
-							e.motion.y);
-					break;
+					case SDL_WINDOWEVENT:
+						if (e.window.windowID == g_windowId) {
+							if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+								ReshapeWindow(e.window.data1, e.window.data2);
+						}
+						break;
 
-				case SDL_WINDOWEVENT:
-					if (e.window.windowID == g_windowId) {
-						if (e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
-							ReshapeWindow(e.window.data1, e.window.data2);
+					case SDL_WINDOWEVENT_LEAVE:
+						g_camVel = Vec3(0.0f, 0.0f, 0.0f);
+						break;
+
+					case SDL_CONTROLLERBUTTONUP:
+					case SDL_CONTROLLERBUTTONDOWN:
+						ControllerButtonEvent(e.cbutton);
+						break;
+
+					case SDL_JOYDEVICEADDED:
+					case SDL_JOYDEVICEREMOVED:
+						ControllerDeviceUpdate();
+						break;
 					}
-					break;
-
-				case SDL_WINDOWEVENT_LEAVE:
-					g_camVel = Vec3(0.0f, 0.0f, 0.0f);
-					break;
-
-				case SDL_CONTROLLERBUTTONUP:
-				case SDL_CONTROLLERBUTTONDOWN:
-					ControllerButtonEvent(e.cbutton);
-					break;
-
-				case SDL_JOYDEVICEADDED:
-				case SDL_JOYDEVICEREMOVED:
-					ControllerDeviceUpdate();
-					break;
 				}
 			}
 		}
@@ -2767,24 +2781,27 @@ int main(int argc, char* argv[]) {
 //	g_scenes.push_back(new GranularSweepThreeBars("Granular Sweep Ghost Three Bars"));
 //	g_scenes.push_back(new GranularSweepControllableGhost("Granular Sweep Conrollable Ghost"));
 
-
-
 //	plasticThinBox.mTranslation[1] = 0.0f;
-
 
 //	PlasticBodyReshaping* plasticReshaping = new PlasticBodyReshaping("Plastic Reshaping");
 
-
 //	g_scenes.push_back(new 	ClothLayers("Cloth Layers"));
-//	g_scenes.push_back(new GooShapingManualControl("Goo Reshaping Single Instance"));
-	g_scenes.push_back(new GooShapingExpManualControl("Goo Reshaping Single Instance"));
+//	g_scenes.push_back(
+//			new GooShapingManualControl("Goo Reshaping Single Instance"));
+//	g_scenes.push_back(
+//			new GooShapingExpManualControl("Goo Reshaping Single Instance"));
 
-	g_scenes.push_back(new 	PlasticSpringShaping("Plastic Reshaping Using Springs"));
-	g_scenes.push_back(new 	PlasticSpringShapingManualControl("Plastic Reshaping Using Springs Single Instance"));
+	g_scenes.push_back(
+				new GranularSweepShaping("Granular Reshaping"));
+	g_scenes.push_back(
+				new GranularSweepShapingManualControl("Granular Reshaping Single Instance"));
+	g_scenes.push_back(
+			new PlasticSpringShaping("Plastic Reshaping Using Springs"));
+	g_scenes.push_back(
+			new PlasticSpringShapingManualControl(
+					"Plastic Reshaping Using Springs Single Instance"));
 
 	// init graphics
-
-	DemoContext* demoContext = nullptr;
 
 	// Create the demo context
 	CreateDemoContext(g_graphics);
@@ -2794,19 +2811,25 @@ int main(int argc, char* argv[]) {
 	str = "Flex Demo (Compute: CUDA) ";
 
 	str += "(Graphics: OpenGL)";
+	if (visualize) {
 
-	const char* title = str.c_str();
-	RenderInitOptions options;
-	SDLInit(title);
-	options.window = g_window;
-	options.numMsaaSamples = g_msaaSamples;
-	options.asyncComputeBenchmark = g_asyncComputeBenchmark;
-	options.defaultFontHeight = -1;
-	options.fullscreen = g_fullscreen;
-	InitRender(options);
-	if (g_fullscreen)
-		SDL_SetWindowFullscreen(g_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-	ReshapeWindow(g_screenWidth, g_screenHeight);
+		const char* title = str.c_str();
+		RenderInitOptions options;
+		SDLInit(title);
+		options.window = g_window;
+		options.numMsaaSamples = g_msaaSamples;
+		options.asyncComputeBenchmark = g_asyncComputeBenchmark;
+		options.defaultFontHeight = -1;
+		options.fullscreen = g_fullscreen;
+		InitRender(options);
+
+		if (g_fullscreen)
+			SDL_SetWindowFullscreen(g_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+		ReshapeWindow(g_screenWidth, g_screenHeight);
+
+		g_shadowMap = ShadowCreate();
+
+	}
 
 	NvFlexInitDesc desc;
 	desc.deviceIndex = g_device;
@@ -2833,7 +2856,6 @@ int main(int argc, char* argv[]) {
 		g_scene = BenchmarkInit();
 
 	// create shadow maps
-	g_shadowMap = ShadowCreate();
 
 	// init default scene
 	StartGpuWork();
