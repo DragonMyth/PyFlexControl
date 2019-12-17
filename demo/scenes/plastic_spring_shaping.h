@@ -183,7 +183,6 @@ public:
 
 		// draw options
 		g_drawPoints = true;
-//		g_drawSprings = true;
 		g_drawMesh = false;
 		g_warmup = false;
 
@@ -458,9 +457,13 @@ public:
 		ClearShapes();
 
 		for (int i = 0; i < centers.size(); i++) {
+//
+//			Vec3 targetPos = centers[i]
+//					+ Vec3(action(i * actionDim), 0, action(i * actionDim + 1));
+
 
 			Vec3 targetPos = centers[i]
-					+ Vec3(action(i * actionDim), 0, action(i * actionDim + 1));
+					+ Vec3(0, 0, cos(g_frame / 60.0f / (EIGEN_PI)));
 
 			Vec2 targetRotVec = Vec2(action(i * actionDim + 2),
 					action(i * actionDim + 3));

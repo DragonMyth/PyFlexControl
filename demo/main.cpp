@@ -2785,7 +2785,6 @@ int main(int argc, char* argv[]) {
 
 //	PlasticBodyReshaping* plasticReshaping = new PlasticBodyReshaping("Plastic Reshaping");
 
-//	g_scenes.push_back(new PlasticBodyReshaping("Plastic Reshaping"));
 //	g_scenes.push_back(new 	ClothLayers("Cloth Layers"));
 //	g_scenes.push_back(
 //			new GooShapingManualControl("Goo Reshaping Single Instance"));

@@ -106,7 +106,7 @@ public:
 		currVels.clear();
 		currAngVels.clear();
 
-		PlasticBodyReshaping::Instance plasticThinBox("/home/yzhang/FleX_PyBind11/data/box_high.ply");
+		PlasticBodyReshaping::Instance plasticThinBox("/home/dragonmyth/PyFlexControl/data/box_high.ply");
 		plasticThinBox.mScale = Vec3(17, 3.5f, 17);
 		plasticThinBox.mClusterSpacing = 1.5f;
 		plasticThinBox.mClusterRadius = 0.0f;

@@ -79,6 +79,7 @@ public:
 
 				Vec3 center = Vec3(i * 15, 0, j * 15);
 
+
 				int phase1 = NvFlexMakePhaseWithChannels(group,
 						eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 						channel);
@@ -138,6 +139,7 @@ public:
 		g_params.radius = radius;
 		g_params.staticFriction = 10.5f;
 		g_params.dynamicFriction = 1.2f;
+
 		g_params.numIterations = 4;
 		g_params.particleCollisionMargin = g_params.radius * 0.05f;	// 5% collision margin
 		g_params.sleepThreshold = g_params.radius * 0.25f;
@@ -223,6 +225,7 @@ public:
 //			Vec2 targetRotVec = Vec2(1, 0);
 
 //			bool ghost = action(i * actionDim + 4) > 0;
+
 
 			bool ghost = (action(i * actionDim + 4) > 0);
 			//				Vec2 targetRotVec = Vec2(1,0);
@@ -316,6 +319,7 @@ public:
 
 		int numBars = numSceneDim * numSceneDim;
 		//The last four rows are the translational and rotational position and velocity for the moving bar
+
 		MatrixXd state(numPart + 4 * numBars, 3);
 		//		cout << state.rows() << endl;
 		state.setZero();
