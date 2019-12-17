@@ -12,6 +12,8 @@ public:
 			Scene(name) {
 	}
 
+	int actionDim = 5;
+	float playgroundHalfExtent = 4;
 	vector<Vec3> currPoses;
 	vector<Quat> currRots;
 	vector<Vec3> currVels;
@@ -24,6 +26,8 @@ public:
 	int numSceneDim = 1;
 	int seed = -1;
 	vector<Vec3> centers;
+	Eigen::MatrixXd goalPos;
+
 	Vec3 barDim = Vec3(1.5, 1, 0.03);
 
 	int dimx = 40;
@@ -161,7 +165,6 @@ public:
 		using namespace Eigen;
 		ClearShapes();
 
-		int actionDim = 7;
 		for (int i = 0; i < centers.size(); i++) {
 
 			Vec3 targetPos = centers[i]
@@ -175,17 +178,12 @@ public:
 //
 //			Vec2 targetRotVec = Vec2(1, 0);
 
-			bool ghost = action(i * actionDim + 4) > 0 ? true : false;
+			bool ghost = action(i * actionDim + 4) > 0;
 
 			//				Vec2 targetRotVec = Vec2(1,0);
 
-			Vec2 goal_target = Vec2(action(i * actionDim + 5),
-					action(i * actionDim + 6))
-					+ Vec2(centers[i][0], centers[i][2]);
-
-			Vec2 targetDir = goal_target - Vec2(currPoses[i].x, currPoses[i].z);
-
 			int channel = eNvFlexPhaseShapeChannel0;
+//			cout<< action(i * actionDim + 4)<<endl;
 
 			if (ghost) {
 				channel = channel << 1;
@@ -221,24 +219,45 @@ public:
 			Quat newRot = currRots[i]
 					* QuatFromAxisAngle(Vec3(0, 1, 0), currAngVels[i] * g_dt);
 
+			newPos.x = minf(
+					maxf(newPos.x - centers[i].x, -playgroundHalfExtent),
+					playgroundHalfExtent) + centers[i].x;
+			newPos.z = minf(
+					maxf(newPos.z - centers[i].z, -playgroundHalfExtent),
+					playgroundHalfExtent) + centers[i].z;
+
 			currPoses[i] = newPos;
 			currRots[i] = newRot;
 
-			AddSphere(0.12, Vec3(goal_target.x, 0, goal_target.y), Quat(),
-					eNvFlexPhaseShapeChannel0 << 1);
+			Eigen::VectorXd goals = goalPos.row(i);
+			for (int t = 0; t < goals.size(); t += 2) {
+				Vec2 goal_target = Vec2(goals[t], goals[t + 1])
+						+ Vec2(centers[i][0], centers[i][2]);
+				AddSphere(0.3, Vec3(goal_target.x, 0, goal_target.y), Quat(),
+						eNvFlexPhaseShapeChannel0 << 1);
 
-			AddBox(Vec3(4, 0.01, 4), centers[i] + Vec3(0, 0.005, 0), Quat(),
+			}
+
+			AddBox(Vec3(playgroundHalfExtent, 0.01, playgroundHalfExtent), centers[i] + Vec3(0, 0.005, 0), Quat(),
 					false, eNvFlexPhaseShapeChannel0 << 1);
 
 			AddBox(barDim, newPos, newRot, false, channel);
 
 			if (ghost) {
-				AddBox(Vec3(1, 1, 1), centers[i] + Vec3(-4, 2, -4), Quat(),
-						false, eNvFlexPhaseShapeChannel0 << 1);
+				AddBox(Vec3(1, 1, 1),
+						centers[i]
+								+ Vec3(-playgroundHalfExtent, 2,
+										-playgroundHalfExtent), Quat(), false,
+						eNvFlexPhaseShapeChannel0 << 1);
 			}
 		}
 
 		UpdateShapes();
+
+//		if (g_frame % 100==0) {
+//			cout << g_frame << endl;
+//		}
+		//		cout<<"Cam X: "<<g_camPos.x<<"Cam Y: "<<g_camPos.y<<"Cam Z: "<<g_camPos.z<<"Cam Angle X: "<<g_camAngle.x<<"Cam Angle Y: "<<g_camAngle.y<<"Cam Angle Z: "<<g_camAngle.z<<endl;
 
 		return getState();
 	}
@@ -301,6 +320,50 @@ public:
 		return numSceneDim * numSceneDim;
 	}
 
+	/**
+	 * initConfig contains configuration for the bar in each instance
+	 * 0, 1: x, z position of the bar
+	 * 2   : rotation around y axis
+	 * 3, 4: x, z linear velocity
+	 * 5,  : angular velocity around y axis
+	 * 6,7,8: Dimension of the bar
+	 */
+	void setControllerInit(Eigen::MatrixXd initConfig) {
+		currPoses.resize(0);
+		currRots.resize(0);
+		currVels.resize(0);
+		currAngVels.resize(0);
+
+		currPoses.clear();
+		currRots.clear();
+		currVels.clear();
+		currAngVels.clear();
+//		cout<<initConfig<<endl;
+		for (int i = 0; i < centers.size(); i++) {
+			Eigen::VectorXd config = initConfig.row(i);
+
+			Vec3 center = centers[i];
+			Vec3 currPos = center + Vec3(config[0], 0, config[1]);
+			Quat currRot = QuatFromAxisAngle(Vec3(0, 1, 0), 0 + config[2]);
+			Vec3 currVel = Vec3(config[3], 0, config[4]);
+			float currAngVel = config[5];
+			currPoses.push_back(currPos);
+			currRots.push_back(currRot);
+			currVels.push_back(currVel);
+			currAngVels.push_back(currAngVel);
+//			barDim = Vec3(1.5, 1, 0.01);
+			barDim = Vec3(config[6], config[7], config[8]);
+
+		}
+	}
+	void setGoal(Eigen::MatrixXd goalConfig) {
+		goalPos = goalConfig;
+	}
+
+
+	void setMapHalfExtent(float mapHalfExtent) {
+		playgroundHalfExtent = mapHalfExtent;
+	}
 	virtual Eigen::MatrixXd getAllCenters() {
 		using namespace Eigen;
 		int numInstances = numSceneDim * numSceneDim;
@@ -323,3 +386,4 @@ public:
 		g_camAngle = Vec3(0, -DegToRad(85.0f), 0.0f);
 	}
 };
+

@@ -2789,9 +2789,9 @@ int main(int argc, char* argv[]) {
 //	g_scenes.push_back(new 	ClothLayers("Cloth Layers"));
 //	g_scenes.push_back(
 //			new GooShapingManualControl("Goo Reshaping Single Instance"));
-//	g_scenes.push_back(
-//			new GooShapingExpManualControl("Goo Reshaping Single Instance"));
-
+	g_scenes.push_back(
+			new GooShapingExpManualControl("Goo Reshaping Single Instance"));
+//	GooShapingExpManualControl
 	g_scenes.push_back(
 				new GranularSweepShaping("Granular Reshaping"));
 	g_scenes.push_back(
