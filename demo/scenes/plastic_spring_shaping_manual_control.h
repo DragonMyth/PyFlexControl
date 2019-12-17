@@ -66,6 +66,7 @@ public:
 			partInitialization(i, 5) = 10;
 		}
 
+
 	}
 
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
@@ -92,7 +93,7 @@ public:
 		currVels.clear();
 		currAngVels.clear();
 		int channel = eNvFlexPhaseShapeChannel0;
-		int group = 0;
+		int group =0;
 
 		for (int i = 0; i < numSceneDim; i++) {
 			for (int j = 0; j < numSceneDim; j++) {
@@ -116,16 +117,14 @@ public:
 						cluster += 6) {
 
 					Vec3 offsetPos = Vec3(particleClusterParam(cluster),
-							particleClusterParam(cluster + 1),
-							particleClusterParam(cluster + 2));
-					int clusterDimx = (int) (particleClusterParam(cluster + 3));
-					int clusterDimy = (int) (particleClusterParam(cluster + 4));
-					int clusterDimz = (int) (particleClusterParam(cluster + 5));
+							particleClusterParam(cluster+1), particleClusterParam(cluster+2));
+					int clusterDimx = (int)(particleClusterParam(cluster+3));
+					int clusterDimy = (int)(particleClusterParam(cluster+4));
+					int clusterDimz = (int)(particleClusterParam(cluster+5));
 
-					CreateSpringCubeAroundCenter(center + offsetPos,
-							clusterDimx, clusterDimy, clusterDimz,
-							springRestLength, phase1, stiffness, stiffness,
-							stiffness, 0.0f, 1.0f);
+					CreateSpringCubeAroundCenter(center + offsetPos, clusterDimx,
+							clusterDimy, clusterDimz, springRestLength, phase1, stiffness,
+							stiffness, stiffness, 0.0f, 1.0f);
 				}
 				if (i == 0 && j == 0) {
 					numPartPerScene = g_buffers->positions.size();
@@ -461,8 +460,7 @@ public:
 		for (int i = 0; i < centers.size(); i++) {
 
 			Vec3 targetPos = centers[i]
-					+ Vec3(action(i * actionDim), action(i * actionDim + 1),
-							action(i * actionDim + 2));
+					+ Vec3(action(i * actionDim), action(i * actionDim+1), action(i * actionDim + 2));
 
 			Vec2 targetRotVec = Vec2(action(i * actionDim + 3),
 					action(i * actionDim + 4));
@@ -516,7 +514,9 @@ public:
 			newPos.x = minf(
 					maxf(newPos.x - centers[i].x, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].x;
-			newPos.y = minf(maxf(newPos.y - centers[i].y, 0), 1) + centers[i].y;
+			newPos.y = minf(
+								maxf(newPos.y - centers[i].y, 0),
+								1) + centers[i].y;
 			newPos.z = minf(
 					maxf(newPos.z - centers[i].z, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].z;
@@ -532,12 +532,10 @@ public:
 						eNvFlexPhaseShapeChannel0 << 1);
 			}
 
-			AddBox(Vec3(playgroundHalfExtent, 0.01, playgroundHalfExtent),
-					centers[i] + Vec3(0, 0.005, 0), Quat(), false,
-					eNvFlexPhaseShapeChannel0 << 1);
+			AddBox(Vec3(playgroundHalfExtent, 0.01, playgroundHalfExtent), centers[i] + Vec3(0, 0.005, 0), Quat(),
+					false, eNvFlexPhaseShapeChannel0 << 1);
 
-			AddBox(barDim, newPos + Vec3(0, barDim[1], 0), newRot, false,
-					channel);
+			AddBox(barDim, newPos+Vec3(0,barDim[1],0), newRot, false, channel);
 
 			if (ghost) {
 				AddBox(Vec3(1, 1, 1),
