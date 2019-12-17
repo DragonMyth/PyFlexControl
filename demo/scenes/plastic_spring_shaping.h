@@ -1,9 +1,11 @@
+
 #include <iostream>
 #include <eigen3/Eigen/Dense>
 #include <map>
 using namespace std;
 
 //
+
 
 class PlasticSpringShaping: public Scene {
 public:
@@ -15,7 +17,7 @@ public:
 //	int dimy = 2;
 //	int dimz = 10;
 	float radius = 0.2f;
-	int actionDim = 5;
+	int actionDim = 6;
 	float playgroundHalfExtent = 4;
 
 	int numPartPerScene = 0;
@@ -66,6 +68,7 @@ public:
 			partInitialization(i, 5) = 10;
 		}
 
+
 	}
 
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
@@ -101,6 +104,7 @@ public:
 						idx);
 
 				Vec3 center = Vec3(i * 15, 0, j * 15);
+//				int group = centers.size();
 
 				int phase1 = NvFlexMakePhaseWithChannels(group,
 						eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
@@ -115,16 +119,14 @@ public:
 						cluster += 6) {
 
 					Vec3 offsetPos = Vec3(particleClusterParam(cluster),
-							particleClusterParam(cluster + 1),
-							particleClusterParam(cluster + 2));
-					int clusterDimx = (int) (particleClusterParam(cluster + 3));
-					int clusterDimy = (int) (particleClusterParam(cluster + 4));
-					int clusterDimz = (int) (particleClusterParam(cluster + 5));
+							particleClusterParam(cluster+1), particleClusterParam(cluster+2));
+					int clusterDimx = (int)(particleClusterParam(cluster+3));
+					int clusterDimy = (int)(particleClusterParam(cluster+4));
+					int clusterDimz = (int)(particleClusterParam(cluster+5));
 
-					CreateSpringCubeAroundCenter(center + offsetPos,
-							clusterDimx, clusterDimy, clusterDimz,
-							springRestLength, phase1, stiffness, stiffness,
-							stiffness, 0.0f, 1.0f);
+					CreateSpringCubeAroundCenter(center + offsetPos, clusterDimx,
+							clusterDimy, clusterDimz, springRestLength, phase1, stiffness,
+							stiffness, stiffness, 0.0f, 1.0f);
 				}
 				if (i == 0 && j == 0) {
 					numPartPerScene = g_buffers->positions.size();
@@ -183,6 +185,7 @@ public:
 
 		// draw options
 		g_drawPoints = true;
+//		g_drawSprings = true;
 		g_drawMesh = false;
 		g_warmup = false;
 
@@ -357,7 +360,7 @@ public:
 			float length = Length(p - q);
 			if (length <= springBreakDist
 					&& !cutParticles(p, q, group,
-							action(group * actionDim + 4))) {
+							action(group * actionDim + 5))) {
 				mConstraintIndices.push_back(a);
 				mConstraintIndices.push_back(b);
 				mConstraintCoefficients.push_back(stiffness);
@@ -419,7 +422,7 @@ public:
 														action(
 																group
 																		* actionDim
-																		+ 4))) {
+																		+ 5))) {
 											bidirSpringMap[group][ij] = 1;
 											bidirSpringMap[group][ji] = 1;
 
@@ -457,25 +460,20 @@ public:
 		ClearShapes();
 
 		for (int i = 0; i < centers.size(); i++) {
-//
-//			Vec3 targetPos = centers[i]
-//					+ Vec3(action(i * actionDim), 0, action(i * actionDim + 1));
-
 
 			Vec3 targetPos = centers[i]
-					+ Vec3(0, 0, cos(g_frame / 60.0f / (EIGEN_PI)));
+					+ Vec3(action(i * actionDim), action(i * actionDim+1), action(i * actionDim + 2));
 
-			Vec2 targetRotVec = Vec2(action(i * actionDim + 2),
-					action(i * actionDim + 3));
+			Vec2 targetRotVec = Vec2(action(i * actionDim + 3),
+					action(i * actionDim + 4));
 
 //			Vec3 targetPos = centers[i]
 //					+ Vec3(0, 0, cosf(g_frame / (60.0 * EIGEN_PI)));
 //
 //			Vec2 targetRotVec = Vec2(1, 0);
 
-//			bool ghost = action(i * actionDim + 4) > 0;
+			bool ghost = action(i * actionDim + 5) > 0;
 
-			bool ghost = (action(i * actionDim + 4) > 0);
 			//				Vec2 targetRotVec = Vec2(1,0);
 
 			int channel = eNvFlexPhaseShapeChannel0;
@@ -518,6 +516,9 @@ public:
 			newPos.x = minf(
 					maxf(newPos.x - centers[i].x, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].x;
+			newPos.y = minf(
+								maxf(newPos.y - centers[i].y, 0),
+								1) + centers[i].y;
 			newPos.z = minf(
 					maxf(newPos.z - centers[i].z, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].z;
@@ -531,14 +532,12 @@ public:
 						+ Vec2(centers[i][0], centers[i][2]);
 				AddSphere(0.3, Vec3(goal_target.x, 0, goal_target.y), Quat(),
 						eNvFlexPhaseShapeChannel0 << 1);
-
 			}
 
-			AddBox(Vec3(playgroundHalfExtent, 0.01, playgroundHalfExtent),
-					centers[i] + Vec3(0, 0.005, 0), Quat(), false,
-					eNvFlexPhaseShapeChannel0 << 1);
+			AddBox(Vec3(playgroundHalfExtent, 0.01, playgroundHalfExtent), centers[i] + Vec3(0, 0.005, 0), Quat(),
+					false, eNvFlexPhaseShapeChannel0 << 1);
 
-			AddBox(barDim, newPos, newRot, false, channel);
+			AddBox(barDim, newPos+Vec3(0,barDim[1],0), newRot, false, channel);
 
 			if (ghost) {
 				AddBox(Vec3(1, 1, 1),
@@ -555,10 +554,12 @@ public:
 			updateSpaceMap();
 			updateSprings(action);
 		}
-//		cout<<"Cam X: "<<g_camPos.x<<"Cam Y: "<<g_camPos.y<<"Cam Z: "<<g_camPos.z<<"Cam Angle X: "<<g_camAngle.x<<"Cam Angle Y: "<<g_camAngle.y<<"Cam Angle Z: "<<g_camAngle.z<<endl;
+
 //		if (g_frame % 100==0) {
 //			cout << g_frame << endl;
 //		}
+		//		cout<<"Cam X: "<<g_camPos.x<<"Cam Y: "<<g_camPos.y<<"Cam Z: "<<g_camPos.z<<"Cam Angle X: "<<g_camAngle.x<<"Cam Angle Y: "<<g_camAngle.y<<"Cam Angle Z: "<<g_camAngle.z<<endl;
+
 		return getState();
 	}
 

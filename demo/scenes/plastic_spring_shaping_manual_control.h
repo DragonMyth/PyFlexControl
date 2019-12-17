@@ -15,7 +15,7 @@ public:
 //	int dimy = 2;
 //	int dimz = 10;
 	float radius = 0.2f;
-	int actionDim = 5;
+	int actionDim = 6;
 	float playgroundHalfExtent = 4;
 
 	int numPartPerScene = 0;
@@ -60,9 +60,11 @@ public:
 		goalPos.setZero();
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
-		partInitialization(0,3) = 10;
-		partInitialization(0,4) = 2;
-		partInitialization(0,5) = 10;
+		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
+			partInitialization(i, 3) = 10;
+			partInitialization(i, 4) = 2;
+			partInitialization(i, 5) = 10;
+		}
 
 	}
 
@@ -90,7 +92,7 @@ public:
 		currVels.clear();
 		currAngVels.clear();
 		int channel = eNvFlexPhaseShapeChannel0;
-		int group =0;
+		int group = 0;
 
 		for (int i = 0; i < numSceneDim; i++) {
 			for (int j = 0; j < numSceneDim; j++) {
@@ -114,14 +116,16 @@ public:
 						cluster += 6) {
 
 					Vec3 offsetPos = Vec3(particleClusterParam(cluster),
-							particleClusterParam(cluster+1), particleClusterParam(cluster+2));
-					int clusterDimx = (int)(particleClusterParam(cluster+3));
-					int clusterDimy = (int)(particleClusterParam(cluster+4));
-					int clusterDimz = (int)(particleClusterParam(cluster+5));
+							particleClusterParam(cluster + 1),
+							particleClusterParam(cluster + 2));
+					int clusterDimx = (int) (particleClusterParam(cluster + 3));
+					int clusterDimy = (int) (particleClusterParam(cluster + 4));
+					int clusterDimz = (int) (particleClusterParam(cluster + 5));
 
-					CreateSpringCubeAroundCenter(center + offsetPos, clusterDimx,
-							clusterDimy, clusterDimz, springRestLength, phase1, stiffness,
-							stiffness, stiffness, 0.0f, 1.0f);
+					CreateSpringCubeAroundCenter(center + offsetPos,
+							clusterDimx, clusterDimy, clusterDimz,
+							springRestLength, phase1, stiffness, stiffness,
+							stiffness, 0.0f, 1.0f);
 				}
 				if (i == 0 && j == 0) {
 					numPartPerScene = g_buffers->positions.size();
@@ -355,7 +359,7 @@ public:
 			float length = Length(p - q);
 			if (length <= springBreakDist
 					&& !cutParticles(p, q, group,
-							action(group * actionDim + 4))) {
+							action(group * actionDim + 5))) {
 				mConstraintIndices.push_back(a);
 				mConstraintIndices.push_back(b);
 				mConstraintCoefficients.push_back(stiffness);
@@ -417,7 +421,7 @@ public:
 														action(
 																group
 																		* actionDim
-																		+ 4))) {
+																		+ 5))) {
 											bidirSpringMap[group][ij] = 1;
 											bidirSpringMap[group][ji] = 1;
 
@@ -457,17 +461,18 @@ public:
 		for (int i = 0; i < centers.size(); i++) {
 
 			Vec3 targetPos = centers[i]
-					+ Vec3(action(i * actionDim), 0, action(i * actionDim + 1));
+					+ Vec3(action(i * actionDim), action(i * actionDim + 1),
+							action(i * actionDim + 2));
 
-			Vec2 targetRotVec = Vec2(action(i * actionDim + 2),
-					action(i * actionDim + 3));
+			Vec2 targetRotVec = Vec2(action(i * actionDim + 3),
+					action(i * actionDim + 4));
 
 //			Vec3 targetPos = centers[i]
 //					+ Vec3(0, 0, cosf(g_frame / (60.0 * EIGEN_PI)));
 //
 //			Vec2 targetRotVec = Vec2(1, 0);
 
-			bool ghost = action(i * actionDim + 4) > 0;
+			bool ghost = action(i * actionDim + 5) > 0;
 
 			//				Vec2 targetRotVec = Vec2(1,0);
 
@@ -511,6 +516,7 @@ public:
 			newPos.x = minf(
 					maxf(newPos.x - centers[i].x, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].x;
+			newPos.y = minf(maxf(newPos.y - centers[i].y, 0), 1) + centers[i].y;
 			newPos.z = minf(
 					maxf(newPos.z - centers[i].z, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].z;
@@ -524,13 +530,14 @@ public:
 						+ Vec2(centers[i][0], centers[i][2]);
 				AddSphere(0.3, Vec3(goal_target.x, 0, goal_target.y), Quat(),
 						eNvFlexPhaseShapeChannel0 << 1);
-
 			}
 
-			AddBox(Vec3(playgroundHalfExtent, 0.01, playgroundHalfExtent), centers[i] + Vec3(0, 0.005, 0), Quat(),
-					false, eNvFlexPhaseShapeChannel0 << 1);
+			AddBox(Vec3(playgroundHalfExtent, 0.01, playgroundHalfExtent),
+					centers[i] + Vec3(0, 0.005, 0), Quat(), false,
+					eNvFlexPhaseShapeChannel0 << 1);
 
-			AddBox(barDim, newPos, newRot, false, channel);
+			AddBox(barDim, newPos + Vec3(0, barDim[1], 0), newRot, false,
+					channel);
 
 			if (ghost) {
 				AddBox(Vec3(1, 1, 1),
