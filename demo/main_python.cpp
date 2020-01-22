@@ -2447,6 +2447,66 @@ Eigen::MatrixXd getParticleDensity(Eigen::MatrixXd particles, int resolution,
 	return density;
 
 }
+
+
+Eigen::MatrixXd getParticleHeightMap(Eigen::MatrixXd particles, Eigen::VectorXd heights,int resolution,
+		float width,float mapHalfExtent) {
+	Eigen::MatrixXd heightMap(resolution, resolution);
+	Eigen::MatrixXd weights (resolution,resolution);
+	heightMap.setZero();
+	weights.setOnes();
+	float dx = 1.0f / resolution;
+	float inv_dx = 1.0f / dx;
+	for (int i = 0; i < particles.rows(); i++) {
+		if (abs(particles(i, 0)) <= mapHalfExtent && abs(particles(i, 1)) <= mapHalfExtent) {
+
+			Eigen::Vector2d base_coord(
+					((particles(i, 0) + mapHalfExtent) / (2*mapHalfExtent) * inv_dx - 0.5),
+					((particles(i, 1) + mapHalfExtent) / (2*mapHalfExtent) * inv_dx - 0.5));
+
+//			heightMap((int) base_coord[1],(int) base_coord[0]) += heights[i];
+//			weights((int) base_coord[1],(int) base_coord[0]) += 1.0;
+			Eigen::Vector2d fx(base_coord[0] - (int) base_coord[0],
+					base_coord[1] - (int) base_coord[1]);
+
+			int gridWidth = ceil(width);
+			for (int j = -gridWidth + 1; j < gridWidth + 1; j++) {
+				for (int k = -gridWidth + 1; k < gridWidth + 1; k++) {
+					Eigen::Vector2d neighbour(j, k);
+					Eigen::Vector2d dpos(0, 0);
+					dpos = neighbour - fx;
+
+					float wx = 0, wy = 0;
+
+					wx = width - abs(dpos[0]);
+
+					if (wx < 0) {
+						wx = 0;
+					}
+					wy = width - abs(dpos[1]);
+					if (wy < 0) {
+						wy = 0;
+					}
+
+					if ((int) base_coord[1] + j < resolution
+							&& (int) base_coord[0] + k < resolution
+							&& (int) base_coord[1] + j >= 0
+							&& (int) base_coord[0] + k >= 0) {
+						heightMap((int) base_coord[1] + j,
+								(int) base_coord[0] + k) += heights[i]*sqrt(
+								wx * wx + wy * wy);
+						weights((int) base_coord[1] + j,
+								(int) base_coord[0] + k) += sqrt(
+										wx * wx + wy * wy);
+					}
+
+				}
+			}
+		}
+	}
+	return heightMap.cwiseQuotient(weights);
+
+}
 bool simulateKSteps(bool capture, char *path, Eigen::VectorXd action, int k) {
 	bool done = false;
 	for (int i = 0; i < k; i++) {

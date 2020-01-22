@@ -1,9 +1,11 @@
+
 #include <iostream>
 #include <eigen3/Eigen/Dense>
 #include <map>
 using namespace std;
 
 //
+
 
 class GranularSweepShapingManualControl: public Scene {
 public:
@@ -15,7 +17,7 @@ public:
 //	int dimy = 2;
 //	int dimz = 10;
 	float radius = 0.2f;
-	int actionDim = 5;
+	int actionDim = 6;
 	float playgroundHalfExtent = 4;
 
 	int numPartPerScene = 0;
@@ -38,7 +40,6 @@ public:
 	Vec3 barDim = Vec3(1.5, 1, 0.01);
 
 
-
 	GranularSweepShapingManualControl(const char* name) :
 			Scene(name) {
 
@@ -52,9 +53,11 @@ public:
 			partInitialization(i, 5) = 10;
 		}
 
+
 	}
 
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
+
 
 		g_lightDistance *= 100.5f;
 		centers.resize(0);
@@ -80,6 +83,7 @@ public:
 						idx);
 
 				Vec3 center = Vec3(i * 15, 0, j * 15);
+//				int group = centers.size();
 
 				int phase1 = NvFlexMakePhaseWithChannels(group,
 						eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
@@ -94,15 +98,17 @@ public:
 						cluster += 6) {
 
 					Vec3 offsetPos = Vec3(particleClusterParam(cluster),
-							particleClusterParam(cluster + 1),
-							particleClusterParam(cluster + 2));
-					int clusterDimx = (int) (particleClusterParam(cluster + 3));
-					int clusterDimy = (int) (particleClusterParam(cluster + 4));
-					int clusterDimz = (int) (particleClusterParam(cluster + 5));
-
+							particleClusterParam(cluster+1), particleClusterParam(cluster+2));
+					int clusterDimx = (int)(particleClusterParam(cluster+3));
+					int clusterDimy = (int)(particleClusterParam(cluster+4));
+					int clusterDimz = (int)(particleClusterParam(cluster+5));
+//
+//					CreateSpringCubeAroundCenter(center + offsetPos, clusterDimx,
+//							clusterDimy, clusterDimz, springRestLength, phase1, stiffness,
+//							stiffness, stiffness, 0.0f, 1.0f);
 					CreateGranularCubeAroundCenter(center + offsetPos,
-							clusterDimx, clusterDimy, clusterDimz,
-							radius * 1.7f, phase1, Vec3(0.0,0.0,0.0), 1.0f);
+												clusterDimx, clusterDimy, clusterDimz,
+												radius * 1.7f, phase1, Vec3(0.0, 0.0, 0.0), 1.0f,0.0f);
 				}
 				if (i == 0 && j == 0) {
 					numPartPerScene = g_buffers->positions.size();
@@ -131,16 +137,13 @@ public:
 			}
 
 		}
-
-
-		Eigen::VectorXd tempAct(numSceneDim * numSceneDim * actionDim);
-		tempAct.setZero();
 		cout << numPartPerScene << endl;
 
 		g_numSubsteps = 1;
 		g_params.radius = radius;
 		g_params.staticFriction = 10.5f;
 		g_params.dynamicFriction = 1.2f;
+
 		g_params.numIterations = 4;
 		g_params.particleCollisionMargin = g_params.radius * 0.05f;	// 5% collision margin
 		g_params.sleepThreshold = g_params.radius * 0.25f;
@@ -155,6 +158,9 @@ public:
 //		g_drawSprings = true;
 		g_drawMesh = false;
 		g_warmup = false;
+
+
+
 
 		return getState();
 	}
@@ -182,16 +188,16 @@ public:
 			Eigen::VectorXd config = initConfig.row(i);
 
 			Vec3 center = centers[i];
-			Vec3 currPos = center + Vec3(config[0], 0, config[1]);
-			Quat currRot = QuatFromAxisAngle(Vec3(0, 1, 0), 0 + config[2]);
-			Vec3 currVel = Vec3(config[3], 0, config[4]);
-			float currAngVel = config[5];
+			Vec3 currPos = center + Vec3(config[0], config[1], config[2]);
+			Quat currRot = QuatFromAxisAngle(Vec3(0, 1, 0), 0 + config[3]);
+			Vec3 currVel = Vec3(config[4], config[5], config[6]);
+			float currAngVel = config[7];
 			currPoses.push_back(currPos);
 			currRots.push_back(currRot);
 			currVels.push_back(currVel);
 			currAngVels.push_back(currAngVel);
 //			barDim = Vec3(1.5, 1, 0.01);
-			barDim = Vec3(config[6], config[7], config[8]);
+			barDim = Vec3(config[8], config[9], config[10]);
 
 		}
 	}
@@ -208,7 +214,6 @@ public:
 		playgroundHalfExtent = mapHalfExtent;
 	}
 
-
 	Eigen::MatrixXd Update(Eigen::VectorXd action) {
 		using namespace Eigen;
 		ClearShapes();
@@ -216,19 +221,18 @@ public:
 		for (int i = 0; i < centers.size(); i++) {
 
 			Vec3 targetPos = centers[i]
-					+ Vec3(action(i * actionDim), 0, action(i * actionDim + 1));
+					+ Vec3(action(i * actionDim), action(i * actionDim+1), action(i * actionDim + 2));
 
-			Vec2 targetRotVec = Vec2(action(i * actionDim + 2),
-					action(i * actionDim + 3));
+			Vec2 targetRotVec = Vec2(action(i * actionDim + 3),
+					action(i * actionDim + 4));
 
 //			Vec3 targetPos = centers[i]
 //					+ Vec3(0, 0, cosf(g_frame / (60.0 * EIGEN_PI)));
 //
 //			Vec2 targetRotVec = Vec2(1, 0);
 
-//			bool ghost = action(i * actionDim + 4) > 0;
+			bool ghost = action(i * actionDim + 5) > 0;
 
-			bool ghost =(action(i * actionDim + 4) > 0);
 			//				Vec2 targetRotVec = Vec2(1,0);
 
 			int channel = eNvFlexPhaseShapeChannel0;
@@ -271,6 +275,9 @@ public:
 			newPos.x = minf(
 					maxf(newPos.x - centers[i].x, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].x;
+			newPos.y = minf(
+								maxf(newPos.y - centers[i].y, 0),
+								3) + centers[i].y;
 			newPos.z = minf(
 					maxf(newPos.z - centers[i].z, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].z;
@@ -284,14 +291,12 @@ public:
 						+ Vec2(centers[i][0], centers[i][2]);
 				AddSphere(0.3, Vec3(goal_target.x, 0, goal_target.y), Quat(),
 						eNvFlexPhaseShapeChannel0 << 1);
-
 			}
 
-			AddBox(Vec3(playgroundHalfExtent, 0.01, playgroundHalfExtent),
-					centers[i] + Vec3(0, 0.005, 0), Quat(), false,
-					eNvFlexPhaseShapeChannel0 << 1);
+			AddBox(Vec3(playgroundHalfExtent, 0.01, playgroundHalfExtent), centers[i] + Vec3(0, 0.005, 0), Quat(),
+					false, eNvFlexPhaseShapeChannel0 << 1);
 
-			AddBox(barDim, newPos, newRot, false, channel);
+			AddBox(barDim, newPos+Vec3(0,barDim[1],0), newRot, false, channel);
 
 			if (ghost) {
 				AddBox(Vec3(1, 1, 1),
@@ -304,13 +309,42 @@ public:
 
 		UpdateShapes();
 
-//		cout<<"Cam X: "<<g_camPos.x<<"Cam Y: "<<g_camPos.y<<"Cam Z: "<<g_camPos.z<<"Cam Angle X: "<<g_camAngle.x<<"Cam Angle Y: "<<g_camAngle.y<<"Cam Angle Z: "<<g_camAngle.z<<endl;
+		int phase2 = NvFlexMakePhaseWithChannels(1,
+								eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
+								eNvFlexPhaseShapeChannel0);
+		int phase1 = NvFlexMakePhaseWithChannels(0,
+										eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
+										eNvFlexPhaseShapeChannel0);
+		for (int k = 0; k < g_buffers->positions.size(); k++) {
+			if (abs(g_buffers->positions[k].y)< 0.11) {
+				g_buffers->phases[k] = phase2;
+//				cout<<g_buffers->positions[k].y<<endl;
+			}else{
+
+				g_buffers->phases[k] = phase1;
+			}
+		}
+//		if (g_frame % 10 == 0) {
+//			updateSpaceMap();
+//			updateSprings(action);
+//		}
+
 //		if (g_frame % 100==0) {
 //			cout << g_frame << endl;
 //		}
+		//		cout<<"Cam X: "<<g_camPos.x<<"Cam Y: "<<g_camPos.y<<"Cam Z: "<<g_camPos.z<<"Cam Angle X: "<<g_camAngle.x<<"Cam Angle Y: "<<g_camAngle.y<<"Cam Angle Z: "<<g_camAngle.z<<endl;
+
 		return getState();
 	}
 
+	virtual void Sync() {
+
+		// update solver data not already updated in the main loop
+//		NvFlexSetSprings(g_solver, g_buffers->springIndices.buffer,
+//				g_buffers->springLengths.buffer,
+//				g_buffers->springStiffness.buffer,
+//				g_buffers->springLengths.size());
+	}
 
 	void setSceneSeed(int seed) {
 		this->seed = seed;
@@ -375,26 +409,6 @@ public:
 		return allCenters;
 	}
 
-//	virtual void CenterCamera() {
-//		Vec3 scenelower, sceneupper;
-//
-//		GetParticleBounds(scenelower, sceneupper);
-//
-//		/*g_camPos = Vec3((scenelower.x + sceneupper.x) * 0.5f, 20.0f,
-//				(scenelower.z + sceneupper.z) * 0.5f);
-//		g_camAngle = Vec3(0, -DegToRad(85.0f), 0.0f);*/
-//
-//		// 4x4
-////		g_camPos = Vec3(21.7816f,63.1574f,27.1928f);
-////		g_camAngle = Vec3(0,-1.5132,0);
-//		// 7x7
-////		g_camPos = Vec3(35.1552f,118.898f,33.0568);
-////		g_camAngle = Vec3(0,-1.65806,0);
-//
-//		// 3x4
-//		g_camPos = Vec3(21.2443f,44.0126f,24.5113f);
-//		g_camAngle = Vec3(0,-1.38404,0);
-//	}
 	virtual void CenterCamera() {
 		Vec3 scenelower, sceneupper;
 
@@ -405,3 +419,5 @@ public:
 		g_camAngle = Vec3(0, -DegToRad(81.0f), 0.0f);
 	}
 };
+
+

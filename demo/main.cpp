@@ -2147,7 +2147,8 @@ Eigen::MatrixXd UpdateFrame() {
 
 //		act.setRandom();
 		act.setOnes();
-		act = act*2;
+		act[5]=  -1;
+//		act = act*2;
 		state = UpdateControlScene(act);
 
 	}
@@ -2789,13 +2790,13 @@ int main(int argc, char* argv[]) {
 //	g_scenes.push_back(
 //			new GooShapingManualControl("Goo Reshaping Single Instance"));
 
-//	g_scenes.push_back(
-////				new GranularSweepShaping("Granular Reshaping"));
-//	g_scenes.push_back(
-////				new GranularSweepShapingManualControl("Granular Reshaping Single Instance"));
+	g_scenes.push_back(
+				new GranularSweepShaping("Granular Reshaping"));
+	g_scenes.push_back(
+				new GranularSweepShapingManualControl("Granular Reshaping Single Instance"));
 
-//	g_scenes.push_back(
-//			new PlasticSpringShaping("Plastic Reshaping Using Springs"));
+	g_scenes.push_back(
+			new PlasticSpringShaping("Plastic Reshaping Using Springs"));
 	g_scenes.push_back(
 			new PlasticSpringShapingManualControl(
 					"Plastic Reshaping Using Springs Single Instance"));

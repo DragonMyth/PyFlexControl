@@ -123,10 +123,13 @@ public:
 					int clusterDimx = (int)(particleClusterParam(cluster+3));
 					int clusterDimy = (int)(particleClusterParam(cluster+4));
 					int clusterDimz = (int)(particleClusterParam(cluster+5));
-
+//
 					CreateSpringCubeAroundCenter(center + offsetPos, clusterDimx,
 							clusterDimy, clusterDimz, springRestLength, phase1, stiffness,
 							stiffness, stiffness, 0.0f, 1.0f);
+//					CreateGranularCubeAroundCenter(center + offsetPos,
+//												clusterDimx, clusterDimy, clusterDimz,
+//												radius * 1.7f, phase1, Vec3(0.0, 0.0, 0.0), 1.0f,0.0f);
 				}
 				if (i == 0 && j == 0) {
 					numPartPerScene = g_buffers->positions.size();
@@ -215,16 +218,16 @@ public:
 			Eigen::VectorXd config = initConfig.row(i);
 
 			Vec3 center = centers[i];
-			Vec3 currPos = center + Vec3(config[0], 0, config[1]);
-			Quat currRot = QuatFromAxisAngle(Vec3(0, 1, 0), 0 + config[2]);
-			Vec3 currVel = Vec3(config[3], 0, config[4]);
-			float currAngVel = config[5];
+			Vec3 currPos = center + Vec3(config[0], config[1], config[2]);
+			Quat currRot = QuatFromAxisAngle(Vec3(0, 1, 0), 0 + config[3]);
+			Vec3 currVel = Vec3(config[4], config[5], config[6]);
+			float currAngVel = config[7];
 			currPoses.push_back(currPos);
 			currRots.push_back(currRot);
 			currVels.push_back(currVel);
 			currAngVels.push_back(currAngVel);
 //			barDim = Vec3(1.5, 1, 0.01);
-			barDim = Vec3(config[6], config[7], config[8]);
+			barDim = Vec3(config[8], config[9], config[10]);
 
 		}
 	}
