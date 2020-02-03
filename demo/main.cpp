@@ -2148,6 +2148,8 @@ Eigen::MatrixXd UpdateFrame() {
 //		act.setRandom();
 		act.setOnes();
 		act[5]=  -1;
+		act[1]=  -1;
+
 //		act = act*2;
 		state = UpdateControlScene(act);
 

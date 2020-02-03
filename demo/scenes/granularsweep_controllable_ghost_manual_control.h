@@ -48,9 +48,9 @@ public:
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
-			partInitialization(i, 3) = 10;
-			partInitialization(i, 4) = 2;
-			partInitialization(i, 5) = 10;
+			partInitialization(i, 3) = 6;
+			partInitialization(i, 4) = 6;
+			partInitialization(i, 5) = 6;
 		}
 
 
@@ -141,8 +141,11 @@ public:
 
 		g_numSubsteps = 1;
 		g_params.radius = radius;
-		g_params.staticFriction = 10.5f;
+//		g_params.staticFriction = 10.5f;
+		g_params.staticFriction = 0.2f;
+
 		g_params.dynamicFriction = 1.2f;
+//		g_params.dynamicFriction = 0.2f;
 
 		g_params.numIterations = 4;
 		g_params.particleCollisionMargin = g_params.radius * 0.05f;	// 5% collision margin

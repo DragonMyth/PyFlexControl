@@ -37,7 +37,7 @@ public:
 	float kd_pos = 1.2;
 	float kp_rot = 0.7;
 	float kd_rot = 1;
-	Vec3 barDim = Vec3(1.5, 1, 0.01);
+	Vec3 barDim = Vec3(1.5, 1, 1.5);
 
 
 	GranularSweepShaping(const char* name) :
@@ -48,9 +48,9 @@ public:
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
-			partInitialization(i, 3) = 10;
-			partInitialization(i, 4) = 2;
-			partInitialization(i, 5) = 10;
+			partInitialization(i, 3) = 6;
+			partInitialization(i, 4) = 6;
+			partInitialization(i, 5) = 6;
 		}
 
 
@@ -108,7 +108,7 @@ public:
 //							stiffness, stiffness, 0.0f, 1.0f);
 					CreateGranularCubeAroundCenter(center + offsetPos,
 												clusterDimx, clusterDimy, clusterDimz,
-												radius * 1.7f, phase1, Vec3(0.0, 0.0, 0.0), 1.0f,0.0f);
+												radius * 1.7f, phase1, Vec3(0.0, 0.0, 0.0), 1.0f,0.06f);
 				}
 				if (i == 0 && j == 0) {
 					numPartPerScene = g_buffers->positions.size();
