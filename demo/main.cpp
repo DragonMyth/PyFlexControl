@@ -2143,14 +2143,22 @@ Eigen::MatrixXd UpdateFrame() {
 		UpdateWind();
 //		UpdateScene();
 
-		Eigen::VectorXd act(49 * 6);
+		Eigen::VectorXd act(49 * 7);
 
 //		act.setRandom();
-		act.setOnes();
-		act[5]=  -1;
-		act[1]=  -1;
+		act.setZero();
+		for(int i=0;i<49;i++){
+				act[i*7+1] = 1;
+				act[i*7+3]=  3.14;
 
-//		act = act*2;
+				act[i*7+4]=  -3.14;
+		//		act[6]=  -1;
+
+		//		act[1]=  -1;
+
+		//		act = act*2;
+		}
+//
 		state = UpdateControlScene(act);
 
 	}

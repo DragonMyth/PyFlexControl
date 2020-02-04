@@ -603,6 +603,7 @@ inline Mat44 ProjectionMatrix(float fov, float aspect, float znear, float zfar)
 // encapsulates an orientation encoded in Euler angles, not the sexiest 
 // representation but it is convenient when manipulating objects from script
 
+
 class Rotation
 {
 public:
@@ -621,6 +622,7 @@ public:
 	float pitch;
 	float roll;
 };
+
 
 inline Mat44 ScaleMatrix(const Vector3& s)
 {
@@ -1838,3 +1840,4 @@ CUDA_CALLABLE inline Bounds Intersection(const Bounds& a, const Bounds& b)
 {
 	return Bounds(Max(a.lower, b.lower), Min(a.upper, b.upper));
 }
+
