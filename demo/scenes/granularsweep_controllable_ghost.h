@@ -257,9 +257,8 @@ public:
 				}
 			}
 
-			newRot[0] = minf(maxf(newRot[0], -EIGEN_PI / 2),
-			EIGEN_PI / 2);
-
+			newRot[0] = minf(maxf(newRot[0], -EIGEN_PI / 3),
+			EIGEN_PI / 3);
 			newPos.x = minf(
 					maxf(newPos.x - centers[i].x, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].x;
