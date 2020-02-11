@@ -56,7 +56,7 @@ public:
 	float springBreakDist = radius * 3.0f;
 	float springCompressThreshold = radius * 2.00f;
 	float springStrechThreshold = radius * 2.5f;
-
+	int maxSpringPerPart =10;
 	PlasticSpringShaping(const char* name) :
 			Scene(name) {
 
@@ -408,7 +408,7 @@ public:
 			int group = i / (numPartPerScene);
 			Vec3 idxVecFuseMap = getMapIdx(i, fuseGridSize);
 
-			int remainning_spring = 50 - perPartSpringCnt[i];
+			int remainning_spring = maxSpringPerPart - perPartSpringCnt[i];
 			//Look at surrounding 27 neighbours
 			for (int x = -1; x <= 1; x++) {
 				for (int y = -1; y <= 1; y++) {
@@ -533,8 +533,8 @@ public:
 				}
 			}
 
-			newRot[0] = minf(maxf(newRot[0], -EIGEN_PI / 3),
-			EIGEN_PI / 3);
+//			newRot[0] = minf(maxf(newRot[0], -EIGEN_PI / 3),
+//			EIGEN_PI / 3);
 
 			newPos.x = minf(
 					maxf(newPos.x - centers[i].x, -playgroundHalfExtent),
@@ -582,6 +582,22 @@ public:
 		if (g_frame % 10 == 0) {
 			updateSpaceMap();
 			updateSprings(action);
+		}
+
+		int phase2 = NvFlexMakePhaseWithChannels(1,
+				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
+				eNvFlexPhaseShapeChannel0);
+		int phase1 = NvFlexMakePhaseWithChannels(0,
+				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
+				eNvFlexPhaseShapeChannel0);
+		for (int k = 0; k < g_buffers->positions.size(); k++) {
+			if (abs(g_buffers->positions[k].y) < 0.11) {
+				g_buffers->phases[k] = phase2;
+//				cout<<g_buffers->positions[k].y<<endl;
+			} else {
+
+				g_buffers->phases[k] = phase1;
+			}
 		}
 
 //		if (g_frame % 100==0) {

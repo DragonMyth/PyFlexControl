@@ -539,7 +539,7 @@ Eigen::MatrixXd UpdateControlScene(Eigen::VectorXd act) {
 	return g_scenes[g_scene]->Update(act);
 }
 
-void Init(int scene, bool centerCamera = true) {
+void Init(bool centerCamera = true) {
 
 	RandInit();
 
@@ -1024,7 +1024,7 @@ void Init(int scene, bool centerCamera = true) {
 
 }
 Eigen::MatrixXd Reset() {
-	Init(g_scene, false);
+	Init(false);
 	return curr_state;
 }
 
