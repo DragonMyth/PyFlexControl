@@ -37,11 +37,6 @@ public:
 	float kd_rot = 1;
 	Vec3 barDim = Vec3(1.5, 1, 0.01);
 
-	// Parameter for the spring-modeled plastic material
-	float maxDeformRate = 0.1f;
-	float springBreakRatio = 0.6f;
-	float springRestLength = radius * 1.7f;
-
 	// Array of hash maps that store the neighbourhood of particles for which springs will be added.
 	map<int, std::vector<int>> *springFuseMap;
 
@@ -50,13 +45,15 @@ public:
 
 	// Stores the number of spings connected to each particle. Used for limiting the max spring connection
 	Eigen::VectorXi perPartSpringCnt;
-	float stiffness = 1.0f;
+	float stiffness = 1.5f;
 
-	float springFuseDist = radius * 1.2f;
-	float springBreakDist = radius * 3.0f;
-	float springCompressThreshold = radius * 2.00f;
-	float springStrechThreshold = radius * 2.5f;
-	int maxSpringPerPart = 10;
+	float springFuseDist = radius * 2.0f;
+	float springBreakDist = radius * 2.5f;
+	float springCompressThreshold = radius * 1.9f;
+	float springStrechThreshold = radius * 2.3f;
+	float minSpringDist = radius*1.3;
+
+	int maxSpringPerPart = 27;
 	PlasticSpringShaping(const char* name) :
 			Scene(name) {
 
@@ -125,7 +122,7 @@ public:
 //
 					CreateSpringCubeAroundCenter(center + offsetPos,
 							clusterDimx, clusterDimy, clusterDimz,
-							springRestLength, phase1, stiffness, stiffness,
+							springFuseDist/sqrt(2), phase1, stiffness, stiffness,
 							stiffness, 0.0f, 1.0f);
 //					CreateGranularCubeAroundCenter(center + offsetPos,
 //												clusterDimx, clusterDimy, clusterDimz,
@@ -194,6 +191,7 @@ public:
 //		g_drawSprings = true;
 		g_drawMesh = false;
 		g_warmup = false;
+
 
 		return getState();
 	}
@@ -340,7 +338,8 @@ public:
 	float calNewSpringRestLength(float length, float currRestLength) {
 		float res = currRestLength;
 		if (length <= springCompressThreshold) {
-			res = fmax(length, springFuseDist);
+			res = fmax(length, minSpringDist);
+//			res = length;
 		} else if (length >= springStrechThreshold) {
 			res = length;
 		}
@@ -407,7 +406,7 @@ public:
 			int group = i / (numPartPerScene);
 			Vec3 idxVecFuseMap = getMapIdx(i, fuseGridSize);
 
-			int remainning_spring = maxSpringPerPart - perPartSpringCnt[i];
+//			int remainning_spring = maxSpringPerPart - perPartSpringCnt[i];
 			//Look at surrounding 27 neighbours
 			for (int x = -1; x <= 1; x++) {
 				for (int y = -1; y <= 1; y++) {
@@ -427,10 +426,14 @@ public:
 							if (springFuseMap[group].count(idx) > 0) {
 								// For all particles in the cell, form a spring between particles i and j
 								for (int k = 0;
-										k < springFuseMap[group][idx].size()
-												&& remainning_spring > 0; k++) {
+										k < springFuseMap[group][idx].size(); k++) {
+
 									int j = springFuseMap[group][idx][k];
-									if (i != j) {
+
+
+//									std::cout<<i<<"Particle: "<<j<<" Remaining Springs: "<<maxSpringPerPart - perPartSpringCnt[i]<<std::endl;
+
+									if (i != j && maxSpringPerPart - perPartSpringCnt[i] > 0 && maxSpringPerPart - perPartSpringCnt[j] > 0) {
 										Vec3 p = Vec3(g_buffers->positions[i]);
 										Vec3 q = Vec3(g_buffers->positions[j]);
 										float length = Length(p - q);
@@ -447,6 +450,7 @@ public:
 																group
 																		* actionDim
 																		+ 6))) {
+
 											bidirSpringMap[group][ij] = 1;
 											bidirSpringMap[group][ji] = 1;
 
@@ -597,15 +601,15 @@ public:
 		int phase1 = NvFlexMakePhaseWithChannels(0,
 				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 				eNvFlexPhaseShapeChannel0);
-		for (int k = 0; k < g_buffers->positions.size(); k++) {
-			if (abs(g_buffers->positions[k].y) < 0.11) {
-				g_buffers->phases[k] = phase2;
-//				cout<<g_buffers->positions[k].y<<endl;
-			} else {
-
-				g_buffers->phases[k] = phase1;
-			}
-		}
+//		for (int k = 0; k < g_buffers->positions.size(); k++) {
+//			if (abs(g_buffers->positions[k].y) < 0.11) {
+//				g_buffers->phases[k] = phase2;
+////				cout<<g_buffers->positions[k].y<<endl;
+//			} else {
+//
+//				g_buffers->phases[k] = phase1;
+//			}
+//		}
 
 //		if (g_frame % 100==0) {
 //			cout << g_frame << endl;
@@ -683,7 +687,6 @@ public:
 		}
 		return allCenters;
 	}
-
 	virtual void CenterCamera() {
 		Vec3 scenelower, sceneupper;
 
