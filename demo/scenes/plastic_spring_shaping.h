@@ -56,7 +56,7 @@ public:
 	float springBreakDist = radius * 3.0f;
 	float springCompressThreshold = radius * 2.00f;
 	float springStrechThreshold = radius * 2.5f;
-	int maxSpringPerPart =10;
+	int maxSpringPerPart = 10;
 	PlasticSpringShaping(const char* name) :
 			Scene(name) {
 
@@ -163,7 +163,7 @@ public:
 			}
 
 		}
-		cout <<"Number of Particles Per instance: "<< numPartPerScene << endl;
+		cout << "Number of Particles Per instance: " << numPartPerScene << endl;
 
 		perPartSpringCnt = Eigen::VectorXi(g_buffers->positions.size());
 		perPartSpringCnt.setZero();
@@ -302,35 +302,34 @@ public:
 		Vec3 barPose = currPoses[group];
 		Vec3 barRot = currRots[group];
 		Quat quat = QuatFromAxisAngle(Vec3(0, 1, 0), barRot.y)
-							* QuatFromAxisAngle(Vec3(1, 0, 0), barRot.x);
+				* QuatFromAxisAngle(Vec3(1, 0, 0), barRot.x);
 
-		Vec3 bar_u = Rotate(quat,Vec3(1,0,0));
-		Vec3 bar_v = Rotate(quat,Vec3(0,1,0));
+		Vec3 bar_u = Rotate(quat, Vec3(1, 0, 0));
+		Vec3 bar_v = Rotate(quat, Vec3(0, 1, 0));
 
-		Vec3 uxv = Cross(bar_u,bar_v);
+		Vec3 uxv = Cross(bar_u, bar_v);
 
 		// Check if particles are on opposite side of bar
-		float val1 = Dot(uxv,Normalize(p-barPose));
-		float val2 = Dot(uxv,Normalize(q-barPose));
+		float val1 = Dot(uxv, Normalize(p - barPose));
+		float val2 = Dot(uxv, Normalize(q - barPose));
 
 		// If two particles are on same side, they are NOT cut by the bar. Else check if in range of the bar
-		if(val1*val2>=0){
+		if (val1 * val2 >= 0) {
 			return false;
-		}else{
-			Vec3 barCenter = barPose+barDim[1]*bar_v;
-			float t = -Dot((p-barCenter),uxv)/Dot(q-p,uxv);
-			Vec3 inter = p+t*(q-p);
-			float horProj = Dot((inter-barCenter),bar_u);
-			float vertProj = Dot((inter-barCenter),bar_v);
+		} else {
+			Vec3 barCenter = barPose + barDim[1] * bar_v;
+			float t = -Dot((p - barCenter), uxv) / Dot(q - p, uxv);
+			Vec3 inter = p + t * (q - p);
+			float horProj = Dot((inter - barCenter), bar_u);
+			float vertProj = Dot((inter - barCenter), bar_v);
 
-			if(Abs(horProj)<=barDim[0] && Abs(vertProj)<=barDim[1]){
+			if (Abs(horProj) <= barDim[0] && Abs(vertProj) <= barDim[1]) {
 				return true;
-			}else{
+			} else {
 				return false;
 			}
 			return true;
 		}
-
 
 	}
 
@@ -489,6 +488,14 @@ public:
 			Vec3 targetPos = centers[i]
 					+ Vec3(action(i * actionDim), action(i * actionDim + 1),
 							action(i * actionDim + 2));
+
+			targetPos.x = minf(
+					maxf(targetPos.x - centers[i].x, -playgroundHalfExtent),
+					playgroundHalfExtent) + centers[i].x;
+			targetPos.y = minf(maxf(targetPos.y - centers[i].y, 0), 3) + centers[i].y;
+			targetPos.z = minf(
+					maxf(targetPos.z - centers[i].z, -playgroundHalfExtent),
+					playgroundHalfExtent) + centers[i].z;
 
 			Vec3 targetRotVec = Vec3(action(i * actionDim + 3),
 					action(i * actionDim + 4), action(i * actionDim + 5));

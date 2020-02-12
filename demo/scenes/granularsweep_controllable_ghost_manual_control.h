@@ -108,12 +108,6 @@ public:
 
 				centers.push_back(center);
 
-//				for (int k = offset; k < (offset + numPartPerScene); k++) {
-//					if (g_buffers->positions[k].z - center[2] > 0) {
-//						g_buffers->phases[k] = phase2;
-//					}
-//				}
-
 				Vec3 currPos = center + Vec3(0, 0, 0);
 
 				Vec3 currRotEuler = Vec3(0, 0, 0);
@@ -179,7 +173,7 @@ public:
 		currRots.clear();
 		currVels.clear();
 		currAngVels.clear();
-//		cout<<initConfig<<endl;
+
 		for (int i = 0; i < centers.size(); i++) {
 			Eigen::VectorXd config = initConfig.row(i);
 
@@ -219,18 +213,20 @@ public:
 			Vec3 targetPos = centers[i]
 					+ Vec3(action(i * actionDim), action(i * actionDim + 1),
 							action(i * actionDim + 2));
+			targetPos.x = minf(
+					maxf(targetPos.x - centers[i].x, -playgroundHalfExtent),
+					playgroundHalfExtent) + centers[i].x;
+			targetPos.y = minf(maxf(targetPos.y - centers[i].y, 0), 3) + centers[i].y;
+			targetPos.z = minf(
+					maxf(targetPos.z - centers[i].z, -playgroundHalfExtent),
+					playgroundHalfExtent) + centers[i].z;
 
-//			Vec2 targetRotVec = Vec2(action(i * actionDim + 3),
-//					action(i * actionDim + 4));
 			Vec3 targetRotVec = Vec3(action(i * actionDim + 3),
 					action(i * actionDim + 4), action(i * actionDim + 5));
 
 			bool ghost = action(i * actionDim + 6) > 0;
 
-			//				Vec2 targetRotVec = Vec2(1,0);
-
 			int channel = eNvFlexPhaseShapeChannel0;
-//			cout<< action(i * actionDim + 4)<<endl;
 
 			if (ghost) {
 				channel = channel << 1;
@@ -268,9 +264,9 @@ public:
 				}
 			}
 
-			// Limit the x axis rotation between -pi/2 and pi/2
 			newRot[0] = minf(maxf(newRot[0], -EIGEN_PI / 2),
 			EIGEN_PI / 2);
+
 			newPos.x = minf(
 					maxf(newPos.x - centers[i].x, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].x;
@@ -333,14 +329,6 @@ public:
 		return getState();
 	}
 
-	virtual void Sync() {
-
-		// update solver data not already updated in the main loop
-//		NvFlexSetSprings(g_solver, g_buffers->springIndices.buffer,
-//				g_buffers->springLengths.buffer,
-//				g_buffers->springStiffness.buffer,
-//				g_buffers->springLengths.size());
-	}
 
 	void setSceneSeed(int seed) {
 		this->seed = seed;
