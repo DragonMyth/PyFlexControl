@@ -33,7 +33,7 @@ public:
 
 	float kp_pos = 0.3;
 	float kd_pos = 1.2;
-	float kp_rot = 0.5;
+	float kp_rot = 0.7;
 	float kd_rot = 1;
 	Vec3 barDim = Vec3(1.5, 1, 0.01);
 
@@ -213,13 +213,13 @@ public:
 			Vec3 targetPos = centers[i]
 					+ Vec3(action(i * actionDim), action(i * actionDim + 1),
 							action(i * actionDim + 2));
-			targetPos.x = minf(
-					maxf(targetPos.x - centers[i].x, -playgroundHalfExtent),
-					playgroundHalfExtent) + centers[i].x;
-			targetPos.y = minf(maxf(targetPos.y - centers[i].y, 0), 3) + centers[i].y;
-			targetPos.z = minf(
-					maxf(targetPos.z - centers[i].z, -playgroundHalfExtent),
-					playgroundHalfExtent) + centers[i].z;
+//			targetPos.x = minf(
+//					maxf(targetPos.x - centers[i].x, -playgroundHalfExtent),
+//					playgroundHalfExtent) + centers[i].x;
+//			targetPos.y = minf(maxf(targetPos.y - centers[i].y, 0), 3) + centers[i].y;
+//			targetPos.z = minf(
+//					maxf(targetPos.z - centers[i].z, -playgroundHalfExtent),
+//					playgroundHalfExtent) + centers[i].z;
 
 			Vec3 targetRotVec = Vec3(action(i * actionDim + 3),
 					action(i * actionDim + 4), action(i * actionDim + 5));

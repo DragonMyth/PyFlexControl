@@ -492,14 +492,14 @@ public:
 			Vec3 targetPos = centers[i]
 					+ Vec3(action(i * actionDim), action(i * actionDim + 1),
 							action(i * actionDim + 2));
-
-			targetPos.x = minf(
-					maxf(targetPos.x - centers[i].x, -playgroundHalfExtent),
-					playgroundHalfExtent) + centers[i].x;
-			targetPos.y = minf(maxf(targetPos.y - centers[i].y, 0), 3) + centers[i].y;
-			targetPos.z = minf(
-					maxf(targetPos.z - centers[i].z, -playgroundHalfExtent),
-					playgroundHalfExtent) + centers[i].z;
+//
+//			targetPos.x = minf(
+//					maxf(targetPos.x - centers[i].x, -playgroundHalfExtent),
+//					playgroundHalfExtent) + centers[i].x;
+//			targetPos.y = minf(maxf(targetPos.y - centers[i].y, 0), 3) + centers[i].y;
+//			targetPos.z = minf(
+//					maxf(targetPos.z - centers[i].z, -playgroundHalfExtent),
+//					playgroundHalfExtent) + centers[i].z;
 
 			Vec3 targetRotVec = Vec3(action(i * actionDim + 3),
 					action(i * actionDim + 4), action(i * actionDim + 5));
@@ -601,15 +601,15 @@ public:
 		int phase1 = NvFlexMakePhaseWithChannels(0,
 				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 				eNvFlexPhaseShapeChannel0);
-//		for (int k = 0; k < g_buffers->positions.size(); k++) {
-//			if (abs(g_buffers->positions[k].y) < 0.11) {
-//				g_buffers->phases[k] = phase2;
-////				cout<<g_buffers->positions[k].y<<endl;
-//			} else {
-//
-//				g_buffers->phases[k] = phase1;
-//			}
-//		}
+		for (int k = 0; k < g_buffers->positions.size(); k++) {
+			if (abs(g_buffers->positions[k].y) < 0.11) {
+				g_buffers->phases[k] = phase2;
+//				cout<<g_buffers->positions[k].y<<endl;
+			} else {
+
+				g_buffers->phases[k] = phase1;
+			}
+		}
 
 //		if (g_frame % 100==0) {
 //			cout << g_frame << endl;
