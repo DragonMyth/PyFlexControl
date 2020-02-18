@@ -2148,9 +2148,9 @@ Eigen::MatrixXd UpdateFrame() {
 //		act.setRandom();
 		act.setZero();
 		for(int i=0;i<49;i++){
-							act[i*7+6] = 1;
+//				act[i*7+6] = 1;
 
-//				act[i*7+1] = -1;
+				act[i*7+0] = 1;
 //				act[i*7+3]=  EIGEN_PI/3;
 
 //				act[i*7+4]=  -3.14;
@@ -2806,7 +2806,7 @@ int main(int argc, char* argv[]) {
 //				new GranularSweepShaping("Granular Reshaping"));
 //	g_scenes.push_back(
 //				new GranularSweepShapingManualControl("Granular Reshaping Single Instance"));
-//
+
 	g_scenes.push_back(
 			new PlasticSpringShaping("Plastic Reshaping Using Springs"));
 //	g_scenes.push_back(

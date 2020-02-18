@@ -35,7 +35,7 @@ public:
 	float kd_pos = 1.2;
 	float kp_rot = 0.7;
 	float kd_rot = 1;
-	Vec3 barDim = Vec3(1.5, 1, 0.01);
+	Vec3 barDim = Vec3(1.5, 0.01,1);
 
 	GranularSweepShaping(const char* name) :
 			Scene(name) {
@@ -121,7 +121,7 @@ public:
 				currVels.push_back(currVel);
 				currAngVels.push_back(currAngVel);
 //				barDim = Vec3(1.5, 1, 0.01);
-				barDim = Vec3(0.7, 0.5, 0.01);
+//				barDim = Vec3(0.7, 0.5, 0.01);
 				//Random sample a initial position in range [-2,2] x [-2,2].
 
 			}
@@ -275,6 +275,9 @@ public:
 					maxf(newPos.z - centers[i].z, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].z;
 
+
+			Vec3 oldPos = currPoses[i];
+			Vec3 oldRot = currRots[i];
 			currPoses[i] = newPos;
 			currRots[i] = newRot;
 
@@ -295,8 +298,16 @@ public:
 			//Translating the point of rotation to the base of the bar
 			Vec3 rotatedVec = Rotate(quat, Vec3(0, 1, 0));
 
+
+			Quat oldQuat = QuatFromAxisAngle(Vec3(0, 1, 0), oldRot.y)
+							* QuatFromAxisAngle(Vec3(1, 0, 0), oldRot.x);
+			Vec3 oldRotatedVec = Rotate(oldQuat,Vec3(0,1,0));
 			AddBox(barDim, newPos + barDim[1] * rotatedVec, quat, false,
 					channel);
+
+
+			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()-1] = Vec4(oldPos + barDim[1] * oldRotatedVec,0.0f);
+			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()-1] = oldQuat;
 
 			if (ghost) {
 				AddBox(Vec3(1, 1, 1),
