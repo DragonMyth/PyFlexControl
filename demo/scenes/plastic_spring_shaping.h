@@ -45,15 +45,15 @@ public:
 
 	// Stores the number of spings connected to each particle. Used for limiting the max spring connection
 	Eigen::VectorXi perPartSpringCnt;
-	float stiffness = 1.5f;
+	float stiffness = 1.0f;
 
 	float springFuseDist = radius * 2.0f;
 	float springBreakDist = radius * 2.5f;
 	float springCompressThreshold = radius * 1.9f;
 	float springStrechThreshold = radius * 2.3f;
-	float minSpringDist = radius*1.3;
+	float minSpringDist = radius * 1.3;
 
-	int maxSpringPerPart = 27;
+	int maxSpringPerPart = 5;
 	PlasticSpringShaping(const char* name) :
 			Scene(name) {
 
@@ -122,8 +122,8 @@ public:
 //
 					CreateSpringCubeAroundCenter(center + offsetPos,
 							clusterDimx, clusterDimy, clusterDimz,
-							springFuseDist/sqrt(2), phase1, stiffness, stiffness,
-							stiffness, 0.0f, 1.0f);
+							springFuseDist / sqrt(2), phase1, stiffness,
+							stiffness, stiffness, 0.0f, 1.0f);
 //					CreateGranularCubeAroundCenter(center + offsetPos,
 //												clusterDimx, clusterDimy, clusterDimz,
 //												radius * 1.7f, phase1, Vec3(0.0, 0.0, 0.0), 1.0f,0.0f);
@@ -170,28 +170,28 @@ public:
 		tempAct.setZero();
 		updateSprings(tempAct);
 
-		g_params.radius = radius;
-//		g_params.fluidRestDistance = radius;
-
-		g_params.dynamicFriction = 7.55f;
-		g_params.staticFriction = 30.5f;
-		g_params.dissipation = 0.0f;
-		g_params.numIterations = 2;
-		g_params.viscosity = 0.0f;
-		g_params.drag = 0.05f;
-		g_params.collisionDistance = radius * 0.5f;
-		g_params.shapeCollisionMargin = radius * 0.1;
-		g_params.relaxationFactor = 0.5f;
-		g_windStrength = 0.0f;
-
 		g_numSubsteps = 2;
+
+		g_params.radius = radius;
+		g_params.staticFriction = 1.0f;
+		g_params.dynamicFriction = 0.5f;
+		g_params.viscosity = 0.0f;
+		g_params.numIterations = 4;
+		g_params.sleepThreshold = g_params.radius*0.25f;
+		g_params.shockPropagation = 6.f;
+		g_params.restitution = 0.2f;
+		g_params.relaxationFactor = 1.f;
+		g_params.damping = 0.14f;
+
+		g_params.particleCollisionMargin = g_params.radius*0.25f;
+		g_params.shapeCollisionMargin = g_params.radius*0.25f;
+		g_params.numPlanes = 1;
 
 		// draw options
 		g_drawPoints = true;
 //		g_drawSprings = true;
 		g_drawMesh = false;
 		g_warmup = false;
-
 
 		return getState();
 	}
@@ -426,14 +426,18 @@ public:
 							if (springFuseMap[group].count(idx) > 0) {
 								// For all particles in the cell, form a spring between particles i and j
 								for (int k = 0;
-										k < springFuseMap[group][idx].size(); k++) {
+										k < springFuseMap[group][idx].size();
+										k++) {
 
 									int j = springFuseMap[group][idx][k];
 
-
 //									std::cout<<i<<"Particle: "<<j<<" Remaining Springs: "<<maxSpringPerPart - perPartSpringCnt[i]<<std::endl;
 
-									if (i != j && maxSpringPerPart - perPartSpringCnt[i] > 0 && maxSpringPerPart - perPartSpringCnt[j] > 0) {
+									if (i != j
+											&& maxSpringPerPart
+													- perPartSpringCnt[i] > 0
+											&& maxSpringPerPart
+													- perPartSpringCnt[j] > 0) {
 										Vec3 p = Vec3(g_buffers->positions[i]);
 										Vec3 q = Vec3(g_buffers->positions[j]);
 										float length = Length(p - q);
@@ -578,15 +582,22 @@ public:
 			Vec3 rotatedVec = Rotate(quat, Vec3(0, 1, 0));
 
 			Quat oldQuat = QuatFromAxisAngle(Vec3(0, 1, 0), oldRot.y)
-							* QuatFromAxisAngle(Vec3(1, 0, 0), oldRot.x);
-			Vec3 oldRotatedVec = Rotate(oldQuat,Vec3(0,1,0));
+					* QuatFromAxisAngle(Vec3(1, 0, 0), oldRot.x);
+			Vec3 oldRotatedVec = Rotate(oldQuat, Vec3(0, 1, 0));
 			AddBox(barDim, newPos + barDim[1] * rotatedVec, quat, false,
 					channel);
 
+//			Quat interpRot =
 
-			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()-1] = Vec4(oldPos + barDim[1] * oldRotatedVec,0.0f);
-			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()-1] = oldQuat;
-
+			if (!(abs(currVels[i].x) > 0.5 || abs(currVels[i].y) > 0.5
+					|| abs(currVels[i].z) > 0.5 || abs(currAngVels[i].x) > 0.3
+					|| abs(currAngVels[i].y) > 0.3
+					|| abs(currAngVels[i].z) > 0.3)) {
+				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
+						- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
+				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
+						- 1] = oldQuat;
+			}
 
 			if (ghost) {
 				AddBox(Vec3(1, 1, 1),

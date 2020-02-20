@@ -2807,11 +2807,11 @@ int main(int argc, char* argv[]) {
 //	g_scenes.push_back(
 //				new GranularSweepShapingManualControl("Granular Reshaping Single Instance"));
 
-	g_scenes.push_back(
-			new PlasticSpringShaping("Plastic Reshaping Using Springs"));
 //	g_scenes.push_back(
-//			new PlasticSpringShapingManualControl(
-//					"Plastic Reshaping Using Springs Single Instance"));
+//			new PlasticSpringShaping("Plastic Reshaping Using Springs"));
+	g_scenes.push_back(
+			new PlasticSpringShapingManualControl(
+					"Plastic Reshaping Using Springs Single Instance"));
 
 	// init graphics
 

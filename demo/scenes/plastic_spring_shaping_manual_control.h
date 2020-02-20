@@ -35,7 +35,7 @@ public:
 	float kd_pos = 1.2;
 	float kp_rot = 0.7;
 	float kd_rot = 1;
-	Vec3 barDim = Vec3(1.5, 0.01, 1);
+	Vec3 barDim = Vec3(1.5, 1 , 0.01);
 
 	// Array of hash maps that store the neighbourhood of particles for which springs will be added.
 	map<int, std::vector<int>> *springFuseMap;
@@ -45,7 +45,7 @@ public:
 
 	// Stores the number of spings connected to each particle. Used for limiting the max spring connection
 	Eigen::VectorXi perPartSpringCnt;
-	float stiffness = 1.5f;
+	float stiffness = 1.0f;
 
 	float springFuseDist = radius * 2.0f;
 	float springBreakDist = radius * 2.5f;
@@ -53,7 +53,7 @@ public:
 	float springStrechThreshold = radius * 2.3f;
 	float minSpringDist = radius*1.3;
 
-	int maxSpringPerPart = 27;
+	int maxSpringPerPart = 5;
 	PlasticSpringShapingManualControl(const char* name) :
 			Scene(name) {
 
@@ -170,22 +170,22 @@ public:
 		tempAct.setZero();
 		updateSprings(tempAct);
 
-		g_params.radius = radius;
-//		g_params.fluidRestDistance = radius;
-
-		g_params.dynamicFriction = 7.55f;
-		g_params.staticFriction = 30.5f;
-		g_params.dissipation = 0.0f;
-		g_params.numIterations = 2;
-		g_params.viscosity = 0.0f;
-		g_params.drag = 0.05f;
-		g_params.collisionDistance = radius * 0.5f;
-		g_params.shapeCollisionMargin = radius * 0.1;
-		g_params.relaxationFactor = 0.5f;
-		g_windStrength = 0.0f;
-
 		g_numSubsteps = 2;
 
+		g_params.radius = radius;
+		g_params.staticFriction = 1.0f;
+		g_params.dynamicFriction = 0.5f;
+		g_params.viscosity = 0.0f;
+		g_params.numIterations = 4;
+		g_params.sleepThreshold = g_params.radius*0.25f;
+		g_params.shockPropagation = 6.f;
+		g_params.restitution = 0.2f;
+		g_params.relaxationFactor = 1.f;
+		g_params.damping = 0.14f;
+
+		g_params.particleCollisionMargin = g_params.radius*0.25f;
+		g_params.shapeCollisionMargin = g_params.radius*0.25f;
+		g_params.numPlanes = 1;
 		// draw options
 		g_drawPoints = true;
 //		g_drawSprings = true;
@@ -584,8 +584,15 @@ public:
 					channel);
 
 
-			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()-1] = Vec4(oldPos + barDim[1] * oldRotatedVec,0.0f);
-			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()-1] = oldQuat;
+			if (!(abs(currVels[i].x) > 0.5 || abs(currVels[i].y) > 0.5
+					|| abs(currVels[i].z) > 0.5 || abs(currAngVels[i].x) > 0.3
+					|| abs(currAngVels[i].y) > 0.3
+					|| abs(currAngVels[i].z) > 0.3)) {
+				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
+						- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
+				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
+						- 1] = oldQuat;
+			}
 
 
 			if (ghost) {
