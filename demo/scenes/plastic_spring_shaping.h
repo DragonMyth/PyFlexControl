@@ -45,7 +45,7 @@ public:
 
 	// Stores the number of spings connected to each particle. Used for limiting the max spring connection
 	Eigen::VectorXi perPartSpringCnt;
-	float stiffness = 1.0f;
+	float stiffness = 0.5f;
 
 	float springFuseDist = radius * 2.0f;
 	float springBreakDist = radius * 2.5f;
@@ -173,13 +173,13 @@ public:
 		g_numSubsteps = 2;
 
 		g_params.radius = radius;
-		g_params.staticFriction = 1.0f;
-		g_params.dynamicFriction = 0.5f;
+		g_params.staticFriction = 2.5f;
+		g_params.dynamicFriction = 1.0f;
 		g_params.viscosity = 0.0f;
 		g_params.numIterations = 4;
 		g_params.sleepThreshold = g_params.radius*0.25f;
 		g_params.shockPropagation = 6.f;
-		g_params.restitution = 0.2f;
+		g_params.restitution = 0.1f;
 		g_params.relaxationFactor = 1.f;
 		g_params.damping = 0.14f;
 
@@ -588,11 +588,12 @@ public:
 					channel);
 
 //			Quat interpRot =
-
-			if (!(abs(currVels[i].x) > 0.5 || abs(currVels[i].y) > 0.5
-					|| abs(currVels[i].z) > 0.5 || abs(currAngVels[i].x) > 0.3
-					|| abs(currAngVels[i].y) > 0.3
-					|| abs(currAngVels[i].z) > 0.3)) {
+			float linearVelThresh = 0.6f;
+			float angVelThresh = 0.5f;
+			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
+					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
+					|| abs(currAngVels[i].y) > angVelThresh
+					|| abs(currAngVels[i].z) > angVelThresh)) {
 				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
 						- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
 				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()

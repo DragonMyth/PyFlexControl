@@ -35,7 +35,7 @@ public:
 	float kd_pos = 1.2;
 	float kp_rot = 0.7;
 	float kd_rot = 1;
-	Vec3 barDim = Vec3(1.5, 0.01,1);
+	Vec3 barDim = Vec3(1.5,1,0.01);
 
 	GranularSweepShaping(const char* name) :
 			Scene(name) {
@@ -45,9 +45,9 @@ public:
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
-			partInitialization(i, 3) = 6;
-			partInitialization(i, 4) = 6;
-			partInitialization(i, 5) = 6;
+			partInitialization(i, 3) = 15;
+			partInitialization(i, 4) = 1;
+			partInitialization(i, 5) = 15;
 		}
 
 	}
@@ -129,11 +129,12 @@ public:
 		}
 		cout <<"Number of Particles Per instance: "<< numPartPerScene << endl;
 
-		g_numSubsteps = 2;
+		g_numSubsteps = 1;
 
 		g_params.radius = radius;
-		g_params.staticFriction = 1.0f;
-		g_params.dynamicFriction = 0.5f;
+		g_params.staticFriction =3.5f;
+		g_params.particleFriction = 2.5f;
+		g_params.dynamicFriction = 0.7f;
 		g_params.viscosity = 0.0f;
 		g_params.numIterations = 4;
 		g_params.sleepThreshold = g_params.radius*0.25f;
@@ -142,8 +143,8 @@ public:
 		g_params.relaxationFactor = 1.f;
 		g_params.damping = 0.14f;
 
-		g_params.particleCollisionMargin = g_params.radius*0.25f;
-		g_params.shapeCollisionMargin = g_params.radius*0.25f;
+		g_params.particleCollisionMargin = g_params.radius*0.05f;
+		g_params.shapeCollisionMargin = g_params.radius*0.05f;
 		g_params.numPlanes = 1;
 
 		// draw options
@@ -306,10 +307,12 @@ public:
 					channel);
 
 
-			if (!(abs(currVels[i].x) > 0.5 || abs(currVels[i].y) > 0.5
-					|| abs(currVels[i].z) > 0.5 || abs(currAngVels[i].x) > 0.3
-					|| abs(currAngVels[i].y) > 0.3
-					|| abs(currAngVels[i].z) > 0.3)) {
+			float linearVelThresh = 0.7f;
+			float angVelThresh = 0.5f;
+			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
+					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
+					|| abs(currAngVels[i].y) > angVelThresh
+					|| abs(currAngVels[i].z) > angVelThresh)) {
 				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
 						- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
 				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
