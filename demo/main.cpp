@@ -2150,10 +2150,10 @@ Eigen::MatrixXd UpdateFrame() {
 		for(int i=0;i<49;i++){
 //				act[i*7+6] = 1;
 
-				act[i*7+2] = 4;
+//				act[i*7+2] = 7;
 //				act[i*7+3]=  EIGEN_PI/3;
 
-//				act[i*7+4]=  -3.14;
+				act[i*7+4]=  EIGEN_PI;
 		//		act[6]=  -1;
 
 		//		act[1]=  -1;
@@ -2807,11 +2807,11 @@ int main(int argc, char* argv[]) {
 //	g_scenes.push_back(
 //				new GranularSweepShapingManualControl("Granular Reshaping Single Instance"));
 
-//	g_scenes.push_back(
-//			new PlasticSpringShaping("Plastic Reshaping Using Springs"));
 	g_scenes.push_back(
-			new PlasticSpringShapingManualControl(
-					"Plastic Reshaping Using Springs Single Instance"));
+			new PlasticSpringShaping("Plastic Reshaping Using Springs"));
+//	g_scenes.push_back(
+//			new PlasticSpringShapingManualControl(
+//					"Plastic Reshaping Using Springs Single Instance"));
 
 	// init graphics
 

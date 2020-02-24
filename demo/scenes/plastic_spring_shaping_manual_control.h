@@ -45,7 +45,7 @@ public:
 
 	// Stores the number of spings connected to each particle. Used for limiting the max spring connection
 	Eigen::VectorXi perPartSpringCnt;
-	float stiffness = 0.5f;
+	float stiffness = 0.6f;
 
 	float springFuseDist = radius * 2.0f;
 	float springBreakDist = radius * 2.5f;
@@ -53,7 +53,7 @@ public:
 	float springStrechThreshold = radius * 2.3f;
 	float minSpringDist = radius*1.3;
 
-	int maxSpringPerPart = 5;
+	int maxSpringPerPart = 15;
 	PlasticSpringShapingManualControl(const char* name) :
 			Scene(name) {
 
@@ -170,17 +170,19 @@ public:
 		tempAct.setZero();
 		updateSprings(tempAct);
 
-		g_numSubsteps = 2;
+		g_numSubsteps = 3;
 
 		g_params.radius = radius;
-		g_params.staticFriction = 2.5f;
-		g_params.dynamicFriction = 1.0f;
+		g_params.staticFriction = 1.5f;
+		g_params.dynamicFriction = 0.75f;
 		g_params.viscosity = 0.0f;
-		g_params.numIterations = 5;
+		g_params.numIterations = 4;
 		g_params.sleepThreshold = g_params.radius*0.25f;
 		g_params.shockPropagation = 6.f;
 		g_params.restitution = 0.1f;
-		g_params.relaxationFactor = 1.f;
+		g_params.collisionDistance = radius*0.5f;
+		g_params.relaxationMode = eNvFlexRelaxationGlobal;
+		g_params.relaxationFactor = 0.25f;
 		g_params.damping = 0.14f;
 
 		g_params.particleCollisionMargin = g_params.radius*0.25f;

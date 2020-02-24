@@ -133,18 +133,17 @@ public:
 
 		g_params.radius = radius;
 		g_params.staticFriction =3.5f;
-		g_params.particleFriction = 2.5f;
 		g_params.dynamicFriction = 0.7f;
 		g_params.viscosity = 0.0f;
 		g_params.numIterations = 4;
-		g_params.sleepThreshold = g_params.radius*0.25f;
+		g_params.sleepThreshold = g_params.radius*0.05f;
 		g_params.shockPropagation = 6.f;
 		g_params.restitution = 0.2f;
 		g_params.relaxationFactor = 1.f;
 		g_params.damping = 0.14f;
 
-		g_params.particleCollisionMargin = g_params.radius*0.05f;
-		g_params.shapeCollisionMargin = g_params.radius*0.05f;
+		g_params.particleCollisionMargin = g_params.radius*0.25f;
+		g_params.shapeCollisionMargin = g_params.radius*0.25f;
 		g_params.numPlanes = 1;
 
 		// draw options
