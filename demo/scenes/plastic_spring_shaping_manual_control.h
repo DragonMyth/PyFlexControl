@@ -15,7 +15,7 @@ public:
 //	int dimy = 2;
 //	int dimz = 10;
 	float radius = 0.2f;
-	int actionDim = 7;
+	int actionDim = 1;
 	float playgroundHalfExtent = 4;
 
 	int numPartPerScene = 0;
@@ -31,11 +31,11 @@ public:
 	vector<Vec3> currVels;
 	vector<Vec3> currAngVels;
 
-	float kp_pos = 0.3;
-	float kd_pos = 1.2;
+	float kp_pos = 2.0f;
+	float kd_pos = 2.4;
 	float kp_rot = 0.7;
 	float kd_rot = 1;
-	Vec3 barDim = Vec3(1.5 , 0.01, 1);
+	Vec3 barDim = Vec3(.7, 1,0.01);
 
 	// Array of hash maps that store the neighbourhood of particles for which springs will be added.
 	map<int, std::vector<int>> *springFuseMap;
@@ -45,13 +45,17 @@ public:
 
 	// Stores the number of spings connected to each particle. Used for limiting the max spring connection
 	Eigen::VectorXi perPartSpringCnt;
-	float stiffness = 0.6f;
+	float stiffness = 0.01f;
 
 	float springFuseDist = radius * 2.0f;
 	float springBreakDist = radius * 2.5f;
-	float springCompressThreshold = radius * 1.9f;
-	float springStrechThreshold = radius * 2.3f;
-	float minSpringDist = radius*1.3;
+
+	float springCompressThreshold = 0.9f;
+	float springStrechThreshold = 1.1f;
+
+//	float springCompressThreshold = radius * 1.5f;
+//	float springStrechThreshold = radius * 2.0f;
+	float minSpringDist = radius * 1.1;
 
 	int maxSpringPerPart = 15;
 	PlasticSpringShapingManualControl(const char* name) :
@@ -63,7 +67,7 @@ public:
 		partInitialization.setZero();
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
 			partInitialization(i, 3) = 5;
-			partInitialization(i, 4) = 5;
+			partInitialization(i, 4) = 2;
 			partInitialization(i, 5) = 5;
 		}
 
@@ -105,11 +109,6 @@ public:
 						eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 						channel);
 
-				int phase2 = NvFlexMakePhaseWithChannels(group + 1,
-						eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
-						channel);
-
-				int offset = g_buffers->positions.size();
 				for (int cluster = 0; cluster < particleClusterParam.size();
 						cluster += 6) {
 
@@ -122,8 +121,8 @@ public:
 //
 					CreateSpringCubeAroundCenter(center + offsetPos,
 							clusterDimx, clusterDimy, clusterDimz,
-							springFuseDist/sqrt(2), phase1, stiffness, stiffness,
-							stiffness, 0.0f, 1.0f);
+							springFuseDist / sqrt(2), phase1, stiffness,
+							stiffness, stiffness, 0.0f, 1.0f);
 //					CreateGranularCubeAroundCenter(center + offsetPos,
 //												clusterDimx, clusterDimy, clusterDimz,
 //												radius * 1.7f, phase1, Vec3(0.0, 0.0, 0.0), 1.0f,0.0f);
@@ -173,27 +172,26 @@ public:
 		g_numSubsteps = 3;
 
 		g_params.radius = radius;
-		g_params.staticFriction = 1.5f;
-		g_params.dynamicFriction = 0.75f;
+		g_params.staticFriction = 2.5f;
+		g_params.dynamicFriction = 1.5f;
 		g_params.viscosity = 0.0f;
 		g_params.numIterations = 4;
-		g_params.sleepThreshold = g_params.radius*0.25f;
-		g_params.shockPropagation = 6.f;
-		g_params.restitution = 0.1f;
+		g_params.sleepThreshold = g_params.radius*0.5f;
+		g_params.restitution = 0.5f;
 		g_params.collisionDistance = radius*0.5f;
 		g_params.relaxationMode = eNvFlexRelaxationGlobal;
-		g_params.relaxationFactor = 0.25f;
+		g_params.relaxationFactor = 0.5f;
 		g_params.damping = 0.14f;
 
 		g_params.particleCollisionMargin = g_params.radius*0.25f;
 		g_params.shapeCollisionMargin = g_params.radius*0.25f;
 		g_params.numPlanes = 1;
+
 		// draw options
 		g_drawPoints = true;
 //		g_drawSprings = true;
 		g_drawMesh = false;
 		g_warmup = false;
-
 
 		return getState();
 	}
@@ -339,10 +337,13 @@ public:
 	 */
 	float calNewSpringRestLength(float length, float currRestLength) {
 		float res = currRestLength;
-		if (length <= springCompressThreshold) {
+
+		float ratio = length/currRestLength;
+		if (ratio <= springCompressThreshold) {
+
 			res = fmax(length, minSpringDist);
 //			res = length;
-		} else if (length >= springStrechThreshold) {
+		} else if (ratio >= springStrechThreshold) {
 			res = length;
 		}
 		return res;
@@ -428,14 +429,18 @@ public:
 							if (springFuseMap[group].count(idx) > 0) {
 								// For all particles in the cell, form a spring between particles i and j
 								for (int k = 0;
-										k < springFuseMap[group][idx].size(); k++) {
+										k < springFuseMap[group][idx].size();
+										k++) {
 
 									int j = springFuseMap[group][idx][k];
 
-
 //									std::cout<<i<<"Particle: "<<j<<" Remaining Springs: "<<maxSpringPerPart - perPartSpringCnt[i]<<std::endl;
 
-									if (i != j && maxSpringPerPart - perPartSpringCnt[i] > 0 && maxSpringPerPart - perPartSpringCnt[j] > 0) {
+									if (i != j
+											&& maxSpringPerPart
+													- perPartSpringCnt[i] > 0
+											&& maxSpringPerPart
+													- perPartSpringCnt[j] > 0) {
 										Vec3 p = Vec3(g_buffers->positions[i]);
 										Vec3 q = Vec3(g_buffers->positions[j]);
 										float length = Length(p - q);
@@ -494,7 +499,7 @@ public:
 			Vec3 targetPos = centers[i]
 					+ Vec3(action(i * actionDim), action(i * actionDim + 1),
 							action(i * actionDim + 2));
-
+//
 //			targetPos.x = minf(
 //					maxf(targetPos.x - centers[i].x, -playgroundHalfExtent),
 //					playgroundHalfExtent) + centers[i].x;
@@ -580,24 +585,27 @@ public:
 			Vec3 rotatedVec = Rotate(quat, Vec3(0, 1, 0));
 
 			Quat oldQuat = QuatFromAxisAngle(Vec3(0, 1, 0), oldRot.y)
-							* QuatFromAxisAngle(Vec3(1, 0, 0), oldRot.x);
-			Vec3 oldRotatedVec = Rotate(oldQuat,Vec3(0,1,0));
+					* QuatFromAxisAngle(Vec3(1, 0, 0), oldRot.x);
+			Vec3 oldRotatedVec = Rotate(oldQuat, Vec3(0, 1, 0));
 			AddBox(barDim, newPos + barDim[1] * rotatedVec, quat, false,
 					channel);
 
-
-			float linearVelThresh = 0.7f;
-			float angVelThresh = 0.5f;
-			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
-					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
-					|| abs(currAngVels[i].y) > angVelThresh
-					|| abs(currAngVels[i].z) > angVelThresh)) {
-				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
-						- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
-				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
-						- 1] = oldQuat;
-			}
-
+			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
+					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
+			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
+					- 1] = oldQuat;
+//			Quat interpRot =
+//			float linearVelThresh = 0.7f;
+//			float angVelThresh = 0.5f;
+//			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
+//					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
+//					|| abs(currAngVels[i].y) > angVelThresh
+//					|| abs(currAngVels[i].z) > angVelThresh)) {
+//				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
+//						- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
+//				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
+//						- 1] = oldQuat;
+//			}
 
 			if (ghost) {
 				AddBox(Vec3(1, 1, 1),

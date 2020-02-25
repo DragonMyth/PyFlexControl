@@ -31,8 +31,8 @@ public:
 	vector<Vec3> currVels;
 	vector<Vec3> currAngVels;
 
-	float kp_pos = 0.3;
-	float kd_pos = 1.2;
+	float kp_pos = 2.0f;
+	float kd_pos = 2.4;
 	float kp_rot = 0.7;
 	float kd_rot = 1;
 	Vec3 barDim = Vec3(1.5,1,0.01);
@@ -45,9 +45,9 @@ public:
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
-			partInitialization(i, 3) = 15;
+			partInitialization(i, 3) = 13;
 			partInitialization(i, 4) = 1;
-			partInitialization(i, 5) = 15;
+			partInitialization(i, 5) = 13;
 		}
 
 	}
@@ -133,16 +133,18 @@ public:
 
 		g_params.radius = radius;
 		g_params.staticFriction =1.5f;
-		g_params.dynamicFriction = 0.7f;
+		g_params.particleFriction =1.7f;
+
+		g_params.dynamicFriction = 0.5f;
 		g_params.viscosity = 0.0f;
 		g_params.numIterations = 4;
 		g_params.sleepThreshold = g_params.radius*0.25f;
 		g_params.shockPropagation = 6.f;
 		g_params.restitution = 0.2f;
-		g_params.relaxationFactor = 0.5f;
+		g_params.relaxationFactor = 0.8f;
 		g_params.collisionDistance = radius*0.5f;
 
-		g_params.damping = 0.14f;
+		g_params.damping = 0.34f;
 
 		g_params.particleCollisionMargin = g_params.radius*0.25f;
 		g_params.shapeCollisionMargin = g_params.radius*0.25f;
