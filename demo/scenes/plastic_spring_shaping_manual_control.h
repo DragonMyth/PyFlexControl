@@ -15,7 +15,7 @@ public:
 //	int dimy = 2;
 //	int dimz = 10;
 	float radius = 0.2f;
-	int actionDim = 1;
+	int actionDim = 7;
 	float playgroundHalfExtent = 4;
 
 	int numPartPerScene = 0;
@@ -32,10 +32,10 @@ public:
 	vector<Vec3> currAngVels;
 
 	float kp_pos = 2.0f;
-	float kd_pos = 2.4;
-	float kp_rot = 0.7;
-	float kd_rot = 1;
-	Vec3 barDim = Vec3(.7, 1,0.01);
+	float kd_pos = 2.4f;
+	float kp_rot = 1.7f;
+	float kd_rot = 2.1;
+	Vec3 barDim = Vec3(1.7, 1,0.001);
 
 	// Array of hash maps that store the neighbourhood of particles for which springs will be added.
 	map<int, std::vector<int>> *springFuseMap;
@@ -45,7 +45,7 @@ public:
 
 	// Stores the number of spings connected to each particle. Used for limiting the max spring connection
 	Eigen::VectorXi perPartSpringCnt;
-	float stiffness = 0.01f;
+	float stiffness = 0.3f;
 
 	float springFuseDist = radius * 2.0f;
 	float springBreakDist = radius * 2.5f;
@@ -57,7 +57,7 @@ public:
 //	float springStrechThreshold = radius * 2.0f;
 	float minSpringDist = radius * 1.1;
 
-	int maxSpringPerPart = 15;
+	int maxSpringPerPart = 8;
 	PlasticSpringShapingManualControl(const char* name) :
 			Scene(name) {
 
@@ -67,7 +67,7 @@ public:
 		partInitialization.setZero();
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
 			partInitialization(i, 3) = 5;
-			partInitialization(i, 4) = 2;
+			partInitialization(i, 4) = 5;
 			partInitialization(i, 5) = 5;
 		}
 
@@ -175,12 +175,12 @@ public:
 		g_params.staticFriction = 2.5f;
 		g_params.dynamicFriction = 1.5f;
 		g_params.viscosity = 0.0f;
-		g_params.numIterations = 4;
-		g_params.sleepThreshold = g_params.radius*0.5f;
-		g_params.restitution = 0.5f;
+		g_params.numIterations = 2;
+		g_params.sleepThreshold = g_params.radius*0.25f;
+		g_params.restitution = 0.1f;
 		g_params.collisionDistance = radius*0.5f;
-		g_params.relaxationMode = eNvFlexRelaxationGlobal;
-		g_params.relaxationFactor = 0.5f;
+//		g_params.relaxationMode = eNvFlexRelaxationGlobal;
+		g_params.relaxationFactor = 0.7f;
 		g_params.damping = 0.14f;
 
 		g_params.particleCollisionMargin = g_params.radius*0.25f;
@@ -590,22 +590,22 @@ public:
 			AddBox(barDim, newPos + barDim[1] * rotatedVec, quat, false,
 					channel);
 
-//			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
-//					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
-//			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
-//					- 1] = oldQuat;
+			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
+					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
+			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
+					- 1] = oldQuat;
 //			Quat interpRot =
-			float linearVelThresh = 0.7f;
-			float angVelThresh = 0.5f;
-			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
-					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
-					|| abs(currAngVels[i].y) > angVelThresh
-					|| abs(currAngVels[i].z) > angVelThresh)) {
-				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
-						- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
-				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
-						- 1] = oldQuat;
-			}
+//			float linearVelThresh = 0.7f;
+//			float angVelThresh = 0.5f;
+//			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
+//					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
+//					|| abs(currAngVels[i].y) > angVelThresh
+//					|| abs(currAngVels[i].z) > angVelThresh)) {
+//				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
+//						- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
+//				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
+//						- 1] = oldQuat;
+//			}
 
 			if (ghost) {
 				AddBox(Vec3(1, 1, 1),
