@@ -35,7 +35,7 @@ public:
 	float kd_pos = 2.4;
 	float kp_rot = 0.7;
 	float kd_rot = 1;
-	Vec3 barDim = Vec3(1.7,0.001, 1);
+	Vec3 barDim = Vec3(1.7, 1,0.001);
 
 	// Array of hash maps that store the neighbourhood of particles for which springs will be added.
 	map<int, std::vector<int>> *springFuseMap;
@@ -590,22 +590,22 @@ public:
 			AddBox(barDim, newPos + barDim[1] * rotatedVec, quat, false,
 					channel);
 
-			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
-					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
-			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
-					- 1] = oldQuat;
+//			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
+//					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
+//			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
+//					- 1] = oldQuat;
 //			Quat interpRot =
-//			float linearVelThresh = 0.7f;
-//			float angVelThresh = 0.5f;
-//			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
-//					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
-//					|| abs(currAngVels[i].y) > angVelThresh
-//					|| abs(currAngVels[i].z) > angVelThresh)) {
-//				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
-//						- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
-//				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
-//						- 1] = oldQuat;
-//			}
+			float linearVelThresh = 0.7f;
+			float angVelThresh = 0.5f;
+			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
+					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
+					|| abs(currAngVels[i].y) > angVelThresh
+					|| abs(currAngVels[i].z) > angVelThresh)) {
+				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
+						- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
+				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
+						- 1] = oldQuat;
+			}
 
 			if (ghost) {
 				AddBox(Vec3(1, 1, 1),

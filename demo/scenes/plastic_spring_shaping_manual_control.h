@@ -590,22 +590,22 @@ public:
 			AddBox(barDim, newPos + barDim[1] * rotatedVec, quat, false,
 					channel);
 
-			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
-					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
-			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
-					- 1] = oldQuat;
+//			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
+//					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
+//			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
+//					- 1] = oldQuat;
 //			Quat interpRot =
-//			float linearVelThresh = 0.7f;
-//			float angVelThresh = 0.5f;
-//			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
-//					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
-//					|| abs(currAngVels[i].y) > angVelThresh
-//					|| abs(currAngVels[i].z) > angVelThresh)) {
-//				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
-//						- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
-//				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
-//						- 1] = oldQuat;
-//			}
+			float linearVelThresh = 0.7f;
+			float angVelThresh = 0.5f;
+			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
+					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
+					|| abs(currAngVels[i].y) > angVelThresh
+					|| abs(currAngVels[i].z) > angVelThresh)) {
+				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
+						- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
+				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
+						- 1] = oldQuat;
+			}
 
 			if (ghost) {
 				AddBox(Vec3(1, 1, 1),
