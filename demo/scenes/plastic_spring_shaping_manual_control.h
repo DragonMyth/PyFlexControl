@@ -31,11 +31,11 @@ public:
 	vector<Vec3> currVels;
 	vector<Vec3> currAngVels;
 
-	float kp_pos = 2.0f;
+	float kp_pos = 1.0f;
 	float kd_pos = 2.4f;
-	float kp_rot = 1.7f;
+	float kp_rot = 1.0f;
 	float kd_rot = 2.1;
-	Vec3 barDim = Vec3(1.7, 1,0.001);
+	Vec3 barDim = Vec3(1.7,1, 0.01);
 
 	// Array of hash maps that store the neighbourhood of particles for which springs will be added.
 	map<int, std::vector<int>> *springFuseMap;
@@ -45,10 +45,10 @@ public:
 
 	// Stores the number of spings connected to each particle. Used for limiting the max spring connection
 	Eigen::VectorXi perPartSpringCnt;
-	float stiffness = 0.3f;
+	float stiffness = 0.1f;
 
 	float springFuseDist = radius * 2.0f;
-	float springBreakDist = radius * 2.5f;
+	float springBreakDist = radius * 3.0f;
 
 	float springCompressThreshold = 0.9f;
 	float springStrechThreshold = 1.1f;
@@ -66,9 +66,9 @@ public:
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
-			partInitialization(i, 3) = 5;
-			partInitialization(i, 4) = 5;
-			partInitialization(i, 5) = 5;
+			partInitialization(i, 3) = 10;
+			partInitialization(i, 4) = 2;
+			partInitialization(i, 5) = 10;
 		}
 
 	}
@@ -172,20 +172,21 @@ public:
 		g_numSubsteps = 3;
 
 		g_params.radius = radius;
-		g_params.staticFriction = 2.5f;
-		g_params.dynamicFriction = 1.5f;
+		g_params.staticFriction = 1.8f;
+		g_params.dynamicFriction = 1.3f;
+
 		g_params.viscosity = 0.0f;
-		g_params.numIterations = 2;
+		g_params.numIterations = 4;
 		g_params.sleepThreshold = g_params.radius*0.25f;
-		g_params.restitution = 0.1f;
-		g_params.collisionDistance = radius*0.5f;
+//		g_params.collisionDistance = radius*0.5f;
 //		g_params.relaxationMode = eNvFlexRelaxationGlobal;
-		g_params.relaxationFactor = 0.7f;
-		g_params.damping = 0.14f;
+		g_params.relaxationFactor = 1.0f;
+		g_params.damping = 0.24f;
 
 		g_params.particleCollisionMargin = g_params.radius*0.25f;
 		g_params.shapeCollisionMargin = g_params.radius*0.25f;
 		g_params.numPlanes = 1;
+
 
 		// draw options
 		g_drawPoints = true;
@@ -590,22 +591,21 @@ public:
 			AddBox(barDim, newPos + barDim[1] * rotatedVec, quat, false,
 					channel);
 
-			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
-					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
-			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
-					- 1] = oldQuat;
-//			Quat interpRot =
-//			float linearVelThresh = 0.7f;
-//			float angVelThresh = 0.5f;
-//			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
-//					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
-//					|| abs(currAngVels[i].y) > angVelThresh
-//					|| abs(currAngVels[i].z) > angVelThresh)) {
-//				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
-//						- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
-//				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
-//						- 1] = oldQuat;
-//			}
+//			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
+//					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
+//			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
+//					- 1] = oldQuat;
+			float linearVelThresh = 0.7f;
+			float angVelThresh = 0.5f;
+			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
+					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
+					|| abs(currAngVels[i].y) > angVelThresh
+					|| abs(currAngVels[i].z) > angVelThresh)) {
+				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
+						- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
+				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
+						- 1] = oldQuat;
+			}
 
 			if (ghost) {
 				AddBox(Vec3(1, 1, 1),
