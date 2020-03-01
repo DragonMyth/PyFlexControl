@@ -35,7 +35,7 @@ public:
 	float kd_pos = 2.4f;
 	float kp_rot = 1.7f;
 	float kd_rot = 2.1;
-	Vec3 barDim = Vec3(1.5,1,0.01);
+	Vec3 barDim = Vec3(1.5, 1, 0.01);
 
 	GranularSweepShapingManualControl(const char* name) :
 			Scene(name) {
@@ -100,7 +100,7 @@ public:
 					CreateGranularCubeAroundCenter(center + offsetPos,
 							clusterDimx, clusterDimy, clusterDimz,
 							radius * 1.7f, phase1, Vec3(0.0, 0.0, 0.0), 1.0f,
-							0.0f);
+							0.01f);
 				}
 				if (i == 0 && j == 0) {
 					numPartPerScene = g_buffers->positions.size();
@@ -127,24 +127,23 @@ public:
 			}
 
 		}
-		cout <<"Number of Particles Per instance: "<< numPartPerScene << endl;
+		cout << "Number of Particles Per instance: " << numPartPerScene << endl;
 
 		g_numSubsteps = 3;
 
 		g_params.radius = radius;
-		g_params.staticFriction =1.0f;
+		g_params.staticFriction =1.8f;
 //		g_params.particleFriction =1.4f;
 
-		g_params.dynamicFriction = 0.65f;
+		g_params.dynamicFriction = 1.2f;
 		g_params.viscosity = 0.0f;
-		g_params.numIterations = 2;
+		g_params.numIterations = 5;
 		g_params.sleepThreshold = g_params.radius*0.25f;
 //		g_params.shockPropagation = 6.f;
-		g_params.restitution = 0.01f;
-		g_params.relaxationFactor = 0.8f;
-		g_params.collisionDistance = radius*0.5f;
+		g_params.restitution = 0.2f;
+		g_params.relaxationFactor = 1.0f;
 
-		g_params.damping = 0.14f;
+		g_params.damping = 0.8f;
 
 		g_params.particleCollisionMargin = g_params.radius*0.5f;
 		g_params.shapeCollisionMargin = g_params.radius*0.5f;
@@ -279,7 +278,6 @@ public:
 					maxf(newPos.z - centers[i].z, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].z;
 
-
 			Vec3 oldPos = currPoses[i];
 			Vec3 oldRot = currRots[i];
 			currPoses[i] = newPos;
@@ -302,28 +300,28 @@ public:
 			//Translating the point of rotation to the base of the bar
 			Vec3 rotatedVec = Rotate(quat, Vec3(0, 1, 0));
 
-
 			Quat oldQuat = QuatFromAxisAngle(Vec3(0, 1, 0), oldRot.y)
-							* QuatFromAxisAngle(Vec3(1, 0, 0), oldRot.x);
-			Vec3 oldRotatedVec = Rotate(oldQuat,Vec3(0,1,0));
+					* QuatFromAxisAngle(Vec3(1, 0, 0), oldRot.x);
+			Vec3 oldRotatedVec = Rotate(oldQuat, Vec3(0, 1, 0));
 			AddBox(barDim, newPos + barDim[1] * rotatedVec, quat, false,
 					channel);
 
-//			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
-//					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
-//			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
-//					- 1] = oldQuat;
-			float linearVelThresh = 0.7f;
-			float angVelThresh = 0.5f;
-			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
-					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
-					|| abs(currAngVels[i].y) > angVelThresh
-					|| abs(currAngVels[i].z) > angVelThresh)) {
-				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
-						- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
-				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
-						- 1] = oldQuat;
-			}
+			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
+					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
+			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
+					- 1] = oldQuat;
+
+//			float linearVelThresh = 0.7f;
+//			float angVelThresh = 0.5f;
+//			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
+//					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
+//					|| abs(currAngVels[i].y) > angVelThresh
+//					|| abs(currAngVels[i].z) > angVelThresh)) {
+//				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
+//						- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
+//				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
+//						- 1] = oldQuat;
+//			}
 
 			if (ghost) {
 				AddBox(Vec3(1, 1, 1),
@@ -355,7 +353,6 @@ public:
 
 		return getState();
 	}
-
 
 	void setSceneSeed(int seed) {
 		this->seed = seed;
