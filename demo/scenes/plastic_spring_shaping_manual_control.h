@@ -35,7 +35,7 @@ public:
 	float kd_pos = 2.4f;
 	float kp_rot = 1.0f;
 	float kd_rot = 2.1;
-	Vec3 barDim = Vec3(1.7,1, 0.01);
+	Vec3 barDim = Vec3(1.7, 1, 0.01);
 
 	// Array of hash maps that store the neighbourhood of particles for which springs will be added.
 	map<int, std::vector<int>> *springFuseMap;
@@ -177,16 +177,15 @@ public:
 
 		g_params.viscosity = 0.0f;
 		g_params.numIterations = 4;
-		g_params.sleepThreshold = g_params.radius*0.25f;
+		g_params.sleepThreshold = g_params.radius * 0.25f;
 //		g_params.collisionDistance = radius*0.5f;
 //		g_params.relaxationMode = eNvFlexRelaxationGlobal;
 		g_params.relaxationFactor = 1.0f;
 		g_params.damping = 0.24f;
 
-		g_params.particleCollisionMargin = g_params.radius*0.25f;
-		g_params.shapeCollisionMargin = g_params.radius*0.25f;
+		g_params.particleCollisionMargin = g_params.radius * 0.25f;
+		g_params.shapeCollisionMargin = g_params.radius * 0.25f;
 		g_params.numPlanes = 1;
-
 
 		// draw options
 		g_drawPoints = true;
@@ -339,7 +338,7 @@ public:
 	float calNewSpringRestLength(float length, float currRestLength) {
 		float res = currRestLength;
 
-		float ratio = length/currRestLength;
+		float ratio = length / currRestLength;
 		if (ratio <= springCompressThreshold) {
 
 			res = fmax(length, minSpringDist);
@@ -555,6 +554,17 @@ public:
 			newRot[0] = minf(maxf(newRot[0], -EIGEN_PI / 2),
 			EIGEN_PI / 2);
 
+
+			if(newPos.x-centers[i].x<-playgroundHalfExtent || newPos.x-centers[i].x>playgroundHalfExtent ){
+				currVels[i].x = 0;
+			}
+			if(newPos.z-centers[i].z<-playgroundHalfExtent || newPos.z-centers[i].z>playgroundHalfExtent ){
+				currVels[i].z = 0;
+			}
+			if(newPos.y-centers[i].y<0 || newPos.y-centers[i].y>3 ){
+				currVels[i].y = 0;
+			}
+
 			newPos.x = minf(
 					maxf(newPos.x - centers[i].x, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].x;
@@ -562,6 +572,10 @@ public:
 			newPos.z = minf(
 					maxf(newPos.z - centers[i].z, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].z;
+
+
+
+
 
 			Vec3 oldPos = currPoses[i];
 			Vec3 oldRot = currRots[i];
@@ -595,7 +609,9 @@ public:
 					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
 			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
 					- 1] = oldQuat;
-//			float linearVelThresh = 0.7f;
+
+
+			float linearVelThresh = 0.9f;
 //			float angVelThresh = 0.5f;
 //			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
 //					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
@@ -606,6 +622,17 @@ public:
 //				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
 //						- 1] = oldQuat;
 //			}
+			if (Length(currVels[i]) > linearVelThresh) {
+
+
+//				float t = maxf(1-(Length(currVels[i])-linearVelThresh)/linearVelThresh,0);
+				float t = 0.6;
+
+				Vec3 interpPos = (oldPos * t + newPos * (1 - t));
+				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
+						- 1] = Vec4(interpPos + barDim[1] * oldRotatedVec,
+						0.0f);
+			}
 
 			if (ghost) {
 				AddBox(Vec3(1, 1, 1),
@@ -640,6 +667,7 @@ public:
 			}
 		}
 
+//		cout<<"Current Velocity: "<<currVels[0].x<<" "<<currVels[0].y<<" "<<currVels[0].z<<" "<<endl;
 //		if (g_frame % 100==0) {
 //			cout << g_frame << endl;
 //		}

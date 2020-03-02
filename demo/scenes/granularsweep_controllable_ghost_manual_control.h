@@ -270,6 +270,16 @@ public:
 			newRot[0] = minf(maxf(newRot[0], -EIGEN_PI / 2),
 			EIGEN_PI / 2);
 
+			if(newPos.x-centers[i].x<-playgroundHalfExtent || newPos.x-centers[i].x>playgroundHalfExtent ){
+				currVels[i].x = 0;
+			}
+			if(newPos.z-centers[i].z<-playgroundHalfExtent || newPos.z-centers[i].z>playgroundHalfExtent ){
+				currVels[i].z = 0;
+			}
+			if(newPos.y-centers[i].y<0 || newPos.y-centers[i].y>3 ){
+				currVels[i].y = 0;
+			}
+
 			newPos.x = minf(
 					maxf(newPos.x - centers[i].x, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].x;

@@ -555,6 +555,17 @@ public:
 			newRot[0] = minf(maxf(newRot[0], -EIGEN_PI / 2),
 			EIGEN_PI / 2);
 
+
+			if(newPos.x-centers[i].x<-playgroundHalfExtent || newPos.x-centers[i].x>playgroundHalfExtent ){
+				currVels[i].x = 0;
+			}
+			if(newPos.z-centers[i].z<-playgroundHalfExtent || newPos.z-centers[i].z>playgroundHalfExtent ){
+				currVels[i].z = 0;
+			}
+			if(newPos.y-centers[i].y<0 || newPos.y-centers[i].y>3 ){
+				currVels[i].y = 0;
+			}
+
 			newPos.x = minf(
 					maxf(newPos.x - centers[i].x, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].x;
@@ -595,7 +606,8 @@ public:
 					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
 			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
 					- 1] = oldQuat;
-//			float linearVelThresh = 0.7f;
+
+			float linearVelThresh = 0.9f;
 //			float angVelThresh = 0.5f;
 //			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
 //					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
@@ -606,6 +618,16 @@ public:
 //				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
 //						- 1] = oldQuat;
 //			}
+			if (Length(currVels[i]) > linearVelThresh) {
+
+//				float t = maxf(1-(Length(currVels[i])-linearVelThresh)/linearVelThresh,0);
+				float t = 0.6;
+
+				Vec3 interpPos = (oldPos * t + newPos * (1 - t));
+				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
+						- 1] = Vec4(interpPos + barDim[1] * oldRotatedVec,
+						0.0f);
+			}
 
 			if (ghost) {
 				AddBox(Vec3(1, 1, 1),
