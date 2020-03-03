@@ -603,7 +603,7 @@ public:
 			Quat oldQuat = QuatFromAxisAngle(Vec3(0, 1, 0), oldRot.y)
 					* QuatFromAxisAngle(Vec3(1, 0, 0), oldRot.x);
 			Vec3 oldRotatedVec = Rotate(oldQuat, Vec3(0, 1, 0));
-			AddBox(barDim, newPos + barDim[1] * rotatedVec, quat, false,
+			AddBox(barDim, newPos + barDim[1] * rotatedVec, quat, true,
 					channel);
 
 			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
