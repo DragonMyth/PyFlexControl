@@ -31,10 +31,14 @@ public:
 	vector<Vec3> currVels;
 	vector<Vec3> currAngVels;
 
-	float kp_pos = 1.0f;
-	float kd_pos = 2.4f;
-	float kp_rot = 1.0f;
-	float kd_rot = 2.1;
+//	float kp_pos = 1.0f;
+//	float kd_pos = 2.4f;
+//	float kp_rot = 1.0f;
+//	float kd_rot = 2.1;
+	float kp_pos = 0.3;
+	float kd_pos = 1.2;
+	float kp_rot = 0.7;
+	float kd_rot = 1;
 	Vec3 barDim = Vec3(1.7,1, 0.01);
 
 	// Array of hash maps that store the neighbourhood of particles for which springs will be added.
