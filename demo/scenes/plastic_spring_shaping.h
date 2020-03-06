@@ -615,19 +615,22 @@ public:
 //			float angVelThresh = 0.5f;
 //			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
 //					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
-//					|| abs(currAngVels[i].y) > angVelThresh
+//					|| abs(currAngVels[i].y) > angVelThreshf
 //					|| abs(currAngVels[i].z) > angVelThresh)) {
 //				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
 //						- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
 //				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
 //						- 1] = oldQuat;
 //			}
+
 			if (Length(currVels[i]) > linearVelThresh) {
 
 //				float t = maxf(1-(Length(currVels[i])-linearVelThresh)/linearVelThresh,0);
-				float t = 0.6;
+				float t = 0.6f;
 
-				Vec3 interpPos = (oldPos * t + newPos * (1 - t));
+//				Vec3 interpPos = (oldPos * t + newPos * (1 - t));
+
+				Vec3 interpPos = (oldPos +t*linearVelThresh*g_dt);
 				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
 						- 1] = Vec4(interpPos + barDim[1] * oldRotatedVec,
 						0.0f);
