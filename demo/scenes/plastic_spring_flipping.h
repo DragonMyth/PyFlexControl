@@ -70,11 +70,11 @@ public:
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
-			partInitialization(i, 1) = 2;
+			partInitialization(i, 1) = 3;
 
-			partInitialization(i, 3) = 7;
-			partInitialization(i, 4) = 2;
-			partInitialization(i, 5) = 7;
+			partInitialization(i, 3) = 3;
+			partInitialization(i, 4) = 3;
+			partInitialization(i, 5) = 3;
 		}
 
 	}
@@ -519,7 +519,7 @@ public:
 			Vec3 targetRotVec = Vec3(action(i * actionDim + 3),
 					action(i * actionDim + 4), action(i * actionDim + 5));
 
-			bool ghost = action(i * actionDim + 6) > 0;
+			bool ghost = false;
 
 			int channel = eNvFlexPhaseShapeChannel0;
 
@@ -569,14 +569,14 @@ public:
 			if(newPos.z-centers[i].z<-playgroundHalfExtent || newPos.z-centers[i].z>playgroundHalfExtent ){
 				currVels[i].z = 0;
 			}
-			if(newPos.y-centers[i].y<0 || newPos.y-centers[i].y>3 ){
+			if(newPos.y-centers[i].y<2 || newPos.y-centers[i].y>5 ){
 				currVels[i].y = 0;
 			}
 
 			newPos.x = minf(
 					maxf(newPos.x - centers[i].x, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].x;
-			newPos.y = minf(maxf(newPos.y - centers[i].y, 0), 3) + centers[i].y;
+			newPos.y = minf(maxf(newPos.y - centers[i].y, 2), 5) + centers[i].y;
 			newPos.z = minf(
 					maxf(newPos.z - centers[i].z, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].z;
@@ -757,8 +757,18 @@ public:
 
 		GetParticleBounds(scenelower, sceneupper);
 
-		g_camPos = Vec3((scenelower.x + sceneupper.x) * 0.5f, 10.0f,
-				sceneupper.z);
-		g_camAngle = Vec3(0, -DegToRad(81.0f), 0.0f);
+		/*g_camPos = Vec3((scenelower.x + sceneupper.x) * 0.5f, 20.0f,
+		 (scenelower.z + sceneupper.z) * 0.5f);
+		 g_camAngle = Vec3(0, -DegToRad(85.0f), 0.0f);*/
+
+		// 4x4
+//		g_camPos = Vec3(21.7816f,63.1574f,27.1928f);
+//		g_camAngle = Vec3(0,-1.5132,0);
+		// 7x7
+//		g_camPos = Vec3(35.1552f,118.898f,33.0568);
+//		g_camAngle = Vec3(0,-1.65806,0);
+		// 3x4
+		g_camPos = Vec3(21.2443f, 44.0126f, 24.5113f);
+		g_camAngle = Vec3(0, -1.38404, 0);
 	}
 };

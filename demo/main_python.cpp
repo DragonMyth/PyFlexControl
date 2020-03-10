@@ -2254,7 +2254,6 @@ void initialize() {
 	g_scenes.push_back(new PlasticSpringShaping("Plastic Spring Reshaping"));
 	g_scenes.push_back(new PlasticSpringFlipping("Plastic Flipping"));
 
-
 	g_scenes.push_back(
 			new PlasticSpringShapingManualControl(
 					"Plastic Reshaping Using Springs Single Instance"));
