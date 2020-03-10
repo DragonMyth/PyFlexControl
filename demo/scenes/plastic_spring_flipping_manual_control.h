@@ -5,7 +5,7 @@ using namespace std;
 
 //
 
-class PlasticSpringShapingManualControl: public Scene {
+class PlasticSpringFlippingManualControl: public Scene {
 public:
 
 	// General Param for the simulation
@@ -31,15 +31,15 @@ public:
 	vector<Vec3> currVels;
 	vector<Vec3> currAngVels;
 
-//	float kp_pos = 1.0f;
-//	float kd_pos = 2.4f;
-//	float kp_rot = 1.0f;
-//	float kd_rot = 2.1;
-	float kp_pos = 0.3;
-	float kd_pos = 1.2;
-	float kp_rot = 0.7;
-	float kd_rot = 1;
-	Vec3 barDim = Vec3(1.7, 0.01, 1.7);
+	float kp_pos = 1.0f;
+	float kd_pos = 2.4f;
+	float kp_rot = 10.0f;
+	float kd_rot = 4.1;
+//	float kp_pos = 0.3;
+//	float kd_pos = 1.2;
+//	float kp_rot = 1.7;
+//	float kd_rot = 1;
+	Vec3 barDim = Vec3(2.0, 0.03, 2.0);
 
 	// Array of hash maps that store the neighbourhood of particles for which springs will be added.
 	map<int, std::vector<int>> *springFuseMap;
@@ -62,7 +62,7 @@ public:
 	float minSpringDist = radius * 1.1;
 
 	int maxSpringPerPart = 8;
-	PlasticSpringShapingManualControl(const char* name) :
+	PlasticSpringFlippingManualControl(const char* name) :
 			Scene(name) {
 
 		goalPos = Eigen::MatrixXd(numSceneDim * numSceneDim, 2);
@@ -70,9 +70,10 @@ public:
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
-			partInitialization(i, 3) = 5;
+			partInitialization(i, 1) = 2;
+			partInitialization(i, 3) = 7;
 			partInitialization(i, 4) = 2;
-			partInitialization(i, 5) = 5;
+			partInitialization(i, 5) = 7;
 		}
 
 	}
@@ -109,9 +110,7 @@ public:
 				Vec3 center = Vec3(i * 15, 0, j * 15);
 //				int group = centers.size();
 
-				int phase1 = NvFlexMakePhaseWithChannels(group,
-						eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
-						channel);
+				int phase1 = NvFlexMakePhaseWithChannels(group, 0, channel);
 
 				for (int cluster = 0; cluster < particleClusterParam.size();
 						cluster += 6) {
@@ -125,8 +124,8 @@ public:
 //
 					CreateSpringCubeAroundCenter(center + offsetPos,
 							clusterDimx, clusterDimy, clusterDimz,
-							springFuseDist / sqrt(2), phase1, stiffness,
-							stiffness, stiffness, 0.0f, 1.0f);
+							springFuseDist / 2, phase1, stiffness, stiffness,
+							stiffness, 0.0f, 2.0f);
 //					CreateGranularCubeAroundCenter(center + offsetPos,
 //												clusterDimx, clusterDimy, clusterDimz,
 //												radius * 1.7f, phase1, Vec3(0.0, 0.0, 0.0), 1.0f,0.0f);
@@ -173,23 +172,25 @@ public:
 		tempAct.setZero();
 		updateSprings(tempAct);
 
-		g_numSubsteps = 3;
+		g_numSubsteps = 5;
 
 		g_params.radius = radius;
-		g_params.staticFriction = 1.2f;
+		g_params.staticFriction = 0.85f;
 		g_params.dynamicFriction = 0.8f;
 
 		g_params.viscosity = 0.0f;
-		g_params.numIterations = 4;
+		g_params.numIterations = 3;
 		g_params.sleepThreshold = g_params.radius * 0.25f;
-//		g_params.collisionDistance = radius*0.5f;
+//		g_params.collisionDistance = radius*0.7f;
+		g_params.restitution = 0.1f;
 //		g_params.relaxationMode = eNvFlexRelaxationGlobal;
 		g_params.relaxationFactor = 1.0f;
 		g_params.damping = 0.24f;
-		g_params.restitution = 0.4f;
+
 		g_params.particleCollisionMargin = g_params.radius * 0.25f;
 		g_params.shapeCollisionMargin = g_params.radius * 0.25f;
-		g_params.numPlanes = 1;
+		g_params.numPlanes = 0;
+//		g_params.gravity[1] = -5.0f;
 
 		// draw options
 		g_drawPoints = true;
@@ -558,14 +559,15 @@ public:
 			newRot[0] = minf(maxf(newRot[0], -EIGEN_PI / 2),
 			EIGEN_PI / 2);
 
-
-			if(newPos.x-centers[i].x<-playgroundHalfExtent || newPos.x-centers[i].x>playgroundHalfExtent ){
+			if (newPos.x - centers[i].x < -playgroundHalfExtent
+					|| newPos.x - centers[i].x > playgroundHalfExtent) {
 				currVels[i].x = 0;
 			}
-			if(newPos.z-centers[i].z<-playgroundHalfExtent || newPos.z-centers[i].z>playgroundHalfExtent ){
+			if (newPos.z - centers[i].z < -playgroundHalfExtent
+					|| newPos.z - centers[i].z > playgroundHalfExtent) {
 				currVels[i].z = 0;
 			}
-			if(newPos.y-centers[i].y<0 || newPos.y-centers[i].y>3 ){
+			if (newPos.y - centers[i].y < 0 || newPos.y - centers[i].y > 3) {
 				currVels[i].y = 0;
 			}
 
@@ -576,10 +578,6 @@ public:
 			newPos.z = minf(
 					maxf(newPos.z - centers[i].z, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].z;
-
-
-
-
 
 			Vec3 oldPos = currPoses[i];
 			Vec3 oldRot = currRots[i];
@@ -614,7 +612,6 @@ public:
 			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
 					- 1] = oldQuat;
 
-
 			float linearVelThresh = 0.9f;
 //			float angVelThresh = 0.5f;
 //			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
@@ -627,7 +624,6 @@ public:
 //						- 1] = oldQuat;
 //			}
 			if (Length(currVels[i]) > linearVelThresh) {
-
 
 //				float t = maxf(1-(Length(currVels[i])-linearVelThresh)/linearVelThresh,0);
 				float t = 0.6;
@@ -649,11 +645,6 @@ public:
 		}
 
 		UpdateShapes();
-
-		if (g_frame % 10 == 0) {
-			updateSpaceMap();
-			updateSprings(action);
-		}
 
 		int phase2 = NvFlexMakePhaseWithChannels(1,
 				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,

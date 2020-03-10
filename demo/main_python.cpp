@@ -2252,18 +2252,27 @@ void initialize() {
 					"Granular Sweep Conrollable Ghost"));
 	g_scenes.push_back(new PlasticBodyReshaping("Plastic Reshaping"));
 	g_scenes.push_back(new PlasticSpringShaping("Plastic Spring Reshaping"));
+	g_scenes.push_back(new PlasticSpringFlipping("Plastic Flipping"));
+
+
 	g_scenes.push_back(
 			new PlasticSpringShapingManualControl(
 					"Plastic Reshaping Using Springs Single Instance"));
 	g_scenes.push_back(
 			new GranularSweepShapingManualControl(
 					"Granular Sweep Conrollable Ghost Single Instance"));
-	g_scenes.push_back(
-			new GooShapingManualControl("Goo Reshaping Single Instance"));
-	g_scenes.push_back(
-			new GooShapingExpManualControl(
-					"Goo Reshaping Expensive Single Instance"));
-	g_scenes.push_back(new GooShaping("Goo Reshaping"));
+
+	g_scenes.push_back(new PlasticSpringFlippingManualControl("Plastic Flipping Single Instance"));
+
+//	g_scenes.push_back(
+//			new GooShapingManualControl("Goo Reshaping Single Instance"));
+//	g_scenes.push_back(
+//			new GooShapingExpManualControl(
+//					"Goo Reshaping Expensive Single Instance"));
+//	g_scenes.push_back(new GooShaping("Goo Reshaping"));
+//
+//
+//
 
 //    g_scenes.push_back(new ForceField("Force Field"));
 

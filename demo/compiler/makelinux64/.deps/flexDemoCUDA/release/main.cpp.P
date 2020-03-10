@@ -85,7 +85,9 @@ build/flexDemoCUDA_release/main.cpp.o: ../../main.cpp \
  ../../scenes/granularsweep_controllable_ghost_manual_control.h \
  ../../scenes/plastic_body_reshaping.h \
  ../../scenes/plastic_spring_shaping.h \
+ ../../scenes/plastic_spring_flipping.h \
  ../../scenes/plastic_spring_shaping_manual_control.h \
+ ../../scenes/plastic_spring_flipping_manual_control.h \
  ../../scenes/goo_shaping_manual_control.h \
  ../../scenes/goo_shaping_exp_manual_control.h ../../scenes/goo_shaping.h \
  ../../benchmark.h
@@ -176,7 +178,9 @@ build/flexDemoCUDA_release/main.cpp.o: ../../main.cpp \
  ../../scenes/granularsweep_controllable_ghost_manual_control.h :
  ../../scenes/plastic_body_reshaping.h :
  ../../scenes/plastic_spring_shaping.h :
+ ../../scenes/plastic_spring_flipping.h :
  ../../scenes/plastic_spring_shaping_manual_control.h :
+ ../../scenes/plastic_spring_flipping_manual_control.h :
  ../../scenes/goo_shaping_manual_control.h :
  ../../scenes/goo_shaping_exp_manual_control.h ../../scenes/goo_shaping.h :
  ../../benchmark.h :
