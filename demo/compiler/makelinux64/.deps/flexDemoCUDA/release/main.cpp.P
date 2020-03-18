@@ -80,7 +80,8 @@ build/flexDemoCUDA_release/main.cpp.o: ../../main.cpp \
  ../../scenes/viscosity.h ../../scenes/waterballoon.h \
  ../../scenes/granularsweep.h ../../scenes/fluidsweep.h \
  ../../scenes/granularsweep_torque_control.h \
- ../../scenes/granularsweep_three_bars.h \
+ ../../scenes/granularsweep_three_bars.h ../../scenes/granular_flipping.h \
+ ../../scenes/granular_flipping_manual_control.h \
  ../../scenes/granularsweep_controllable_ghost.h \
  ../../scenes/granularsweep_controllable_ghost_manual_control.h \
  ../../scenes/plastic_body_reshaping.h \
@@ -173,7 +174,8 @@ build/flexDemoCUDA_release/main.cpp.o: ../../main.cpp \
  ../../scenes/viscosity.h ../../scenes/waterballoon.h :
  ../../scenes/granularsweep.h ../../scenes/fluidsweep.h :
  ../../scenes/granularsweep_torque_control.h :
- ../../scenes/granularsweep_three_bars.h :
+ ../../scenes/granularsweep_three_bars.h ../../scenes/granular_flipping.h :
+ ../../scenes/granular_flipping_manual_control.h :
  ../../scenes/granularsweep_controllable_ghost.h :
  ../../scenes/granularsweep_controllable_ghost_manual_control.h :
  ../../scenes/plastic_body_reshaping.h :

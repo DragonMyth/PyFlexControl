@@ -149,6 +149,8 @@ public:
 #include "scenes/fluidsweep.h"
 #include "scenes/granularsweep_torque_control.h"
 #include "scenes/granularsweep_three_bars.h"
+#include "scenes/granular_flipping.h"
+#include "scenes/granular_flipping_manual_control.h"
 
 #include "scenes/granularsweep_controllable_ghost.h"
 #include "scenes/granularsweep_controllable_ghost_manual_control.h"

@@ -1681,7 +1681,10 @@ void DrawShapes() {
 		int type = int(flags & eNvFlexShapeFlagTypeMask);
 		//bool dynamic = int(flags&eNvFlexShapeFlagDynamic) > 0;
 
-		Vec3 color = Vec3(0.9f);
+		Vec3 color = g_buffers->shapeColors[i];
+
+//		Vec3 color = Vec3(0.9f);
+
 		if (flags & eNvFlexShapeFlagTrigger) {
 			color = Vec3(0.6f, 1.0, 0.6f);
 
@@ -2810,6 +2813,8 @@ int main(int argc, char* argv[]) {
 
 //	plasticThinBox.mTranslation[1] = 0.0f;
 
+
+//	g_scenes.push_back(new TriangleCollision("TCN"));
 //	PlasticBodyReshaping* plasticReshaping = new PlasticBodyReshaping("Plastic Reshaping");
 
 //	g_scenes.push_back(new 	ClothLayers("Cloth Layers"));
@@ -2827,12 +2832,15 @@ int main(int argc, char* argv[]) {
 //			new PlasticSpringShapingManualControl(
 //					"Plastic Reshaping Using Springs Single Instance"));
 
+	g_scenes.push_back(new GranularFlipping("Granular Flipping"));
+	g_scenes.push_back(new GranularFlippingManualControl("Granular Flipping Single Instance"));
+
 	g_scenes.push_back(
 				new PlasticSpringFlipping(
 						"Plastic Flipping Using Springs"));
-	g_scenes.push_back(
-				new PlasticSpringFlippingManualControl(
-						"Plastic Flipping Using Springs Single Instance"));
+//	g_scenes.push_back(
+//				new PlasticSpringFlippingManualControl(
+//						"Plastic Flipping Using Springs Single Instance"));
 
 	// init graphics
 

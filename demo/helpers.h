@@ -592,6 +592,8 @@ void AddBox(Vec3 halfEdge = Vec3(2.0f), Vec3 center = Vec3(0.0f), Quat quat =
 	g_buffers->shapeFlags.push_back(
 			NvFlexMakeShapeFlagsWithChannels(eNvFlexShapeBox, dynamic,
 					channels));
+	g_buffers->shapeColors.push_back(color);
+
 }
 
 // helper that creates a plinth whose center matches the particle bounds
@@ -606,7 +608,7 @@ void AddPlinth() {
 }
 
 void AddSphere(float radius, Vec3 position, Quat rotation, int channels =
-		eNvFlexPhaseShapeChannelMask) {
+		eNvFlexPhaseShapeChannelMask, Vec3 color = Vec3(0.9f)) {
 	NvFlexCollisionGeometry geo;
 	geo.sphere.radius = radius;
 	g_buffers->shapeGeometry.push_back(geo);
@@ -621,10 +623,13 @@ void AddSphere(float radius, Vec3 position, Quat rotation, int channels =
 	int flags = NvFlexMakeShapeFlagsWithChannels(eNvFlexShapeSphere, false,
 			channels);
 	g_buffers->shapeFlags.push_back(flags);
+	g_buffers->shapeColors.push_back(color);
+
 }
 
 // creates a capsule aligned to the local x-axis with a given radius
-void AddCapsule(float radius, float halfHeight, Vec3 position, Quat rotation) {
+void AddCapsule(float radius, float halfHeight, Vec3 position, Quat rotation,
+		Vec3 color = Vec3(0.9f)) {
 	NvFlexCollisionGeometry geo;
 	geo.capsule.radius = radius;
 	geo.capsule.halfHeight = halfHeight;
@@ -639,6 +644,8 @@ void AddCapsule(float radius, float halfHeight, Vec3 position, Quat rotation) {
 
 	int flags = NvFlexMakeShapeFlags(eNvFlexShapeCapsule, false);
 	g_buffers->shapeFlags.push_back(flags);
+	g_buffers->shapeColors.push_back(color);
+
 }
 
 void CreateSDF(const Mesh* mesh, uint32_t dim, Vec3 lower, Vec3 upper,
@@ -845,14 +852,18 @@ NvFlexTriangleMeshId CreateTriangleMesh(Mesh* m) {
 			indices.buffer, m->GetNumVertices(), m->GetNumFaces(),
 			(float*) &lower, (float*) &upper);
 
-	// entry in the collision->render map
-	g_meshes[flexMesh] = CreateGpuMesh(m);
+	if (visualize) {
+		// entry in the collision->render map
+		g_meshes[flexMesh] = CreateGpuMesh(m);
+	}
+
+//	cout<<"ASfasfas"<<endl;
 
 	return flexMesh;
 }
 
 void AddTriangleMesh(NvFlexTriangleMeshId mesh, Vec3 translation, Quat rotation,
-		Vec3 scale) {
+		Vec3 scale, Vec3 color = Vec3(0.9f)) {
 	Vec3 lower, upper;
 	NvFlexGetTriangleMeshBounds(g_flexLib, mesh, lower, upper);
 
@@ -869,6 +880,8 @@ void AddTriangleMesh(NvFlexTriangleMeshId mesh, Vec3 translation, Quat rotation,
 	g_buffers->shapeGeometry.push_back((NvFlexCollisionGeometry&) geo);
 	g_buffers->shapeFlags.push_back(
 			NvFlexMakeShapeFlags(eNvFlexShapeTriangleMesh, false));
+
+	g_buffers->shapeColors.push_back(color);
 }
 
 NvFlexDistanceFieldId CreateSDF(const char* meshFile, int dim, float margin =
@@ -1170,8 +1183,8 @@ void CreateSpringCube(Vec3 lower, int dx, int dy, int dz, float radius,
 	}
 }
 
-void CreateSpringCubeAroundCenter(Vec3 center, int dx, int dy, int dz, float radius,
-		int phase, float stretchStiffness, float bendStiffness,
+void CreateSpringCubeAroundCenter(Vec3 center, int dx, int dy, int dz,
+		float radius, int phase, float stretchStiffness, float bendStiffness,
 		float shearStiffness, Vec3 velocity, float invMass) {
 	int baseIndex = int(g_buffers->positions.size());
 
@@ -1179,12 +1192,12 @@ void CreateSpringCubeAroundCenter(Vec3 center, int dx, int dy, int dz, float rad
 //	float lengthy = dy*radius;
 //	float lengthz = dz*radius;
 
-	Vec3 length = Vec3((dx-1)*radius,0,(dz-1)*radius);
+	Vec3 length = Vec3((dx - 1) * radius, 0, (dz - 1) * radius);
 	for (int z = 0; z < dz; ++z) {
 		for (int y = 0; y < dy; ++y) {
 			for (int x = 0; x < dx; ++x) {
 
-				Vec3 position = center-length/2
+				Vec3 position = center - length / 2
 						+ radius * Vec3(float(x), float(y), float(z));
 
 				Vec4 part = Vec4(position.x, position.y, position.z, invMass);
@@ -1305,22 +1318,24 @@ void CreateSpringCubeAroundCenter(Vec3 center, int dx, int dy, int dz, float rad
 //	}
 }
 
-void CreateGranularCubeAroundCenter(Vec3 center, int dx, int dy, int dz, float radius,
-		int phase, Vec3 velocity, float invMass, float jitter = 0.1f) {
+void CreateGranularCubeAroundCenter(Vec3 center, int dx, int dy, int dz,
+		float radius, int phase, Vec3 velocity, float invMass, float jitter =
+				0.1f) {
 	int baseIndex = int(g_buffers->positions.size());
 
 //	float lengthx = dx*radius;
 //	float lengthy = dy*radius;
 //	float lengthz = dz*radius;
 
-	Vec3 length = Vec3((dx-1)*radius,0,(dz-1)*radius);
+	Vec3 length = Vec3((dx - 1) * radius, 0, (dz - 1) * radius);
 
 	for (int z = 0; z < dz; ++z) {
 		for (int y = 0; y < dy; ++y) {
 			for (int x = 0; x < dx; ++x) {
 
-				Vec3 position = center-length/2
-						+ radius * Vec3(float(x), float(y), float(z)) +  RandomUnitVector() * jitter;
+				Vec3 position = center - length / 2
+						+ radius * Vec3(float(x), float(y), float(z))
+						+ RandomUnitVector() * jitter;
 
 				Vec4 part = Vec4(position.x, position.y, position.z, invMass);
 

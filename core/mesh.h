@@ -74,4 +74,5 @@ Mesh* CreateDiscMesh(float radius, uint32_t segments);
 Mesh* CreateTetrahedron(float ground=0.0f, float height=1.0f); //fixed but not used
 Mesh* CreateSphere(int slices, int segments, float radius = 1.0f);
 Mesh* CreateCapsule(int slices, int segments, float radius = 1.0f, float halfHeight = 1.0f);
-
+Mesh* CreatePanMesh(float radius_base, float radius_top, float depth,
+		int segments);

@@ -166,6 +166,7 @@ struct SimBuffers {
 	NvFlexVector<Vec4> shapePrevPositions;
 	NvFlexVector<Quat> shapePrevRotations;
 	NvFlexVector<int> shapeFlags;
+	NvFlexVector<Vec3> shapeColors;
 
 	// rigids
 	NvFlexVector<int> rigidOffsets;
@@ -201,7 +202,7 @@ struct SimBuffers {
 					l), smoothPositions(l), diffusePositions(l), diffuseVelocities(
 					l), diffuseCount(l), activeIndices(l), shapeGeometry(l), shapePositions(
 					l), shapeRotations(l), shapePrevPositions(l), shapePrevRotations(
-					l), shapeFlags(l), rigidOffsets(l), rigidIndices(l), rigidMeshSize(
+					l), shapeFlags(l),shapeColors(l), rigidOffsets(l), rigidIndices(l), rigidMeshSize(
 					l), rigidCoefficients(l), rigidPlasticThresholds(l), rigidPlasticCreeps(
 					l), rigidRotations(l), rigidTranslations(l), rigidLocalPositions(
 					l), rigidLocalNormals(l), inflatableTriOffsets(l), inflatableTriCounts(
@@ -236,6 +237,7 @@ void MapBuffers(SimBuffers* buffers) {
 	buffers->shapePrevPositions.map();
 	buffers->shapePrevRotations.map();
 	buffers->shapeFlags.map();
+	buffers->shapeColors.map();
 
 	buffers->rigidOffsets.map();
 	buffers->rigidIndices.map();
@@ -288,6 +290,8 @@ void UnmapBuffers(SimBuffers* buffers) {
 	buffers->shapePrevPositions.unmap();
 	buffers->shapePrevRotations.unmap();
 	buffers->shapeFlags.unmap();
+
+	buffers->shapeColors.unmap();
 
 	// rigids
 	buffers->rigidOffsets.unmap();
@@ -348,6 +352,8 @@ void DestroyBuffers(SimBuffers* buffers) {
 	buffers->shapePrevPositions.destroy();
 	buffers->shapePrevRotations.destroy();
 	buffers->shapeFlags.destroy();
+
+	buffers->shapeColors.destroy();
 
 	// rigids
 	buffers->rigidOffsets.destroy();
@@ -1555,7 +1561,8 @@ void DrawShapes() {
 		int type = int(flags & eNvFlexShapeFlagTypeMask);
 		//bool dynamic = int(flags&eNvFlexShapeFlagDynamic) > 0;
 
-		Vec3 color = Vec3(0.9f);
+		Vec3 color = g_buffers->shapeColors[i];
+//		Vec3 color = Vec3(0.9f);
 
 		if (flags & eNvFlexShapeFlagTrigger) {
 			color = Vec3(0.6f, 1.0, 0.6f);
@@ -2252,7 +2259,9 @@ void initialize() {
 					"Granular Sweep Conrollable Ghost"));
 	g_scenes.push_back(new PlasticBodyReshaping("Plastic Reshaping"));
 	g_scenes.push_back(new PlasticSpringShaping("Plastic Spring Reshaping"));
+
 	g_scenes.push_back(new PlasticSpringFlipping("Plastic Flipping"));
+	g_scenes.push_back(new GranularFlipping("Granular Flipping"));
 
 	g_scenes.push_back(
 			new PlasticSpringShapingManualControl(
