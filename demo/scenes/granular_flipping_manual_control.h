@@ -54,19 +54,17 @@ public:
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
 		allMeshId.resize(0);
-		mPanMesh = CreatePanMesh(barDim[0],barDim[1],barDim[2],100);
+		mPanMesh = CreatePanMesh(barDim[0],barDim[1],barDim[2],10);
 		mPanMesh->CalculateNormals();
 
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
 
 			partInitialization(i, 1) = 3;
-			partInitialization(i, 3) = 7;
+			partInitialization(i, 3) = 5;
 			partInitialization(i, 4) = 2;
-			partInitialization(i, 5) = 7;
+			partInitialization(i, 5) = 5;
 
 		}
-
-
 
 	}
 
@@ -103,7 +101,9 @@ public:
 				Vec3 center = Vec3(i * 15, 0, j * 15);
 //				int group = centers.size();
 
-				int phase1 = NvFlexMakePhaseWithChannels(group, 0, channel);
+				int phase1 = NvFlexMakePhaseWithChannels(0,
+						eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
+						eNvFlexPhaseShapeChannel0);;
 
 				for (int cluster = 0; cluster < particleClusterParam.size();
 						cluster += 6) {
@@ -117,7 +117,7 @@ public:
 
 					CreateGranularCubeAroundCenter(center + offsetPos,
 												clusterDimx, clusterDimy, clusterDimz,
-												radius * 1.0f, phase1, Vec3(0.0, 0.0, 0.0), 1.0f,0.0f);
+												radius * 1.1f, phase1, Vec3(0.0, 0.0, 0.0), 1.0f,0.0f);
 				}
 				if (i == 0 && j == 0) {
 					numPartPerScene = g_buffers->positions.size();
@@ -385,21 +385,21 @@ public:
 
 		UpdateShapes();
 
-		int phase2 = NvFlexMakePhaseWithChannels(1,
-				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
-				eNvFlexPhaseShapeChannel0);
-		int phase1 = NvFlexMakePhaseWithChannels(0,
-				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
-				eNvFlexPhaseShapeChannel0);
-		for (int k = 0; k < g_buffers->positions.size(); k++) {
-			if (abs(g_buffers->positions[k].y) < 0.11) {
-				g_buffers->phases[k] = phase2;
-//				cout<<g_buffers->positions[k].y<<endl;
-			} else {
-
-				g_buffers->phases[k] = phase1;
-			}
-		}
+//		int phase2 = NvFlexMakePhaseWithChannels(1,
+//				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
+//				eNvFlexPhaseShapeChannel0);
+//		int phase1 = NvFlexMakePhaseWithChannels(0,
+//				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
+//				eNvFlexPhaseShapeChannel0);
+//		for (int k = 0; k < g_buffers->positions.size(); k++) {
+//			if (abs(g_buffers->positions[k].y) < 0.11) {
+//				g_buffers->phases[k] = phase2;
+////				cout<<g_buffers->positions[k].y<<endl;
+//			} else {
+//
+//				g_buffers->phases[k] = phase1;
+//			}
+//		}
 
 //		cout<<"Current Velocity: "<<currVels[0].x<<" "<<currVels[0].y<<" "<<currVels[0].z<<" "<<endl;
 //		if (g_frame % 100==0) {

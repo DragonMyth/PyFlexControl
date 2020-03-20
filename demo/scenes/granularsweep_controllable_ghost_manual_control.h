@@ -45,9 +45,9 @@ public:
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
-			partInitialization(i, 3) = 13;
-			partInitialization(i, 4) = 1;
-			partInitialization(i, 5) = 13;
+			partInitialization(i, 3) = 5;
+			partInitialization(i, 4) = 5;
+			partInitialization(i, 5) = 5;
 		}
 
 	}
@@ -99,7 +99,7 @@ public:
 //							stiffness, stiffness, 0.0f, 1.0f);
 					CreateGranularCubeAroundCenter(center + offsetPos,
 							clusterDimx, clusterDimy, clusterDimz,
-							radius * 1.7f, phase1, Vec3(0.0, 0.0, 0.0), 1.0f,
+							radius*1.2f , phase1, Vec3(0.0, 0.0, 0.0), 1.0f,
 							0.01f);
 				}
 				if (i == 0 && j == 0) {

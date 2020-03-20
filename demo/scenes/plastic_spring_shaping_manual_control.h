@@ -655,21 +655,21 @@ public:
 			updateSprings(action);
 		}
 
-		int phase2 = NvFlexMakePhaseWithChannels(1,
-				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
-				eNvFlexPhaseShapeChannel0);
-		int phase1 = NvFlexMakePhaseWithChannels(0,
-				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
-				eNvFlexPhaseShapeChannel0);
-		for (int k = 0; k < g_buffers->positions.size(); k++) {
-			if (abs(g_buffers->positions[k].y) < 0.11) {
-				g_buffers->phases[k] = phase2;
-//				cout<<g_buffers->positions[k].y<<endl;
-			} else {
-
-				g_buffers->phases[k] = phase1;
-			}
-		}
+//		int phase2 = NvFlexMakePhaseWithChannels(1,
+//				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
+//				eNvFlexPhaseShapeChannel0);
+//		int phase1 = NvFlexMakePhaseWithChannels(0,
+//				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
+//				eNvFlexPhaseShapeChannel0);
+//		for (int k = 0; k < g_buffers->positions.size(); k++) {
+//			if (abs(g_buffers->positions[k].y) < 0.11) {
+//				g_buffers->phases[k] = phase2;
+////				cout<<g_buffers->positions[k].y<<endl;
+//			} else {
+//
+//				g_buffers->phases[k] = phase1;
+//			}
+//		}
 
 //		cout<<"Current Velocity: "<<currVels[0].x<<" "<<currVels[0].y<<" "<<currVels[0].z<<" "<<endl;
 //		if (g_frame % 100==0) {

@@ -459,7 +459,7 @@ Vec3 g_lightTarget;
 
 bool g_pause = false;
 bool g_step = false;
-bool g_capture = false;
+bool g_capture = true;
 bool g_showHelp = true;
 bool g_tweakPanel = true;
 bool g_fullscreen = false;
@@ -553,6 +553,7 @@ float g_lightDistance;
 float g_fogDistance;
 
 FILE* g_ffmpeg;
+
 
 void DrawShapes();
 
@@ -775,6 +776,8 @@ void Init(int scene, bool centerCamera = true) {
 
 	// reset phase 0 particle color to blue
 	g_colors[0] = Colour(0.0f, 0.5f, 1.0f);
+
+
 
 	g_numSolidParticles = 0;
 
@@ -2112,6 +2115,15 @@ Eigen::MatrixXd UpdateFrame() {
 	if (g_frame % 100 == 0) {
 		cout << "Frame Count: " << g_frame << endl;
 	}
+
+	if(g_frame==10){
+		char* path = "/home/dragonmyth/Desktop/data/frame_0.tga";
+		g_ffmpeg = fopen(path, "wb");
+		g_capture = true;
+	}else{
+		g_capture=false;
+	}
+
 	static double lastTime;
 
 	// real elapsed frame time
@@ -2224,6 +2236,7 @@ Eigen::MatrixXd UpdateFrame() {
 	// move mouse particle (must be done here as GetViewRay() uses the GL projection state)
 
 	if (g_capture) {
+
 		TgaImage img;
 		img.m_width = g_screenWidth;
 		img.m_height = g_screenHeight;
@@ -2231,8 +2244,9 @@ Eigen::MatrixXd UpdateFrame() {
 
 		ReadFrame((int*) img.m_data, g_screenWidth, g_screenHeight);
 
-		fwrite(img.m_data, sizeof(uint32_t) * g_screenWidth * g_screenHeight, 1,
-				g_ffmpeg);
+//		fwrite(img.m_data, sizeof(uint32_t) * g_screenWidth * g_screenHeight, 1,
+//				g_ffmpeg);
+		TgaSave(g_ffmpeg, img, false);
 
 		delete[] img.m_data;
 	}
@@ -2825,22 +2839,22 @@ int main(int argc, char* argv[]) {
 //				new GranularSweepShaping("Granular Reshaping"));
 //	g_scenes.push_back(
 //				new GranularSweepShapingManualControl("Granular Reshaping Single Instance"));
-//
+//`
 //	g_scenes.push_back(
 //			new PlasticSpringShaping("Plastic Reshaping Using Springs"));
 //	g_scenes.push_back(
 //			new PlasticSpringShapingManualControl(
 //					"Plastic Reshaping Using Springs Single Instance"));
 
-	g_scenes.push_back(new GranularFlipping("Granular Flipping"));
-	g_scenes.push_back(new GranularFlippingManualControl("Granular Flipping Single Instance"));
+//	g_scenes.push_back(new GranularFlipping("Granular Flipping"));
+//	g_scenes.push_back(new GranularFlippingManualControl("Granular Flipping Single Instance"));
 
 	g_scenes.push_back(
 				new PlasticSpringFlipping(
 						"Plastic Flipping Using Springs"));
-//	g_scenes.push_back(
-//				new PlasticSpringFlippingManualControl(
-//						"Plastic Flipping Using Springs Single Instance"));
+	g_scenes.push_back(
+				new PlasticSpringFlippingManualControl(
+						"Plastic Flipping Using Springs Single Instance"));
 
 	// init graphics
 

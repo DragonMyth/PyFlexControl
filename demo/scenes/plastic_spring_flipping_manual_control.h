@@ -50,7 +50,7 @@ public:
 
 	// Stores the number of spings connected to each particle. Used for limiting the max spring connection
 	Eigen::VectorXi perPartSpringCnt;
-	float stiffness = 0.5f;
+	float stiffness = 0.05f;
 
 	float springFuseDist = radius * 2.0f;
 	float springBreakDist = radius * 3.0f;
@@ -64,8 +64,17 @@ public:
 
 	int maxSpringPerPart = 8;
 
-	Mesh* mPanMesh;
+	float coolDownRate = 0.03f;
+	float heatRate = 0.1f;
 
+
+
+	vector<float> particleTemperature;
+
+
+	int phases[3];
+
+	Mesh* mPanMesh;
 
 	vector<NvFlexTriangleMeshId> allMeshId;
 	PlasticSpringFlippingManualControl(const char* name) :
@@ -75,11 +84,16 @@ public:
 		goalPos.setZero();
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
+		allMeshId.resize(0);
+		mPanMesh = CreatePanMesh(barDim[0], barDim[1], barDim[2], 100);
+		mPanMesh->CalculateNormals();
+
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
 			partInitialization(i, 1) = 2;
-			partInitialization(i, 3) = 7;
-			partInitialization(i, 4) = 2;
-			partInitialization(i, 5) = 7;
+			partInitialization(i, 3) = 5;
+			partInitialization(i, 4) = 5;
+			partInitialization(i, 5) = 5;
+
 		}
 
 	}
@@ -97,7 +111,6 @@ public:
 		currRots.resize(0);
 		currVels.resize(0);
 		currAngVels.resize(0);
-		allMeshId.resize(0);
 
 		centers.clear();
 
@@ -106,16 +119,25 @@ public:
 		currRots.clear();
 		currVels.clear();
 		currAngVels.clear();
-		allMeshId.clear();
 		int channel = eNvFlexPhaseShapeChannel0;
 		int group = 0;
 
-		mPanMesh = CreatePanMesh(barDim[0],barDim[1],barDim[2],100);
-		mPanMesh->CalculateNormals();
+		phases[0] = NvFlexMakePhaseWithChannels(0,
+				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
+				eNvFlexPhaseShapeChannel0);
+
+		phases[1] = NvFlexMakePhaseWithChannels(1,
+				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
+				eNvFlexPhaseShapeChannel0);
+
+		phases[2] = NvFlexMakePhaseWithChannels(2,
+				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
+				eNvFlexPhaseShapeChannel0);
+
 		for (int i = 0; i < numSceneDim; i++) {
 			for (int j = 0; j < numSceneDim; j++) {
-
 				allMeshId.push_back(CreateTriangleMesh(mPanMesh));
+
 				int idx = i * numSceneDim + j;
 				Eigen::VectorXd particleClusterParam = partInitialization.row(
 						idx);
@@ -123,7 +145,6 @@ public:
 				Vec3 center = Vec3(i * 15, 0, j * 15);
 //				int group = centers.size();
 
-				int phase1 = NvFlexMakePhaseWithChannels(group, 0, channel);
 
 				for (int cluster = 0; cluster < particleClusterParam.size();
 						cluster += 6) {
@@ -137,7 +158,7 @@ public:
 //
 					CreateSpringCubeAroundCenter(center + offsetPos,
 							clusterDimx, clusterDimy, clusterDimz,
-							springFuseDist / 2, phase1, stiffness, stiffness,
+							springFuseDist / sqrt(3), phases[0], stiffness, stiffness,
 							stiffness, 0.0f, 2.0f);
 //					CreateGranularCubeAroundCenter(center + offsetPos,
 //												clusterDimx, clusterDimy, clusterDimz,
@@ -148,12 +169,6 @@ public:
 				}
 
 				centers.push_back(center);
-
-//				for (int k = offset; k < (offset + numPartPerScene); k++) {
-//					if (g_buffers->positions[k].z - center[2] > 0) {
-//						g_buffers->phases[k] = phase2;
-//					}
-//				}
 
 				Vec3 currPos = center + Vec3(0, 0, 0);
 
@@ -175,6 +190,10 @@ public:
 			}
 
 		}
+
+		particleTemperature.resize(g_buffers->positions.size());
+		fill(particleTemperature.begin(),particleTemperature.end(),0);
+
 		cout << "Number of Particles Per instance: " << numPartPerScene << endl;
 
 		perPartSpringCnt = Eigen::VectorXi(g_buffers->positions.size());
@@ -200,10 +219,11 @@ public:
 		g_params.relaxationFactor = 1.0f;
 		g_params.damping = 0.24f;
 
-		g_params.particleCollisionMargin = g_params.radius * 0.25f;
-		g_params.shapeCollisionMargin = g_params.radius * 0.25f;
+		g_params.particleCollisionMargin = g_params.radius * 0.01f;
+		g_params.shapeCollisionMargin = g_params.radius * 0.01f;
 		g_params.numPlanes = 1;
 //		g_params.gravity[1] = -5.0f;
+		g_colors[2] = Colour(0.9f, 0.1f, 0.0f);
 
 		// draw options
 		g_drawPoints = true;
@@ -310,45 +330,6 @@ public:
 		return mapIdx;
 	}
 
-	bool cutParticles(Vec3 p, Vec3 q, int group, int ghost) {
-		if (ghost > 0) {
-			return false;
-		}
-
-		Vec3 barPose = currPoses[group];
-		Vec3 barRot = currRots[group];
-		Quat quat = QuatFromAxisAngle(Vec3(0, 1, 0), barRot.y)
-				* QuatFromAxisAngle(Vec3(1, 0, 0), barRot.x);
-
-		Vec3 bar_u = Rotate(quat, Vec3(1, 0, 0));
-		Vec3 bar_v = Rotate(quat, Vec3(0, 1, 0));
-
-		Vec3 uxv = Cross(bar_u, bar_v);
-
-		// Check if particles are on opposite side of bar
-		float val1 = Dot(uxv, Normalize(p - barPose));
-		float val2 = Dot(uxv, Normalize(q - barPose));
-
-		// If two particles are on same side, they are NOT cut by the bar. Else check if in range of the bar
-		if (val1 * val2 >= 0) {
-			return false;
-		} else {
-			Vec3 barCenter = barPose + barDim[1] * bar_v;
-			float t = -Dot((p - barCenter), uxv) / Dot(q - p, uxv);
-			Vec3 inter = p + t * (q - p);
-			float horProj = Dot((inter - barCenter), bar_u);
-			float vertProj = Dot((inter - barCenter), bar_v);
-
-			if (Abs(horProj) <= barDim[0] && Abs(vertProj) <= barDim[1]) {
-				return true;
-			} else {
-				return false;
-			}
-			return true;
-		}
-
-	}
-
 	/*
 	 * Fake the plastic behavior
 	 * Set the spring rest length beyond certain threshold
@@ -400,9 +381,7 @@ public:
 			int group = a / (numPartPerScene);
 
 			float length = Length(p - q);
-			if (length <= springBreakDist
-					&& !cutParticles(p, q, group,
-							action(group * actionDim + 6))) {
+			if (length <= springBreakDist) {
 				mConstraintIndices.push_back(a);
 				mConstraintIndices.push_back(b);
 				mConstraintCoefficients.push_back(stiffness);
@@ -469,12 +448,7 @@ public:
 
 										//If spring pair is not already created and not cut by the bar, form new spring
 										if (bidirSpringMap[group].count(ij) == 0
-												&& length <= springFuseDist
-												&& !cutParticles(p, q, group,
-														action(
-																group
-																		* actionDim
-																		+ 6))) {
+												&& length <= springFuseDist) {
 
 											bidirSpringMap[group][ij] = 1;
 											bidirSpringMap[group][ji] = 1;
@@ -508,23 +482,50 @@ public:
 
 	}
 
+
+	void updateParticleTemperature(){
+		for (int k = 0; k < g_buffers->positions.size(); k++) {
+			Vec3 pos = Vec3(g_buffers->positions[k].x,
+					g_buffers->positions[k].y, g_buffers->positions[k].z);
+
+			int group = k / numPartPerScene;
+			Vec3 panPos = currPoses[group];
+			Vec3 panRot = currRots[group];
+
+			Quat quat = QuatFromAxisAngle(Vec3(0, 1, 0), panRot.y)
+					* QuatFromAxisAngle(Vec3(1, 0, 0), panRot.x);
+
+			Vec3 u = Rotate(quat, Vec3(1, 0, 0));
+			Vec3 v = Rotate(quat, Vec3(0, 0, 1));
+
+			Vec3 vxu = Cross(v, u);
+
+			if (Dot(pos - panPos, vxu) > 0 && Dot(pos - panPos, vxu) < 0.11) {
+
+				particleTemperature[k] += heatRate*g_dt;
+
+				particleTemperature[k] = minf(particleTemperature[k],2.0f);
+
+			} else {
+				particleTemperature[k] -= coolDownRate*g_dt;
+
+				particleTemperature[k] = maxf(particleTemperature[k],0.0f);
+
+			}
+
+		}
+
+	}
+
 	Eigen::MatrixXd Update(Eigen::VectorXd action) {
-		using namespace Eigen;
 		ClearShapes();
 
 		for (int i = 0; i < centers.size(); i++) {
+			using namespace Eigen;
 
 			Vec3 targetPos = centers[i]
 					+ Vec3(action(i * actionDim), action(i * actionDim + 1),
 							action(i * actionDim + 2));
-//
-//			targetPos.x = minf(
-//					maxf(targetPos.x - centers[i].x, -playgroundHalfExtent),
-//					playgroundHalfExtent) + centers[i].x;
-//			targetPos.y = minf(maxf(targetPos.y - centers[i].y, 0), 3) + centers[i].y;
-//			targetPos.z = minf(
-//					maxf(targetPos.z - centers[i].z, -playgroundHalfExtent),
-//					playgroundHalfExtent) + centers[i].z;
 
 			Vec3 targetRotVec = Vec3(action(i * actionDim + 3),
 					action(i * actionDim + 4), action(i * actionDim + 5));
@@ -580,7 +581,7 @@ public:
 					|| newPos.z - centers[i].z > playgroundHalfExtent) {
 				currVels[i].z = 0;
 			}
-			if(newPos.y-centers[i].y<2 || newPos.y-centers[i].y>5 ){
+			if (newPos.y - centers[i].y < 2 || newPos.y - centers[i].y > 5) {
 				currVels[i].y = 0;
 			}
 
@@ -612,13 +613,11 @@ public:
 					* QuatFromAxisAngle(Vec3(1, 0, 0), currRots[i].x);
 
 			//Translating the point of rotation to the base of the bar
-			Vec3 rotatedVec = Rotate(quat, Vec3(0, 1, 0));
-
 			Quat oldQuat = QuatFromAxisAngle(Vec3(0, 1, 0), oldRot.y)
 					* QuatFromAxisAngle(Vec3(1, 0, 0), oldRot.x);
-			Vec3 oldRotatedVec = Rotate(oldQuat, Vec3(0, 1, 0));
 
-			AddTriangleMesh(allMeshId[i],newPos,quat,Vec3(1.0f),Vec3(0.3,0.3,1.0));
+			AddTriangleMesh(allMeshId[i], newPos, quat, Vec3(1.0f),
+					Vec3(0.3, 0.3, 1.0));
 
 			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
 					- 1] = Vec4(oldPos, 0.0f);
@@ -627,24 +626,14 @@ public:
 
 			float linearVelThresh = 0.9f;
 //			float angVelThresh = 0.5f;
-//			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
-//					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
-//					|| abs(currAngVels[i].y) > angVelThresh
-//					|| abs(currAngVels[i].z) > angVelThresh)) {
-//				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
-//						- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
-//				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
-//						- 1] = oldQuat;
-//			}
+
 			if (Length(currVels[i]) > linearVelThresh) {
 
-//				float t = maxf(1-(Length(currVels[i])-linearVelThresh)/linearVelThresh,0);
 				float t = 0.6;
 
 				Vec3 interpPos = (oldPos * t + newPos * (1 - t));
 				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
-						- 1] = Vec4(interpPos,
-						0.0f);
+						- 1] = Vec4(interpPos, 0.0f);
 			}
 
 			if (ghost) {
@@ -659,27 +648,24 @@ public:
 
 		UpdateShapes();
 
-		int phase2 = NvFlexMakePhaseWithChannels(1,
-				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
-				eNvFlexPhaseShapeChannel0);
-		int phase1 = NvFlexMakePhaseWithChannels(0,
-				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
-				eNvFlexPhaseShapeChannel0);
-		for (int k = 0; k < g_buffers->positions.size(); k++) {
-			if (abs(g_buffers->positions[k].y) < 0.11) {
-				g_buffers->phases[k] = phase2;
-//				cout<<g_buffers->positions[k].y<<endl;
-			} else {
-
-				g_buffers->phases[k] = phase1;
-			}
+		if (g_frame % 10 == 0) {
+			updateSpaceMap();
+			updateSprings(action);
 		}
 
-//		cout<<"Current Velocity: "<<currVels[0].x<<" "<<currVels[0].y<<" "<<currVels[0].z<<" "<<endl;
-//		if (g_frame % 100==0) {
-//			cout << g_frame << endl;
-//		}
-		//		cout<<"Cam X: "<<g_camPos.x<<"Cam Y: "<<g_camPos.y<<"Cam Z: "<<g_camPos.z<<"Cam Angle X: "<<g_camAngle.x<<"Cam Angle Y: "<<g_camAngle.y<<"Cam Angle Z: "<<g_camAngle.z<<endl;
+		updateParticleTemperature();
+		for (int k = 0; k < g_buffers->positions.size(); k++) {
+			float temperature = particleTemperature[k];
+			if(temperature<0.7){
+				g_buffers->phases[k] = phases[0];
+			}else if(temperature>=0.7 &&  temperature<1.3){
+				g_buffers->phases[k] = phases[1];
+			}else{
+				g_buffers->phases[k] = phases[2];
+			}
+
+		}
+
 
 		return getState();
 	}
@@ -703,7 +689,7 @@ public:
 
 		int numBars = numSceneDim * numSceneDim;
 		//The last four rows are the translational and rotational position and velocity for the moving bar
-		MatrixXd state(numPart + 4 * numBars, 3);
+		MatrixXd state(numPart*2 + 4 * numBars, 3);
 
 		state.setZero();
 		for (int i = 0; i < numBars; i++) {
@@ -712,24 +698,27 @@ public:
 
 			for (int j = 0; j < numPartInScene; j++) {
 
-				state.row(i * (numPartInScene + 4) + j + 4) = Vector3d(
+				state.row(i * (numPartInScene*2 + 4) + j + 4) = Vector3d(
 						g_buffers->positions[i * numPartInScene + j].x,
 						g_buffers->positions[i * numPartInScene + j].y,
 						g_buffers->positions[i * numPartInScene + j].z)
 						- Vector3d(cent.x, cent.y, cent.z);
+
+				state.row(i * (numPartInScene*2 + 4) + numPartInScene+j + 4) = Vector3d(particleTemperature[i * numPartInScene + j],0,0);
 			}
 
-			state.row(i * (numPartInScene + 4)) = Vector3d(currPoses[i].x,
+
+			state.row(i * (2*numPartInScene + 4)) = Vector3d(currPoses[i].x,
 					currPoses[i].y, currPoses[i].z)
 					- Vector3d(cent.x, cent.y, cent.z);
 
-			state.row(i * (numPartInScene + 4) + 1) = Vector3d(currRots[i].x,
+			state.row(i * (2*numPartInScene + 4) + 1) = Vector3d(currRots[i].x,
 					currRots[i].y, currRots[i].z);
 
-			state.row(i * (numPartInScene + 4) + 2) = Vector3d(currVels[i].x,
+			state.row(i * (2*numPartInScene + 4) + 2) = Vector3d(currVels[i].x,
 					currVels[i].y, currVels[i].z);
 
-			state.row(i * (numPartInScene + 4) + 3) = Vector3d(currAngVels[i].x,
+			state.row(i * (2*numPartInScene + 4) + 3) = Vector3d(currAngVels[i].x,
 					currAngVels[i].y, currAngVels[i].z);
 
 		}
