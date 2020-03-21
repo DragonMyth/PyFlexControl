@@ -67,16 +67,14 @@ public:
 	float coolDownRate = 0.07f;
 	float heatRate = 0.3f;
 
-
-
 	vector<float> particleTemperature;
-
 
 	int phases[3];
 
 	Mesh* mPanMesh;
 
 	vector<NvFlexTriangleMeshId> allMeshId;
+
 	PlasticSpringFlipping(const char* name) :
 			Scene(name) {
 
@@ -84,10 +82,8 @@ public:
 		goalPos.setZero();
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
-		allMeshId.resize(0);
-		mPanMesh = CreatePanMesh(barDim[0], barDim[1], barDim[2], 100);
-		mPanMesh->CalculateNormals();
 
+		allMeshId.resize(numSceneDim * numSceneDim);
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
 			partInitialization(i, 1) = 2;
 			partInitialization(i, 3) = 5;
@@ -96,9 +92,13 @@ public:
 
 		}
 
+
 	}
 
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
+
+		mPanMesh = CreatePanMesh(barDim[0], barDim[1], barDim[2], 100);
+		mPanMesh->CalculateNormals();
 
 		springFuseMap = new map<int, std::vector<int>> [numSceneDim
 				* numSceneDim];
@@ -119,6 +119,7 @@ public:
 		currRots.clear();
 		currVels.clear();
 		currAngVels.clear();
+
 		int channel = eNvFlexPhaseShapeChannel0;
 		int group = 0;
 
@@ -136,15 +137,16 @@ public:
 
 		for (int i = 0; i < numSceneDim; i++) {
 			for (int j = 0; j < numSceneDim; j++) {
-				allMeshId.push_back(CreateTriangleMesh(mPanMesh));
+
 
 				int idx = i * numSceneDim + j;
+				allMeshId[idx] = (CreateTriangleMesh(mPanMesh));
+
 				Eigen::VectorXd particleClusterParam = partInitialization.row(
 						idx);
 
 				Vec3 center = Vec3(i * 15, 0, j * 15);
 //				int group = centers.size();
-
 
 				for (int cluster = 0; cluster < particleClusterParam.size();
 						cluster += 6) {
@@ -158,8 +160,8 @@ public:
 //
 					CreateSpringCubeAroundCenter(center + offsetPos,
 							clusterDimx, clusterDimy, clusterDimz,
-							springFuseDist / sqrt(3), phases[0], stiffness, stiffness,
-							stiffness, 0.0f, 2.0f);
+							springFuseDist / sqrt(3), phases[0], stiffness,
+							stiffness, stiffness, 0.0f, 2.0f);
 //					CreateGranularCubeAroundCenter(center + offsetPos,
 //												clusterDimx, clusterDimy, clusterDimz,
 //												radius * 1.7f, phase1, Vec3(0.0, 0.0, 0.0), 1.0f,0.0f);
@@ -192,7 +194,7 @@ public:
 		}
 
 		particleTemperature.resize(g_buffers->positions.size());
-		fill(particleTemperature.begin(),particleTemperature.end(),0);
+		fill(particleTemperature.begin(), particleTemperature.end(), 0);
 
 		cout << "Number of Particles Per instance: " << numPartPerScene << endl;
 
@@ -230,6 +232,8 @@ public:
 //		g_drawSprings = true;
 		g_drawMesh = false;
 		g_warmup = false;
+
+		delete mPanMesh;
 
 		return getState();
 	}
@@ -482,8 +486,7 @@ public:
 
 	}
 
-
-	void updateParticleTemperature(){
+	void updateParticleTemperature() {
 		for (int k = 0; k < g_buffers->positions.size(); k++) {
 			Vec3 pos = Vec3(g_buffers->positions[k].x,
 					g_buffers->positions[k].y, g_buffers->positions[k].z);
@@ -502,14 +505,14 @@ public:
 
 			if (Dot(pos - panPos, vxu) > 0 && Dot(pos - panPos, vxu) < 0.11) {
 
-				particleTemperature[k] += heatRate*g_dt;
+				particleTemperature[k] += heatRate * g_dt;
 
-				particleTemperature[k] = minf(particleTemperature[k],2.0f);
+				particleTemperature[k] = minf(particleTemperature[k], 2.0f);
 
 			} else {
-				particleTemperature[k] -= coolDownRate*g_dt;
+				particleTemperature[k] -= coolDownRate * g_dt;
 
-				particleTemperature[k] = maxf(particleTemperature[k],0.0f);
+				particleTemperature[k] = maxf(particleTemperature[k], 0.0f);
 
 			}
 
@@ -518,8 +521,8 @@ public:
 	}
 
 	Eigen::MatrixXd Update(Eigen::VectorXd action) {
-		ClearShapes();
 
+		ClearShapes();
 		for (int i = 0; i < centers.size(); i++) {
 			using namespace Eigen;
 
@@ -656,16 +659,15 @@ public:
 		updateParticleTemperature();
 		for (int k = 0; k < g_buffers->positions.size(); k++) {
 			float temperature = particleTemperature[k];
-			if(temperature<0.7){
+			if (temperature < 0.7) {
 				g_buffers->phases[k] = phases[0];
-			}else if(temperature>=0.7 &&  temperature<1.3){
+			} else if (temperature >= 0.7 && temperature < 1.3) {
 				g_buffers->phases[k] = phases[1];
-			}else{
+			} else {
 				g_buffers->phases[k] = phases[2];
 			}
 
 		}
-
 
 		return getState();
 	}
@@ -689,7 +691,7 @@ public:
 
 		int numBars = numSceneDim * numSceneDim;
 		//The last four rows are the translational and rotational position and velocity for the moving bar
-		MatrixXd state(numPart*2 + 4 * numBars, 3);
+		MatrixXd state(numPart * 2 + 4 * numBars, 3);
 
 		state.setZero();
 		for (int i = 0; i < numBars; i++) {
@@ -698,28 +700,29 @@ public:
 
 			for (int j = 0; j < numPartInScene; j++) {
 
-				state.row(i * (numPartInScene*2 + 4) + j + 4) = Vector3d(
+				state.row(i * (numPartInScene * 2 + 4) + j + 4) = Vector3d(
 						g_buffers->positions[i * numPartInScene + j].x,
 						g_buffers->positions[i * numPartInScene + j].y,
 						g_buffers->positions[i * numPartInScene + j].z)
 						- Vector3d(cent.x, cent.y, cent.z);
 
-				state.row(i * (numPartInScene*2 + 4) + numPartInScene+j + 4) = Vector3d(particleTemperature[i * numPartInScene + j],0,0);
+				state.row(i * (numPartInScene * 2 + 4) + numPartInScene + j + 4) =
+						Vector3d(particleTemperature[i * numPartInScene + j], 0,
+								0);
 			}
 
-
-			state.row(i * (2*numPartInScene + 4)) = Vector3d(currPoses[i].x,
+			state.row(i * (2 * numPartInScene + 4)) = Vector3d(currPoses[i].x,
 					currPoses[i].y, currPoses[i].z)
 					- Vector3d(cent.x, cent.y, cent.z);
 
-			state.row(i * (2*numPartInScene + 4) + 1) = Vector3d(currRots[i].x,
-					currRots[i].y, currRots[i].z);
+			state.row(i * (2 * numPartInScene + 4) + 1) = Vector3d(
+					currRots[i].x, currRots[i].y, currRots[i].z);
 
-			state.row(i * (2*numPartInScene + 4) + 2) = Vector3d(currVels[i].x,
-					currVels[i].y, currVels[i].z);
+			state.row(i * (2 * numPartInScene + 4) + 2) = Vector3d(
+					currVels[i].x, currVels[i].y, currVels[i].z);
 
-			state.row(i * (2*numPartInScene + 4) + 3) = Vector3d(currAngVels[i].x,
-					currAngVels[i].y, currAngVels[i].z);
+			state.row(i * (2 * numPartInScene + 4) + 3) = Vector3d(
+					currAngVels[i].x, currAngVels[i].y, currAngVels[i].z);
 
 		}
 		return state;

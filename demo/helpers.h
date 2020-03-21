@@ -884,7 +884,7 @@ void AddTriangleMesh(NvFlexTriangleMeshId mesh, Vec3 translation, Quat rotation,
 	g_buffers->shapeColors.push_back(color);
 }
 
-NvFlexDistanceFieldId CreateSDF(const char* meshFile, int dim, float margin =
+NvFlexDistanceFieldId CreateSDF (const char* meshFile, int dim, float margin =
 		0.1f, float expand = 0.0f) {
 	Mesh* mesh = ImportMesh(meshFile);
 
@@ -1209,113 +1209,7 @@ void CreateSpringCubeAroundCenter(Vec3 center, int dx, int dy, int dz,
 			}
 		}
 	}
-//
-//	// x axis strech
-//	// zx shear
-//	for (int z = 0; z < dz; ++z) {
-//		for (int y = 0; y < dy; ++y) {
-//			for (int x = 0; x < dx; ++x) {
-//
-//				int index0 = z * dy * dx + y * dx + x;
-//
-//				if (x > 0) {
-//					int index1 = z * dy * dx + y * dx + x - 1;
-//					CreateSpring(baseIndex + index0, baseIndex + index1,
-//							stretchStiffness);
-//				}
-////
-////				if (x > 1) {
-////					int index2 = z * dy * dx + y * dx + x - 2;
-////					CreateSpring(baseIndex + index0, baseIndex + index2,
-////							bendStiffness);
-////				}
-////
-//				if (z > 0 && x < dx - 1) {
-//					int indexDiag = (z - 1) * dy * dx + y * dx + x + 1;
-//					CreateSpring(baseIndex + index0, baseIndex + indexDiag,
-//							shearStiffness);
-//				}
-//
-//				if (z > 0 && x > 0) {
-//					int indexDiag = (z - 1) * dy * dx + y * dx + x - 1;
-//					CreateSpring(baseIndex + index0, baseIndex + indexDiag,
-//							shearStiffness);
-//				}
-//			}
-//		}
-//	}
-//
-//	// y axis
-//	// xy shear
-//	for (int z = 0; z < dz; ++z) {
-//		for (int y = 0; y < dy; ++y) {
-//			for (int x = 0; x < dx; ++x) {
-//
-//				int index0 = z * dy * dx + y * dx + x;
-//
-//				if (y > 0) {
-//					int index1 = z * dy * dx + (y - 1) * dx + x;
-//					CreateSpring(baseIndex + index0, baseIndex + index1,
-//							stretchStiffness);
-//				}
-////
-////				if (y > 1) {
-////					int index2 = z * dy * dx + (y - 2) * dx + x;
-////					CreateSpring(baseIndex + index0, baseIndex + index2,
-////							bendStiffness);
-////				}
-//
-//				if (y > 0 && x < dx - 1) {
-//					int indexDiag = z * dy * dx + (y - 1) * dx + x + 1;
-//					CreateSpring(baseIndex + index0, baseIndex + indexDiag,
-//							shearStiffness);
-//				}
-//
-//				if (y > 0 && x > 0) {
-//					int indexDiag = z * dy * dx + (y - 1) * dx + x - 1;
-//					CreateSpring(baseIndex + index0, baseIndex + indexDiag,
-//							shearStiffness);
-//				}
-//
-//			}
-//		}
-//	}
-//
-//	// z axis
-//	// yz shear
-//	for (int z = 0; z < dz; ++z) {
-//		for (int y = 0; y < dy; ++y) {
-//			for (int x = 0; x < dx; ++x) {
-//
-//				int index0 = (z * dy * dx) + ((y) * dx) + x;
-//
-//				if (z > 0) {
-//					int index1 = ((z - 1) * dy * dx) + (y * dx) + x;
-//					CreateSpring(baseIndex + index0, baseIndex + index1,
-//							stretchStiffness);
-//				}
-//
-////				if (z > 1) {
-////					int index2 = (z - 2) * dy * dx + y * dx + x;
-////					CreateSpring(baseIndex + index0, baseIndex + index2,
-////							bendStiffness);
-////				}
-//
-//				if (z > 0 && y < dy - 1) {
-//					int indexDiag = (z - 1) * dy * dx + (y + 1) * dx + x;
-//					CreateSpring(baseIndex + index0, baseIndex + indexDiag,
-//							shearStiffness);
-//				}
-//
-//				if (z > 0 && y > 0) {
-//					int indexDiag = (z - 1) * dy * dx + (y - 1) * dx + x;
-//					CreateSpring(baseIndex + index0, baseIndex + indexDiag,
-//							shearStiffness);
-//				}
-//
-//			}
-//		}
-//	}
+
 }
 
 void CreateGranularCubeAroundCenter(Vec3 center, int dx, int dy, int dz,
@@ -2094,6 +1988,7 @@ void ClearShapes() {
 	g_buffers->shapePrevPositions.resize(0);
 	g_buffers->shapePrevRotations.resize(0);
 	g_buffers->shapeFlags.resize(0);
+	g_buffers->shapeColors.resize(0);
 }
 
 void UpdateShapes() {

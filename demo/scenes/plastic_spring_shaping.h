@@ -39,7 +39,7 @@ public:
 	float kd_pos = 1.2;
 	float kp_rot = 0.7;
 	float kd_rot = 1;
-	Vec3 barDim = Vec3(1.7,1, 0.01);
+	Vec3 barDim = Vec3(0.7, 1.0, 0.01);
 
 	// Array of hash maps that store the neighbourhood of particles for which springs will be added.
 	map<int, std::vector<int>> *springFuseMap;
@@ -49,7 +49,7 @@ public:
 
 	// Stores the number of spings connected to each particle. Used for limiting the max spring connection
 	Eigen::VectorXi perPartSpringCnt;
-	float stiffness = 0.1f;
+	float stiffness = 0.5f;
 
 	float springFuseDist = radius * 2.0f;
 	float springBreakDist = radius * 3.0f;
@@ -62,6 +62,11 @@ public:
 	float minSpringDist = radius * 1.1;
 
 	int maxSpringPerPart = 8;
+
+
+	Mesh* mBarMesh;
+
+	vector<NvFlexTriangleMeshId> allMeshId;
 	PlasticSpringShaping(const char* name) :
 			Scene(name) {
 
@@ -69,16 +74,21 @@ public:
 		goalPos.setZero();
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
+
+		allMeshId.resize(0);
+
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
-			partInitialization(i, 3) = 10;
+			partInitialization(i, 3) = 5;
 			partInitialization(i, 4) = 2;
-			partInitialization(i, 5) = 10;
+			partInitialization(i, 5) = 5;
 		}
 
 	}
 
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
 
+		mBarMesh = CreateDoubleSidedQuadMesh(barDim[0],barDim[1]);
+		mBarMesh->CalculateNormals();
 		springFuseMap = new map<int, std::vector<int>> [numSceneDim
 				* numSceneDim];
 		bidirSpringMap = new map<std::pair<int, int>, int> [numSceneDim
@@ -90,6 +100,7 @@ public:
 		currRots.resize(0);
 		currVels.resize(0);
 		currAngVels.resize(0);
+
 		centers.clear();
 
 		Vec3 lower, upper;
@@ -97,12 +108,17 @@ public:
 		currRots.clear();
 		currVels.clear();
 		currAngVels.clear();
+
 		int channel = eNvFlexPhaseShapeChannel0;
 		int group = 0;
-
+		cout<<"AllMeshSize: "<<allMeshId.size()<<endl;
 		for (int i = 0; i < numSceneDim; i++) {
 			for (int j = 0; j < numSceneDim; j++) {
+
+
 				int idx = i * numSceneDim + j;
+				allMeshId.push_back(CreateTriangleMesh(mBarMesh));
+
 				Eigen::VectorXd particleClusterParam = partInitialization.row(
 						idx);
 
@@ -176,21 +192,20 @@ public:
 		g_numSubsteps = 3;
 
 		g_params.radius = radius;
-		g_params.staticFriction = 1.8f;
-		g_params.dynamicFriction = 1.3f;
+		g_params.staticFriction = 1.2f;
+		g_params.dynamicFriction = 0.8f;
 
 		g_params.viscosity = 0.0f;
 		g_params.numIterations = 4;
-		g_params.sleepThreshold = g_params.radius*0.25f;
+		g_params.sleepThreshold = g_params.radius * 0.25f;
 //		g_params.collisionDistance = radius*0.5f;
 //		g_params.relaxationMode = eNvFlexRelaxationGlobal;
 		g_params.relaxationFactor = 1.0f;
 		g_params.damping = 0.24f;
-
-		g_params.particleCollisionMargin = g_params.radius*0.25f;
-		g_params.shapeCollisionMargin = g_params.radius*0.25f;
+		g_params.restitution = 0.4f;
+		g_params.particleCollisionMargin = g_params.radius * 0.01f;
+		g_params.shapeCollisionMargin = g_params.radius * 0.01f;
 		g_params.numPlanes = 1;
-
 
 		// draw options
 		g_drawPoints = true;
@@ -198,6 +213,7 @@ public:
 		g_drawMesh = false;
 		g_warmup = false;
 
+		delete mBarMesh;
 		return getState();
 	}
 
@@ -343,7 +359,7 @@ public:
 	float calNewSpringRestLength(float length, float currRestLength) {
 		float res = currRestLength;
 
-		float ratio = length/currRestLength;
+		float ratio = length / currRestLength;
 		if (ratio <= springCompressThreshold) {
 
 			res = fmax(length, minSpringDist);
@@ -578,6 +594,10 @@ public:
 					maxf(newPos.z - centers[i].z, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].z;
 
+
+
+
+
 			Vec3 oldPos = currPoses[i];
 			Vec3 oldRot = currRots[i];
 			currPoses[i] = newPos;
@@ -603,34 +623,35 @@ public:
 			Quat oldQuat = QuatFromAxisAngle(Vec3(0, 1, 0), oldRot.y)
 					* QuatFromAxisAngle(Vec3(1, 0, 0), oldRot.x);
 			Vec3 oldRotatedVec = Rotate(oldQuat, Vec3(0, 1, 0));
-			AddBox(barDim, newPos + barDim[1] * rotatedVec, quat, true,
-					channel);
+
+
+			AddTriangleMesh(allMeshId[i], newPos + barDim[1] * rotatedVec, quat, Vec3(1.0f),
+					Vec3(0.3, 0.3, 1.0));
 
 			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
 					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
 			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
 					- 1] = oldQuat;
 
+
 			float linearVelThresh = 0.9f;
 //			float angVelThresh = 0.5f;
 //			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
 //					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
-//					|| abs(currAngVels[i].y) > angVelThreshf
+//					|| abs(currAngVels[i].y) > angVelThresh
 //					|| abs(currAngVels[i].z) > angVelThresh)) {
 //				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
 //						- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
 //				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
 //						- 1] = oldQuat;
 //			}
-
 			if (Length(currVels[i]) > linearVelThresh) {
 
+
 //				float t = maxf(1-(Length(currVels[i])-linearVelThresh)/linearVelThresh,0);
-				float t = 0.6f;
+				float t = 0.6;
 
-//				Vec3 interpPos = (oldPos * t + newPos * (1 - t));
-
-				Vec3 interpPos = (oldPos +t*linearVelThresh*g_dt);
+				Vec3 interpPos = (oldPos * t + newPos * (1 - t));
 				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
 						- 1] = Vec4(interpPos + barDim[1] * oldRotatedVec,
 						0.0f);
@@ -653,22 +674,23 @@ public:
 			updateSprings(action);
 		}
 
-		int phase2 = NvFlexMakePhaseWithChannels(1,
-				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
-				eNvFlexPhaseShapeChannel0);
-		int phase1 = NvFlexMakePhaseWithChannels(0,
-				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
-				eNvFlexPhaseShapeChannel0);
-		for (int k = 0; k < g_buffers->positions.size(); k++) {
-			if (abs(g_buffers->positions[k].y) < 0.11) {
-				g_buffers->phases[k] = phase2;
-//				cout<<g_buffers->positions[k].y<<endl;
-			} else {
+//		int phase2 = NvFlexMakePhaseWithChannels(1,
+//				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
+//				eNvFlexPhaseShapeChannel0);
+//		int phase1 = NvFlexMakePhaseWithChannels(0,
+//				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
+//				eNvFlexPhaseShapeChannel0);
+//		for (int k = 0; k < g_buffers->positions.size(); k++) {
+//			if (abs(g_buffers->positions[k].y) < 0.11) {
+//				g_buffers->phases[k] = phase2;
+////				cout<<g_buffers->positions[k].y<<endl;
+//			} else {
+//
+//				g_buffers->phases[k] = phase1;
+//			}
+//		}
 
-				g_buffers->phases[k] = phase1;
-			}
-		}
-
+//		cout<<"Current Velocity: "<<currVels[0].x<<" "<<currVels[0].y<<" "<<currVels[0].z<<" "<<endl;
 //		if (g_frame % 100==0) {
 //			cout << g_frame << endl;
 //		}

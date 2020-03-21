@@ -681,9 +681,45 @@ Mesh* CreateQuadMesh(float size, float y) {
 
 	return m;
 }
+
+Mesh* CreateDoubleSidedQuadMesh(float x_half_extent,float y_half_extent) {
+	uint32_t indices[] = { 0, 1, 2, 2, 3, 0, 4, 6, 5, 6, 4, 7 };
+
+	Point3 positions[8];
+	Vec3 normals[8];
+
+
+	positions[0] = Point3(-x_half_extent, y_half_extent, 0);
+	positions[1] = Point3(x_half_extent, y_half_extent, 0);
+	positions[2] = Point3(x_half_extent, -y_half_extent, 0);
+	positions[3] = Point3(-x_half_extent, -y_half_extent, 0);
+
+	positions[4] = Point3(-x_half_extent, y_half_extent, 0);
+	positions[5] = Point3(x_half_extent, y_half_extent, 0);
+	positions[6] = Point3(x_half_extent, -y_half_extent, 0);
+	positions[7] = Point3(-x_half_extent, -y_half_extent, 0);
+
+	normals[0] = Vec3(0.0f, 1.0f, 0.0f);
+	normals[1] = Vec3(0.0f, 1.0f, 0.0f);
+	normals[2] = Vec3(0.0f, 1.0f, 0.0f);
+	normals[3] = Vec3(0.0f, 1.0f, 0.0f);
+	normals[4] = Vec3(0.0f, 1.0f, 0.0f);
+	normals[5] = Vec3(0.0f, 1.0f, 0.0f);
+	normals[6] = Vec3(0.0f, 1.0f, 0.0f);
+	normals[7] = Vec3(0.0f, 1.0f, 0.0f);
+
+	Mesh* m = new Mesh();
+
+	m->m_indices.insert(m->m_indices.begin(), indices, indices + 12);
+	m->m_positions.insert(m->m_positions.begin(), positions, positions + 8);
+	m->m_normals.insert(m->m_normals.begin(), normals, normals + 8);
+
+	return m;
+}
+
 Mesh* CreatePanMesh(float radius_base, float radius_top, float depth,
 		int segments) {
-	const uint32_t numVerts = segments * 2+1;
+	const uint32_t numVerts = segments * 2 + 1;
 	Mesh* m = new Mesh();
 
 	m->m_positions.resize(numVerts);
@@ -701,7 +737,6 @@ Mesh* CreatePanMesh(float radius_base, float radius_top, float depth,
 		m->m_positions[segments + i] = Point3(
 				radius_top * Sin((float(i) / segments) * k2Pi), depth,
 				radius_top * Cos((float(i) / segments) * k2Pi));
-
 
 //		m->m_positions[segments*2+i] = Point3(
 //				radius_base * Sin((float(i) / segments) * k2Pi), 0.0f,
@@ -739,13 +774,7 @@ Mesh* CreatePanMesh(float radius_base, float radius_top, float depth,
 //		m->m_indices.push_back(segments*2+nextIdx);
 //		m->m_indices.push_back(segments*2+i);
 
-
-
-
 	}
-
-
-
 
 //	for (uint32_t i = 0; i < segments; ++i) {
 //

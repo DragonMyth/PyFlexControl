@@ -39,7 +39,7 @@ public:
 	float kd_pos = 1.2;
 	float kp_rot = 0.7;
 	float kd_rot = 1;
-	Vec3 barDim = Vec3(1.7, 0.01, 1.7);
+	Vec3 barDim = Vec3(0.7, 1.0, 0.01);
 
 	// Array of hash maps that store the neighbourhood of particles for which springs will be added.
 	map<int, std::vector<int>> *springFuseMap;
@@ -62,6 +62,11 @@ public:
 	float minSpringDist = radius * 1.1;
 
 	int maxSpringPerPart = 8;
+
+
+	Mesh* mBarMesh;
+
+	vector<NvFlexTriangleMeshId> allMeshId;
 	PlasticSpringShapingManualControl(const char* name) :
 			Scene(name) {
 
@@ -69,6 +74,9 @@ public:
 		goalPos.setZero();
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
+
+		allMeshId.resize(numSceneDim * numSceneDim);
+
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
 			partInitialization(i, 3) = 5;
 			partInitialization(i, 4) = 2;
@@ -79,6 +87,8 @@ public:
 
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
 
+		mBarMesh = CreateDoubleSidedQuadMesh(barDim[0],barDim[1]);
+		mBarMesh->CalculateNormals();
 		springFuseMap = new map<int, std::vector<int>> [numSceneDim
 				* numSceneDim];
 		bidirSpringMap = new map<std::pair<int, int>, int> [numSceneDim
@@ -90,6 +100,7 @@ public:
 		currRots.resize(0);
 		currVels.resize(0);
 		currAngVels.resize(0);
+
 		centers.clear();
 
 		Vec3 lower, upper;
@@ -97,12 +108,17 @@ public:
 		currRots.clear();
 		currVels.clear();
 		currAngVels.clear();
+
 		int channel = eNvFlexPhaseShapeChannel0;
 		int group = 0;
 
 		for (int i = 0; i < numSceneDim; i++) {
 			for (int j = 0; j < numSceneDim; j++) {
+
+
 				int idx = i * numSceneDim + j;
+				allMeshId[idx] = CreateTriangleMesh(mBarMesh);
+
 				Eigen::VectorXd particleClusterParam = partInitialization.row(
 						idx);
 
@@ -187,8 +203,8 @@ public:
 		g_params.relaxationFactor = 1.0f;
 		g_params.damping = 0.24f;
 		g_params.restitution = 0.4f;
-		g_params.particleCollisionMargin = g_params.radius * 0.25f;
-		g_params.shapeCollisionMargin = g_params.radius * 0.25f;
+		g_params.particleCollisionMargin = g_params.radius * 0.01f;
+		g_params.shapeCollisionMargin = g_params.radius * 0.01f;
 		g_params.numPlanes = 1;
 
 		// draw options
@@ -197,6 +213,7 @@ public:
 		g_drawMesh = false;
 		g_warmup = false;
 
+		delete mBarMesh;
 		return getState();
 	}
 
@@ -606,8 +623,10 @@ public:
 			Quat oldQuat = QuatFromAxisAngle(Vec3(0, 1, 0), oldRot.y)
 					* QuatFromAxisAngle(Vec3(1, 0, 0), oldRot.x);
 			Vec3 oldRotatedVec = Rotate(oldQuat, Vec3(0, 1, 0));
-			AddBox(barDim, newPos + barDim[1] * rotatedVec, quat, false,
-					channel);
+
+
+			AddTriangleMesh(allMeshId[i], newPos + barDim[1] * rotatedVec, quat, Vec3(1.0f),
+					Vec3(0.3, 0.3, 1.0));
 
 			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
 					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);

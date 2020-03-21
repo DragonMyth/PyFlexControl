@@ -188,7 +188,7 @@ std::map<NvFlexDistanceFieldId, GpuMesh*> g_fields;
 
 // flag to request collision shapes be updated
 bool g_shapesChanged = false;
-bool visualize = true;
+bool visualize = false;
 
 /* Note that this array of colors is altered by demo code, and is also read from global by graphics API impls */
 Colour g_colors[] = { Colour(0.0f, 0.5f, 1.0f), Colour(0.797f, 0.354f, 0.000f),
@@ -2840,14 +2840,14 @@ int main(int argc, char* argv[]) {
 //	g_scenes.push_back(
 //				new GranularSweepShapingManualControl("Granular Reshaping Single Instance"));
 //`
-//	g_scenes.push_back(
-//			new PlasticSpringShaping("Plastic Reshaping Using Springs"));
-//	g_scenes.push_back(
-//			new PlasticSpringShapingManualControl(
-//					"Plastic Reshaping Using Springs Single Instance"));
-
-//	g_scenes.push_back(new GranularFlipping("Granular Flipping"));
-//	g_scenes.push_back(new GranularFlippingManualControl("Granular Flipping Single Instance"));
+	g_scenes.push_back(
+			new PlasticSpringShaping("Plastic Reshaping Using Springs"));
+	g_scenes.push_back(
+			new PlasticSpringShapingManualControl(
+					"Plastic Reshaping Using Springs Single Instance"));
+//
+	g_scenes.push_back(new GranularFlipping("Granular Flipping"));
+	g_scenes.push_back(new GranularFlippingManualControl("Granular Flipping Single Instance"));
 
 	g_scenes.push_back(
 				new PlasticSpringFlipping(

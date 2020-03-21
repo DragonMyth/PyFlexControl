@@ -76,3 +76,4 @@ Mesh* CreateSphere(int slices, int segments, float radius = 1.0f);
 Mesh* CreateCapsule(int slices, int segments, float radius = 1.0f, float halfHeight = 1.0f);
 Mesh* CreatePanMesh(float radius_base, float radius_top, float depth,
 		int segments);
+Mesh* CreateDoubleSidedQuadMesh(float x_half_extent,float y_half_extent);
