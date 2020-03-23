@@ -49,7 +49,7 @@ public:
 
 	// Stores the number of spings connected to each particle. Used for limiting the max spring connection
 	Eigen::VectorXi perPartSpringCnt;
-	float stiffness = 0.5f;
+	float stiffness = 0.1f;
 
 	float springFuseDist = radius * 2.0f;
 	float springBreakDist = radius * 3.0f;
@@ -74,6 +74,8 @@ public:
 		goalPos.setZero();
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
+
+//		allMeshId.resize(numSceneDim * numSceneDim);
 
 		allMeshId.resize(0);
 
@@ -117,6 +119,8 @@ public:
 
 
 				int idx = i * numSceneDim + j;
+//				allMeshId[idx] = (CreateTriangleMesh(mBarMesh));
+
 				allMeshId.push_back(CreateTriangleMesh(mBarMesh));
 
 				Eigen::VectorXd particleClusterParam = partInitialization.row(
@@ -192,8 +196,8 @@ public:
 		g_numSubsteps = 3;
 
 		g_params.radius = radius;
-		g_params.staticFriction = 1.2f;
-		g_params.dynamicFriction = 0.8f;
+		g_params.staticFriction = 1.8f;
+		g_params.dynamicFriction = 1.3f;
 
 		g_params.viscosity = 0.0f;
 		g_params.numIterations = 4;
@@ -202,9 +206,8 @@ public:
 //		g_params.relaxationMode = eNvFlexRelaxationGlobal;
 		g_params.relaxationFactor = 1.0f;
 		g_params.damping = 0.24f;
-		g_params.restitution = 0.4f;
-		g_params.particleCollisionMargin = g_params.radius * 0.01f;
-		g_params.shapeCollisionMargin = g_params.radius * 0.01f;
+		g_params.particleCollisionMargin = g_params.radius * 0.1f;
+		g_params.shapeCollisionMargin = g_params.radius * 0.1f;
 		g_params.numPlanes = 1;
 
 		// draw options
@@ -625,7 +628,8 @@ public:
 			Vec3 oldRotatedVec = Rotate(oldQuat, Vec3(0, 1, 0));
 
 
-			AddTriangleMesh(allMeshId[i], newPos + barDim[1] * rotatedVec, quat, Vec3(1.0f),
+//			AddBox(barDim,newPos + barDim[1] * rotatedVec, quat,false,channel)
+			AddTriangleMesh(allMeshId[i+numSceneDim*numSceneDim], newPos + barDim[1] * rotatedVec, quat, Vec3(1.0f),
 					Vec3(0.3, 0.3, 1.0));
 
 			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
@@ -674,21 +678,21 @@ public:
 			updateSprings(action);
 		}
 
-//		int phase2 = NvFlexMakePhaseWithChannels(1,
-//				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
-//				eNvFlexPhaseShapeChannel0);
-//		int phase1 = NvFlexMakePhaseWithChannels(0,
-//				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
-//				eNvFlexPhaseShapeChannel0);
-//		for (int k = 0; k < g_buffers->positions.size(); k++) {
-//			if (abs(g_buffers->positions[k].y) < 0.11) {
-//				g_buffers->phases[k] = phase2;
-////				cout<<g_buffers->positions[k].y<<endl;
-//			} else {
-//
-//				g_buffers->phases[k] = phase1;
-//			}
-//		}
+		int phase2 = NvFlexMakePhaseWithChannels(1,
+				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
+				eNvFlexPhaseShapeChannel0);
+		int phase1 = NvFlexMakePhaseWithChannels(0,
+				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
+				eNvFlexPhaseShapeChannel0);
+		for (int k = 0; k < g_buffers->positions.size(); k++) {
+			if (abs(g_buffers->positions[k].y) < 0.11) {
+				g_buffers->phases[k] = phase2;
+//				cout<<g_buffers->positions[k].y<<endl;
+			} else {
+
+				g_buffers->phases[k] = phase1;
+			}
+		}
 
 //		cout<<"Current Velocity: "<<currVels[0].x<<" "<<currVels[0].y<<" "<<currVels[0].z<<" "<<endl;
 //		if (g_frame % 100==0) {

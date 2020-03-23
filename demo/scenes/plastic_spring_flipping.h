@@ -50,7 +50,7 @@ public:
 
 	// Stores the number of spings connected to each particle. Used for limiting the max spring connection
 	Eigen::VectorXi perPartSpringCnt;
-	float stiffness = 0.05f;
+	float stiffness = 0.5f;
 
 	float springFuseDist = radius * 2.0f;
 	float springBreakDist = radius * 3.0f;
@@ -83,9 +83,11 @@ public:
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
 
-		allMeshId.resize(numSceneDim * numSceneDim);
+//		allMeshId.resize(numSceneDim * numSceneDim);
+		allMeshId.resize(0);
+
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
-			partInitialization(i, 1) = 2;
+			partInitialization(i, 1) = 6;
 			partInitialization(i, 3) = 5;
 			partInitialization(i, 4) = 5;
 			partInitialization(i, 5) = 5;
@@ -135,12 +137,15 @@ public:
 				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 				eNvFlexPhaseShapeChannel0);
 
+
+		cout<<"MeshIdSize: "<<allMeshId.size()<<endl;
 		for (int i = 0; i < numSceneDim; i++) {
 			for (int j = 0; j < numSceneDim; j++) {
 
 
 				int idx = i * numSceneDim + j;
-				allMeshId[idx] = (CreateTriangleMesh(mPanMesh));
+//				allMeshId[idx] = (CreateTriangleMesh(mPanMesh));
+				allMeshId.push_back(CreateTriangleMesh(mPanMesh));
 
 				Eigen::VectorXd particleClusterParam = partInitialization.row(
 						idx);
@@ -584,14 +589,14 @@ public:
 					|| newPos.z - centers[i].z > playgroundHalfExtent) {
 				currVels[i].z = 0;
 			}
-			if (newPos.y - centers[i].y < 2 || newPos.y - centers[i].y > 5) {
+			if (newPos.y - centers[i].y < 4 || newPos.y - centers[i].y > 7) {
 				currVels[i].y = 0;
 			}
 
 			newPos.x = minf(
 					maxf(newPos.x - centers[i].x, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].x;
-			newPos.y = minf(maxf(newPos.y - centers[i].y, 2), 5) + centers[i].y;
+			newPos.y = minf(maxf(newPos.y - centers[i].y, 4), 7) + centers[i].y;
 			newPos.z = minf(
 					maxf(newPos.z - centers[i].z, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].z;
@@ -619,7 +624,7 @@ public:
 			Quat oldQuat = QuatFromAxisAngle(Vec3(0, 1, 0), oldRot.y)
 					* QuatFromAxisAngle(Vec3(1, 0, 0), oldRot.x);
 
-			AddTriangleMesh(allMeshId[i], newPos, quat, Vec3(1.0f),
+			AddTriangleMesh(allMeshId[numSceneDim*numSceneDim+i], newPos, quat, Vec3(1.0f),
 					Vec3(0.3, 0.3, 1.0));
 
 			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
