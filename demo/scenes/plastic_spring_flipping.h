@@ -65,7 +65,7 @@ public:
 	int maxSpringPerPart = 8;
 
 	float coolDownRate = 0.07f;
-	float heatRate = 0.3f;
+	float heatRate = 0.2f;
 
 	vector<float> particleTemperature;
 
@@ -656,10 +656,10 @@ public:
 
 		UpdateShapes();
 
-		if (g_frame % 10 == 0) {
-			updateSpaceMap();
-			updateSprings(action);
-		}
+//		if (g_frame % 10 == 0) {
+//			updateSpaceMap();
+//			updateSprings(action);
+//		}
 
 		updateParticleTemperature();
 		for (int k = 0; k < g_buffers->positions.size(); k++) {

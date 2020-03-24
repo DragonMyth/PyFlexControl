@@ -479,18 +479,9 @@ void ReadFrame(int* backbuffer, int width, int height)
 	glVerify(glReadBuffer(GL_BACK));
 //	glVerify(glReadBuffer(GL_COLOR_ATTACHMENT0));
 
-	float buff[width*height];
-	//	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, backbuffer);
+	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, backbuffer);
 //	glReadPixels(0, 0, width, height, GL_DEPTH_COMPONENT, GL_FLOAT, buff);
 
-	glReadPixels(100, 100, 105, 105, GL_DEPTH_COMPONENT32, GL_FLOAT, buff);
-
-	for(int i=0;i<5;i++){
-		for(int j=0;j<5;j++){
-			std::cout<<buff[i*5+j]<<" ";
-		}
-		std::cout<<std::endl;
-	}
 
 
 }
