@@ -64,7 +64,7 @@ public:
 
 	int maxSpringPerPart = 8;
 
-	float coolDownRate = 0.07f;
+	float coolDownRate = 0.00f;
 	float heatRate = 0.2f;
 
 	vector<float> particleTemperature;
