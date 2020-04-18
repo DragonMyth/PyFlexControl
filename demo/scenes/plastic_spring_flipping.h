@@ -64,7 +64,7 @@ public:
 
 	int maxSpringPerPart = 8;
 
-	float coolDownRate = 0.00f;
+	float coolDownRate = 0.03f;
 	float heatRate = 0.2f;
 
 	vector<float> particleTemperature;
@@ -508,7 +508,12 @@ public:
 
 			Vec3 vxu = Cross(v, u);
 
-			if (Dot(pos - panPos, vxu) > 0 && Dot(pos - panPos, vxu) < 0.11) {
+			Vec3 diff = pos-panPos;
+
+			float uComp = Dot(diff,u);
+			float vComp = Dot(diff,v);
+			Vec2 planarVec = Vec2(uComp,vComp);
+			if (Dot(diff, vxu) > 0 && Dot(diff, vxu) < 0.11 && Length(planarVec)<barDim[0]) {
 
 				particleTemperature[k] += heatRate * g_dt;
 
