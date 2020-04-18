@@ -14,7 +14,7 @@ public:
 //	int dimx = 10;
 //	int dimy = 2;
 //	int dimz = 10;
-	float radius = 0.2f;
+	float radius = 0.1f;
 	int actionDim = 7;
 	float playgroundHalfExtent = 4;
 
@@ -77,12 +77,12 @@ public:
 
 //		allMeshId.resize(numSceneDim * numSceneDim);
 
-		allMeshId.resize(0);
+//		allMeshId.resize(0);
 
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
-			partInitialization(i, 3) = 5;
-			partInitialization(i, 4) = 2;
-			partInitialization(i, 5) = 5;
+			partInitialization(i, 3) = 10;
+			partInitialization(i, 4) = 10;
+			partInitialization(i, 5) = 10;
 		}
 
 	}
@@ -146,7 +146,7 @@ public:
 					CreateSpringCubeAroundCenter(center + offsetPos,
 							clusterDimx, clusterDimy, clusterDimz,
 							springFuseDist / sqrt(2), phase1, stiffness,
-							stiffness, stiffness, 0.0f, 1.0f);
+							stiffness, stiffness, 0.0f, 8.0f);
 //					CreateGranularCubeAroundCenter(center + offsetPos,
 //												clusterDimx, clusterDimy, clusterDimz,
 //												radius * 1.7f, phase1, Vec3(0.0, 0.0, 0.0), 1.0f,0.0f);

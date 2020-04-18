@@ -45,6 +45,7 @@ PYBIND11_MODULE(bindings, m) {
 
 	m.def("getParticleDensity",&getParticleDensity,"getParticleDensity");
 	m.def("getParticleHeightMap",&getParticleHeightMap,"getParticleHeightMap");
+	m.def("getParticleAngularVelocity",&getParticleAngularVelocity,"getParticleAngularVelocity");
 
 	m.def("simulateKSteps",&simulateKSteps,"simulateKSteps");
 	m.def("setInitClusterParam", &setInitClusterParam, "setInitClusterParam");

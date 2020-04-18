@@ -2465,6 +2465,37 @@ Eigen::MatrixXd getParticleDensity(Eigen::MatrixXd particles, int resolution,
 
 }
 
+Eigen::Vector3d getParticleAngularVelocity(Eigen::MatrixXd prevParticles, Eigen::MatrixXd currParticles){
+	Eigen::Vector3d COM1(0);
+	Eigen::Vector3d COM2(0);
+	for (int i = 0; i < prevParticles.rows(); i++) {
+		Eigen::Vector3d prevPartPos(prevParticles.row(i));
+		Eigen::Vector3d currPartPos(currParticles.row(i));
+		COM1+=prevPartPos;
+		COM2+=currPartPos;
+	}
+	COM1/=(1.0f*prevParticles.rows());
+	COM2/=(1.0f*prevParticles.rows());
+	Eigen::Vector3d angVel(0);
+	for (int i = 0; i < prevParticles.rows(); i++) {
+		Eigen::Vector3d prevPartPos(prevParticles.row(i));
+		Eigen::Vector3d currPartPos(currParticles.row(i));
+
+		Eigen::Vector3d r1(prevPartPos-COM1);
+		Eigen::Vector3d r2(currPartPos-COM2);
+
+		Eigen::Vector3d axisOfRotation(r1.cross(r2));
+		if(axisOfRotation.norm()>0.0001){
+			axisOfRotation.normalize();
+		}else{
+			axisOfRotation*=0;
+		}
+		angVel+=axisOfRotation;
+	}
+	angVel/=(1.0f*prevParticles.rows());
+	return angVel;
+
+}
 
 Eigen::MatrixXd getParticleHeightMap(Eigen::MatrixXd particles, Eigen::VectorXd heights,int resolution,
 		float width,float mapHalfExtent) {
