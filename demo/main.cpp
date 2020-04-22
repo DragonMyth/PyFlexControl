@@ -2843,12 +2843,12 @@ int main(int argc, char* argv[]) {
 //`
 //	g_scenes.push_back(
 //			new PlasticSpringShaping("Plastic Reshaping Using Springs"));
-	g_scenes.push_back(
-			new PlasticSpringShapingManualControl(
-					"Plastic Reshaping Using Springs Single Instance"));
+//	g_scenes.push_back(
+//			new PlasticSpringShapingManualControl(
+//					"Plastic Reshaping Using Springs Single Instance"));
 //
-	g_scenes.push_back(new GranularFlipping("Granular Flipping"));
-	g_scenes.push_back(new GranularFlippingManualControl("Granular Flipping Single Instance"));
+//	g_scenes.push_back(new GranularFlipping("Granular Flipping"));
+//	g_scenes.push_back(new GranularFlippingManualControl("Granular Flipping Single Instance"));
 
 	g_scenes.push_back(
 				new PlasticSpringFlipping(

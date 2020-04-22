@@ -85,7 +85,7 @@ public:
 
 		allMeshId.resize(numSceneDim * numSceneDim);
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
-			partInitialization(i, 1) = 2;
+			partInitialization(i, 1) = 3;
 			partInitialization(i, 3) = 5;
 			partInitialization(i, 4) = 5;
 			partInitialization(i, 5) = 5;
@@ -97,7 +97,9 @@ public:
 
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
 
-		mPanMesh = CreatePanMesh(barDim[0], barDim[1], barDim[2], 100);
+//		mPanMesh = CreatePanMesh(barDim[0], barDim[1], barDim[2], 100);
+		mPanMesh = ImportMesh(GetFilePathByPlatform("../../data/pan_recentered.obj").c_str());
+
 		mPanMesh->CalculateNormals();
 
 		springFuseMap = new map<int, std::vector<int>> [numSceneDim
@@ -620,8 +622,8 @@ public:
 			Quat oldQuat = QuatFromAxisAngle(Vec3(0, 1, 0), oldRot.y)
 					* QuatFromAxisAngle(Vec3(1, 0, 0), oldRot.x);
 
-			AddTriangleMesh(allMeshId[i], newPos, quat, Vec3(1.0f),
-					Vec3(0.3, 0.3, 1.0));
+			AddTriangleMesh(allMeshId[i], newPos, quat, Vec3(0.01f),
+					Vec3(0.3, 0.3, 0.3));
 
 			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
 					- 1] = Vec4(oldPos, 0.0f);
