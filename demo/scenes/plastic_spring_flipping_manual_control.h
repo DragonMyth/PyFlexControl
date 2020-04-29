@@ -98,7 +98,7 @@ public:
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
 
 //		mPanMesh = CreatePanMesh(barDim[0], barDim[1], barDim[2], 100);
-		mPanMesh = ImportMesh(GetFilePathByPlatform("../../data/pan_recentered.obj").c_str());
+		mPanMesh = ImportMesh(GetFilePathByPlatform("/home/yzhang/FleX_PyBind11/data/pan_recentered.obj").c_str());
 
 		mPanMesh->CalculateNormals();
 

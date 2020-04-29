@@ -2484,15 +2484,19 @@ Eigen::Vector3d getParticleAngularVelocity(Eigen::MatrixXd prevParticles, Eigen:
 		Eigen::Vector3d r1(prevPartPos-COM1);
 		Eigen::Vector3d r2(currPartPos-COM2);
 
+		r1.normalize();
+		r2.normalize();
 		Eigen::Vector3d axisOfRotation(r1.cross(r2));
-		if(axisOfRotation.norm()>0.0001){
-			axisOfRotation.normalize();
-		}else{
-			axisOfRotation*=0;
-		}
+//		if(axisOfRotation.norm()>0.0001){
+//			axisOfRotation.normalize();
+//		}else{
+//			axisOfRotation*=0;
+//		}
 		angVel+=axisOfRotation;
 	}
 	angVel/=(1.0f*prevParticles.rows());
+
+
 	return angVel;
 
 }

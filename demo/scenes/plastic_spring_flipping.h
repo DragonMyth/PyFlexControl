@@ -99,8 +99,8 @@ public:
 
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
 
-//		mPanMesh = CreatePanMesh(barDim[0], barDim[1], barDim[2], 100);
-		mPanMesh = ImportMesh(GetFilePathByPlatform("../../data/pan_recentered.obj").c_str());
+		mPanMesh = CreatePanMesh(barDim[0], barDim[1], barDim[2], 100);
+//mPanMesh = ImportMesh(GetFilePathByPlatform("/home/yzhang/FleX_PyBind11/data/pan_recentered.obj").c_str());
 
 		mPanMesh->CalculateNormals();
 
@@ -631,9 +631,11 @@ public:
 			Quat oldQuat = QuatFromAxisAngle(Vec3(0, 1, 0), oldRot.y)
 					* QuatFromAxisAngle(Vec3(1, 0, 0), oldRot.x);
 
-			AddTriangleMesh(allMeshId[i], newPos, quat, Vec3(0.01f),
-					Vec3(0.3, 0.3, 0.3));
+//			AddTriangleMesh(allMeshId[i], newPos, quat, Vec3(0.01f),
+//					Vec3(0.3, 0.3, 0.3));
 
+			AddTriangleMesh(allMeshId[i], newPos, quat, Vec3(1.0f),
+					Vec3(0.3, 0.3, 0.3));
 			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
 					- 1] = Vec4(oldPos, 0.0f);
 			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
