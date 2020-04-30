@@ -2412,6 +2412,10 @@ void setController(Eigen::MatrixXd controllerConfig) {
 	UnmapBuffers(g_buffers);
 }
 
+void setAuxInfo(Eigen::MatrixXd info){
+	g_scenes[g_scene]->UpdateGUI(info);
+}
+
 Eigen::MatrixXd getParticleDensity(Eigen::MatrixXd particles, int resolution,
 		float width,float mapHalfExtent) {
 	Eigen::MatrixXd density(resolution, resolution);
@@ -2487,14 +2491,11 @@ Eigen::Vector3d getParticleAngularVelocity(Eigen::MatrixXd prevParticles, Eigen:
 		r1.normalize();
 		r2.normalize();
 		Eigen::Vector3d axisOfRotation(r1.cross(r2));
-//		if(axisOfRotation.norm()>0.0001){
-//			axisOfRotation.normalize();
-//		}else{
-//			axisOfRotation*=0;
-//		}
+
 		angVel+=axisOfRotation;
 	}
 	angVel/=(1.0f*prevParticles.rows());
+
 
 
 	return angVel;

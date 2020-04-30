@@ -57,6 +57,11 @@ public:
 	virtual Eigen::MatrixXd Update(Eigen::VectorXd act) {
 		return getState();
 	}
+
+	virtual void UpdateGUI(Eigen::MatrixXd info){
+
+	}
+
 	virtual Eigen::MatrixXd getState() {
 		return Eigen::MatrixXd(1, 1);
 	}

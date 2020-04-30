@@ -50,7 +50,7 @@ public:
 
 	// Stores the number of spings connected to each particle. Used for limiting the max spring connection
 	Eigen::VectorXi perPartSpringCnt;
-	float stiffness = 0.05f;
+	float stiffness = 0.5f;
 
 	float springFuseDist = radius * 2.0f;
 	float springBreakDist = radius * 3.0f;
@@ -64,8 +64,8 @@ public:
 
 	int maxSpringPerPart = 8;
 
-	float coolDownRate = 0.07f;
-	float heatRate = 0.3f;
+	float coolDownRate = 0.03f;
+	float heatRate = 0.2f;
 
 	vector<float> particleTemperature;
 
@@ -75,6 +75,7 @@ public:
 
 	vector<NvFlexTriangleMeshId> allMeshId;
 
+	vector<Vec3> angVelAx;
 	PlasticSpringFlippingManualControl(const char* name) :
 			Scene(name) {
 
@@ -83,22 +84,24 @@ public:
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
 
-		allMeshId.resize(numSceneDim * numSceneDim);
+
+//		allMeshId.resize(numSceneDim * numSceneDim);
+		allMeshId.resize(0);
+
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
-			partInitialization(i, 1) = 3;
-			partInitialization(i, 3) = 5;
-			partInitialization(i, 4) = 5;
-			partInitialization(i, 5) = 5;
+			partInitialization(i, 1) = 6;
+			partInitialization(i, 3) = 7;
+			partInitialization(i, 4) = 2;
+			partInitialization(i, 5) = 7;
 
 		}
-
 
 	}
 
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
 
-//		mPanMesh = CreatePanMesh(barDim[0], barDim[1], barDim[2], 100);
-		mPanMesh = ImportMesh(GetFilePathByPlatform("/home/yzhang/FleX_PyBind11/data/pan_recentered.obj").c_str());
+		mPanMesh = CreatePanMesh(barDim[0], barDim[1], barDim[2], 100);
+//mPanMesh = ImportMesh(GetFilePathByPlatform("/home/yzhang/FleX_PyBind11/data/pan_recentered.obj").c_str());
 
 		mPanMesh->CalculateNormals();
 
@@ -107,12 +110,13 @@ public:
 		bidirSpringMap = new map<std::pair<int, int>, int> [numSceneDim
 				* numSceneDim];
 		g_lightDistance *= 100.5f;
-
 		centers.resize(0);
+
 		currPoses.resize(0);
 		currRots.resize(0);
 		currVels.resize(0);
 		currAngVels.resize(0);
+		angVelAx.resize(0);
 
 		centers.clear();
 
@@ -137,12 +141,16 @@ public:
 				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 				eNvFlexPhaseShapeChannel0);
 
+
+		cout<<"MeshIdSize: "<<allMeshId.size()<<endl;
 		for (int i = 0; i < numSceneDim; i++) {
 			for (int j = 0; j < numSceneDim; j++) {
+				angVelAx.push_back(Vec3(0.0));
 
 
 				int idx = i * numSceneDim + j;
-				allMeshId[idx] = (CreateTriangleMesh(mPanMesh));
+//				allMeshId[idx] = (CreateTriangleMesh(mPanMesh));
+				allMeshId.push_back(CreateTriangleMesh(mPanMesh));
 
 				Eigen::VectorXd particleClusterParam = partInitialization.row(
 						idx);
@@ -236,11 +244,32 @@ public:
 		g_warmup = false;
 
 		delete mPanMesh;
-		cout<<"asf"<<endl;
 
 		return getState();
 	}
 
+	void UpdateGUI(Eigen::MatrixXd info){
+		for (int i = 0; i < centers.size(); i++) {
+			Vec3 ax(info.row(i)[0],info.row(i)[1],info.row(i)[2]);
+			angVelAx[i] =ax;
+		}
+	}
+
+	void Draw(int pass){
+		for (int i = 0; i < centers.size(); i++) {
+			Vec3 O(centers[i].x,0.5,centers[i].z-5);
+
+			Vec3 dir = angVelAx[i];
+
+			BeginLines();
+			DrawLine(O,O+dir,Vec4(1,0,0,1));
+			EndLines();
+
+			AddSphere(0.1,O,Quat(),eNvFlexPhaseShapeChannel0 << 1,Vec3(1,0,0));
+
+		}
+
+	}
 	/**
 	 * initConfig contains configuration for the bar in each instance
 	 * 0, 1: x, z position of the bar
@@ -506,7 +535,12 @@ public:
 
 			Vec3 vxu = Cross(v, u);
 
-			if (Dot(pos - panPos, vxu) > 0 && Dot(pos - panPos, vxu) < 0.11) {
+			Vec3 diff = pos-panPos;
+
+			float uComp = Dot(diff,u);
+			float vComp = Dot(diff,v);
+			Vec2 planarVec = Vec2(uComp,vComp);
+			if (Dot(diff, vxu) > 0 && Dot(diff, vxu) < 0.11 && Length(planarVec)<barDim[0]) {
 
 				particleTemperature[k] += heatRate * g_dt;
 
@@ -587,14 +621,14 @@ public:
 					|| newPos.z - centers[i].z > playgroundHalfExtent) {
 				currVels[i].z = 0;
 			}
-			if (newPos.y - centers[i].y < 2 || newPos.y - centers[i].y > 5) {
+			if (newPos.y - centers[i].y < 4 || newPos.y - centers[i].y > 7) {
 				currVels[i].y = 0;
 			}
 
 			newPos.x = minf(
 					maxf(newPos.x - centers[i].x, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].x;
-			newPos.y = minf(maxf(newPos.y - centers[i].y, 2), 5) + centers[i].y;
+			newPos.y = minf(maxf(newPos.y - centers[i].y, 4), 7) + centers[i].y;
 			newPos.z = minf(
 					maxf(newPos.z - centers[i].z, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].z;
@@ -622,9 +656,11 @@ public:
 			Quat oldQuat = QuatFromAxisAngle(Vec3(0, 1, 0), oldRot.y)
 					* QuatFromAxisAngle(Vec3(1, 0, 0), oldRot.x);
 
-			AddTriangleMesh(allMeshId[i], newPos, quat, Vec3(0.01f),
-					Vec3(0.3, 0.3, 0.3));
+//			AddTriangleMesh(allMeshId[i], newPos, quat, Vec3(0.01f),
+//					Vec3(0.3, 0.3, 0.3));
 
+			AddTriangleMesh(allMeshId[i], newPos, quat, Vec3(1.0f),
+					Vec3(0.3, 0.3, 0.3));
 			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
 					- 1] = Vec4(oldPos, 0.0f);
 			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
@@ -653,12 +689,10 @@ public:
 		}
 
 		UpdateShapes();
-
-		if (g_frame % 10 == 0) {
-			updateSpaceMap();
-			updateSprings(action);
-		}
-
+//		if (g_frame % 10 == 0) {
+//			updateSpaceMap();
+//			updateSprings(action);
+//		}
 		updateParticleTemperature();
 		for (int k = 0; k < g_buffers->positions.size(); k++) {
 			float temperature = particleTemperature[k];

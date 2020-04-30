@@ -41,6 +41,7 @@ PYBIND11_MODULE(bindings, m) {
 	m.def("setVisualize",&setVisualization,"setVisualization");
 
 	m.def("setController",&setController,"setController");
+	m.def("setAuxInfo",&setAuxInfo,"setAuxInfo");
 	m.def("setGoal",&setGoal,"setGoal");
 
 	m.def("getParticleDensity",&getParticleDensity,"getParticleDensity");

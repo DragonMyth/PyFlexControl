@@ -75,6 +75,7 @@ public:
 
 	vector<NvFlexTriangleMeshId> allMeshId;
 
+	vector<Vec3> angVelAx;
 	PlasticSpringFlipping(const char* name) :
 			Scene(name) {
 
@@ -83,17 +84,17 @@ public:
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
 
+
 //		allMeshId.resize(numSceneDim * numSceneDim);
 		allMeshId.resize(0);
 
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
 			partInitialization(i, 1) = 6;
-			partInitialization(i, 3) = 5;
-			partInitialization(i, 4) = 5;
-			partInitialization(i, 5) = 5;
+			partInitialization(i, 3) = 7;
+			partInitialization(i, 4) = 2;
+			partInitialization(i, 5) = 7;
 
 		}
-
 
 	}
 
@@ -115,6 +116,7 @@ public:
 		currRots.resize(0);
 		currVels.resize(0);
 		currAngVels.resize(0);
+		angVelAx.resize(0);
 
 		centers.clear();
 
@@ -143,6 +145,7 @@ public:
 		cout<<"MeshIdSize: "<<allMeshId.size()<<endl;
 		for (int i = 0; i < numSceneDim; i++) {
 			for (int j = 0; j < numSceneDim; j++) {
+				angVelAx.push_back(Vec3(0.0));
 
 
 				int idx = i * numSceneDim + j;
@@ -245,6 +248,28 @@ public:
 		return getState();
 	}
 
+	void UpdateGUI(Eigen::MatrixXd info){
+		for (int i = 0; i < centers.size(); i++) {
+			Vec3 ax(info.row(i)[0],info.row(i)[1],info.row(i)[2]);
+			angVelAx[i] =ax;
+		}
+	}
+
+	void Draw(int pass){
+		for (int i = 0; i < centers.size(); i++) {
+			Vec3 O(centers[i].x,0.5,centers[i].z-5);
+
+			Vec3 dir = angVelAx[i];
+
+			BeginLines();
+			DrawLine(O,O+dir,Vec4(1,0,0,1));
+			EndLines();
+
+			AddSphere(0.1,O,Quat(),eNvFlexPhaseShapeChannel0 << 1,Vec3(1,0,0));
+
+		}
+
+	}
 	/**
 	 * initConfig contains configuration for the bar in each instance
 	 * 0, 1: x, z position of the bar
@@ -664,12 +689,10 @@ public:
 		}
 
 		UpdateShapes();
-
 //		if (g_frame % 10 == 0) {
 //			updateSpaceMap();
 //			updateSprings(action);
 //		}
-
 		updateParticleTemperature();
 		for (int k = 0; k < g_buffers->positions.size(); k++) {
 			float temperature = particleTemperature[k];

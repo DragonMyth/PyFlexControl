@@ -86,6 +86,7 @@ void BeginLines();
 void DrawLine(const Vec3& p, const Vec3& q, const Vec4& color);
 void EndLines();
 
+
 // shadowing
 struct ShadowMap;
 ShadowMap* ShadowCreate();
