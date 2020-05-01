@@ -14,7 +14,7 @@ public:
 //	int dimx = 10;
 //	int dimy = 2;
 //	int dimz = 10;
-	float radius = 0.2f;
+	float radius = 0.1f;
 	int actionDim = 7;
 	float playgroundHalfExtent = 4;
 
@@ -31,12 +31,19 @@ public:
 	vector<Vec3> currVels;
 	vector<Vec3> currAngVels;
 
-	float kp_pos = 2.0f;
-	float kd_pos = 2.4f;
-	float kp_rot = 1.7f;
-	float kd_rot = 2.1;
-	Vec3 barDim = Vec3(1.5, 1, 0.01);
+//	float kp_pos = 1.0f;
+//	float kd_pos = 2.4f;
+//	float kp_rot = 1.0f;
+//	float kd_rot = 2.1;
+	float kp_pos = 0.3;
+	float kd_pos = 1.2;
+	float kp_rot = 0.7;
+	float kd_rot = 1;
+	Vec3 barDim = Vec3(0.7, 1.0, 0.01);
 
+	Mesh* mBarMesh;
+
+	vector<NvFlexTriangleMeshId> allMeshId;
 	GranularSweepShapingManualControl(const char* name) :
 			Scene(name) {
 
@@ -44,15 +51,23 @@ public:
 		goalPos.setZero();
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
+
+		allMeshId.resize(numSceneDim * numSceneDim);
+
+//		allMeshId.resize(0);
+
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
-			partInitialization(i, 3) = 5;
-			partInitialization(i, 4) = 5;
-			partInitialization(i, 5) = 5;
+			partInitialization(i, 3) = 10;
+			partInitialization(i, 4) = 10;
+			partInitialization(i, 5) = 10;
 		}
 
 	}
 
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
+
+		mBarMesh = CreateDoubleSidedQuadMesh(barDim[0],barDim[1]);
+		mBarMesh->CalculateNormals();
 
 		g_lightDistance *= 100.5f;
 		centers.resize(0);
@@ -61,6 +76,7 @@ public:
 		currRots.resize(0);
 		currVels.resize(0);
 		currAngVels.resize(0);
+
 		centers.clear();
 
 		Vec3 lower, upper;
@@ -68,12 +84,19 @@ public:
 		currRots.clear();
 		currVels.clear();
 		currAngVels.clear();
+
 		int channel = eNvFlexPhaseShapeChannel0;
 		int group = 0;
-
+		cout<<"AllMeshSize: "<<allMeshId.size()<<endl;
 		for (int i = 0; i < numSceneDim; i++) {
 			for (int j = 0; j < numSceneDim; j++) {
+
+
 				int idx = i * numSceneDim + j;
+//				allMeshId[idx] = (CreateTriangleMesh(mBarMesh));
+
+				allMeshId.push_back(CreateTriangleMesh(mBarMesh));
+
 				Eigen::VectorXd particleClusterParam = partInitialization.row(
 						idx);
 
@@ -94,19 +117,22 @@ public:
 					int clusterDimy = (int) (particleClusterParam(cluster + 4));
 					int clusterDimz = (int) (particleClusterParam(cluster + 5));
 //
-//					CreateSpringCubeAroundCenter(center + offsetPos, clusterDimx,
-//							clusterDimy, clusterDimz, springRestLength, phase1, stiffness,
-//							stiffness, stiffness, 0.0f, 1.0f);
+
 					CreateGranularCubeAroundCenter(center + offsetPos,
-							clusterDimx, clusterDimy, clusterDimz,
-							radius*1.2f , phase1, Vec3(0.0, 0.0, 0.0), 1.0f,
-							0.01f);
+												clusterDimx, clusterDimy, clusterDimz,
+												radius * 1.3f, phase1, Vec3(0.0, 0.0, 0.0), 8.0f,0.05f);
 				}
 				if (i == 0 && j == 0) {
 					numPartPerScene = g_buffers->positions.size();
 				}
 
 				centers.push_back(center);
+
+//				for (int k = offset; k < (offset + numPartPerScene); k++) {
+//					if (g_buffers->positions[k].z - center[2] > 0) {
+//						g_buffers->phases[k] = phase2;
+//					}
+//				}
 
 				Vec3 currPos = center + Vec3(0, 0, 0);
 
@@ -122,6 +148,7 @@ public:
 				currAngVels.push_back(currAngVel);
 //				barDim = Vec3(1.5, 1, 0.01);
 //				barDim = Vec3(0.7, 0.5, 0.01);
+
 				//Random sample a initial position in range [-2,2] x [-2,2].
 
 			}
@@ -129,24 +156,22 @@ public:
 		}
 		cout << "Number of Particles Per instance: " << numPartPerScene << endl;
 
+
 		g_numSubsteps = 3;
 
 		g_params.radius = radius;
-		g_params.staticFriction =1.8f;
-//		g_params.particleFriction =1.4f;
+		g_params.staticFriction = 1.8f;
+		g_params.dynamicFriction = 1.3f;
 
-		g_params.dynamicFriction = 1.2f;
 		g_params.viscosity = 0.0f;
-		g_params.numIterations = 5;
-		g_params.sleepThreshold = g_params.radius*0.25f;
-//		g_params.shockPropagation = 6.f;
-		g_params.restitution = 0.2f;
+		g_params.numIterations = 7;
+		g_params.sleepThreshold = g_params.radius * 0.25f;
+//		g_params.collisionDistance = radius*0.5f;
+//		g_params.relaxationMode = eNvFlexRelaxationGlobal;
 		g_params.relaxationFactor = 1.0f;
-
-		g_params.damping = 0.8f;
-
-		g_params.particleCollisionMargin = g_params.radius*0.5f;
-		g_params.shapeCollisionMargin = g_params.radius*0.5f;
+		g_params.damping = 0.24f;
+		g_params.particleCollisionMargin = g_params.radius * 0.1f;
+		g_params.shapeCollisionMargin = g_params.radius * 0.1f;
 		g_params.numPlanes = 1;
 
 		// draw options
@@ -155,6 +180,7 @@ public:
 		g_drawMesh = false;
 		g_warmup = false;
 
+		delete mBarMesh;
 		return getState();
 	}
 
@@ -207,6 +233,7 @@ public:
 		playgroundHalfExtent = mapHalfExtent;
 	}
 
+
 	Eigen::MatrixXd Update(Eigen::VectorXd action) {
 		using namespace Eigen;
 		ClearShapes();
@@ -216,6 +243,7 @@ public:
 			Vec3 targetPos = centers[i]
 					+ Vec3(action(i * actionDim), action(i * actionDim + 1),
 							action(i * actionDim + 2));
+//
 //			targetPos.x = minf(
 //					maxf(targetPos.x - centers[i].x, -playgroundHalfExtent),
 //					playgroundHalfExtent) + centers[i].x;
@@ -270,6 +298,7 @@ public:
 			newRot[0] = minf(maxf(newRot[0], -EIGEN_PI / 2),
 			EIGEN_PI / 2);
 
+
 			if(newPos.x-centers[i].x<-playgroundHalfExtent || newPos.x-centers[i].x>playgroundHalfExtent ){
 				currVels[i].x = 0;
 			}
@@ -287,6 +316,10 @@ public:
 			newPos.z = minf(
 					maxf(newPos.z - centers[i].z, -playgroundHalfExtent),
 					playgroundHalfExtent) + centers[i].z;
+
+
+
+
 
 			Vec3 oldPos = currPoses[i];
 			Vec3 oldRot = currRots[i];
@@ -313,15 +346,19 @@ public:
 			Quat oldQuat = QuatFromAxisAngle(Vec3(0, 1, 0), oldRot.y)
 					* QuatFromAxisAngle(Vec3(1, 0, 0), oldRot.x);
 			Vec3 oldRotatedVec = Rotate(oldQuat, Vec3(0, 1, 0));
-			AddBox(barDim, newPos + barDim[1] * rotatedVec, quat, false,
-					channel);
+
+
+//			AddBox(barDim,newPos + barDim[1] * rotatedVec, quat,false,channel)
+			AddTriangleMesh(allMeshId[i+numSceneDim*numSceneDim], newPos + barDim[1] * rotatedVec, quat, Vec3(1.0f),
+					Vec3(0.3, 0.3, 1.0));
 
 			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
 					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
 			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
 					- 1] = oldQuat;
 
-//			float linearVelThresh = 0.7f;
+
+			float linearVelThresh = 0.9f;
 //			float angVelThresh = 0.5f;
 //			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
 //					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
@@ -332,6 +369,17 @@ public:
 //				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
 //						- 1] = oldQuat;
 //			}
+			if (Length(currVels[i]) > linearVelThresh) {
+
+
+//				float t = maxf(1-(Length(currVels[i])-linearVelThresh)/linearVelThresh,0);
+				float t = 0.6;
+
+				Vec3 interpPos = (oldPos * t + newPos * (1 - t));
+				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
+						- 1] = Vec4(interpPos + barDim[1] * oldRotatedVec,
+						0.0f);
+			}
 
 			if (ghost) {
 				AddBox(Vec3(1, 1, 1),
@@ -351,6 +399,7 @@ public:
 		int phase1 = NvFlexMakePhaseWithChannels(0,
 				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 				eNvFlexPhaseShapeChannel0);
+
 		for (int k = 0; k < g_buffers->positions.size(); k++) {
 			if (abs(g_buffers->positions[k].y) < 0.11) {
 				g_buffers->phases[k] = phase2;
@@ -361,12 +410,28 @@ public:
 			}
 		}
 
+//		cout<<"Current Velocity: "<<currVels[0].x<<" "<<currVels[0].y<<" "<<currVels[0].z<<" "<<endl;
+//		if (g_frame % 100==0) {
+//			cout << g_frame << endl;
+//		}
+		//		cout<<"Cam X: "<<g_camPos.x<<"Cam Y: "<<g_camPos.y<<"Cam Z: "<<g_camPos.z<<"Cam Angle X: "<<g_camAngle.x<<"Cam Angle Y: "<<g_camAngle.y<<"Cam Angle Z: "<<g_camAngle.z<<endl;
+
 		return getState();
+	}
+
+	virtual void Sync() {
+
+		// update solver data not already updated in the main loop
+		NvFlexSetSprings(g_solver, g_buffers->springIndices.buffer,
+				g_buffers->springLengths.buffer,
+				g_buffers->springStiffness.buffer,
+				g_buffers->springLengths.size());
 	}
 
 	void setSceneSeed(int seed) {
 		this->seed = seed;
 	}
+
 	Eigen::MatrixXd getState() {
 		using namespace Eigen;
 		int numPart = g_buffers->positions.size();

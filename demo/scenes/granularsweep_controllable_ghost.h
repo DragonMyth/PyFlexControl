@@ -41,29 +41,6 @@ public:
 	float kd_rot = 1;
 	Vec3 barDim = Vec3(0.7, 1.0, 0.01);
 
-	// Array of hash maps that store the neighbourhood of particles for which springs will be added.
-	map<int, std::vector<int>> *springFuseMap;
-
-	// Array of hash maps that store existing spring pairs between particles
-	map<std::pair<int, int>, int> *bidirSpringMap;
-
-	// Stores the number of spings connected to each particle. Used for limiting the max spring connection
-	Eigen::VectorXi perPartSpringCnt;
-	float stiffness = 0.1f;
-
-	float springFuseDist = radius * 2.0f;
-	float springBreakDist = radius * 3.0f;
-
-	float springCompressThreshold = 0.9f;
-	float springStrechThreshold = 1.1f;
-
-//	float springCompressThreshold = radius * 1.5f;
-//	float springStrechThreshold = radius * 2.0f;
-	float minSpringDist = radius * 1.1;
-
-	int maxSpringPerPart = 8;
-
-
 	Mesh* mBarMesh;
 
 	vector<NvFlexTriangleMeshId> allMeshId;
@@ -75,13 +52,13 @@ public:
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
 
-//		allMeshId.resize(numSceneDim * numSceneDim);
+		allMeshId.resize(numSceneDim * numSceneDim);
 
-		allMeshId.resize(0);
+//		allMeshId.resize(0);
 
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
 			partInitialization(i, 3) = 5;
-			partInitialization(i, 4) = 2;
+			partInitialization(i, 4) = 5;
 			partInitialization(i, 5) = 5;
 		}
 
@@ -91,10 +68,7 @@ public:
 
 		mBarMesh = CreateDoubleSidedQuadMesh(barDim[0],barDim[1]);
 		mBarMesh->CalculateNormals();
-		springFuseMap = new map<int, std::vector<int>> [numSceneDim
-				* numSceneDim];
-		bidirSpringMap = new map<std::pair<int, int>, int> [numSceneDim
-				* numSceneDim];
+
 		g_lightDistance *= 100.5f;
 		centers.resize(0);
 
@@ -143,13 +117,10 @@ public:
 					int clusterDimy = (int) (particleClusterParam(cluster + 4));
 					int clusterDimz = (int) (particleClusterParam(cluster + 5));
 //
-//					CreateSpringCubeAroundCenter(center + offsetPos,
-//							clusterDimx, clusterDimy, clusterDimz,
-//							springFuseDist / sqrt(2), phase1, stiffness,
-//							stiffness, stiffness, 0.0f, 1.0f);
+
 					CreateGranularCubeAroundCenter(center + offsetPos,
 												clusterDimx, clusterDimy, clusterDimz,
-												springFuseDist / sqrt(2), phase1, Vec3(0.0, 0.0, 0.0), 1.0f,0.0f);
+												radius * 1.3f, phase1, Vec3(0.0, 0.0, 0.0), 1.0f,0.05f);
 				}
 				if (i == 0 && j == 0) {
 					numPartPerScene = g_buffers->positions.size();
@@ -185,13 +156,6 @@ public:
 		}
 		cout << "Number of Particles Per instance: " << numPartPerScene << endl;
 
-		perPartSpringCnt = Eigen::VectorXi(g_buffers->positions.size());
-		perPartSpringCnt.setZero();
-//		updateSpaceMap();
-
-		Eigen::VectorXd tempAct(numSceneDim * numSceneDim * actionDim);
-		tempAct.setZero();
-//		updateSprings(tempAct);
 
 		g_numSubsteps = 3;
 
@@ -200,7 +164,7 @@ public:
 		g_params.dynamicFriction = 1.3f;
 
 		g_params.viscosity = 0.0f;
-		g_params.numIterations = 4;
+		g_params.numIterations = 7;
 		g_params.sleepThreshold = g_params.radius * 0.25f;
 //		g_params.collisionDistance = radius*0.5f;
 //		g_params.relaxationMode = eNvFlexRelaxationGlobal;
@@ -269,250 +233,6 @@ public:
 		playgroundHalfExtent = mapHalfExtent;
 	}
 
-	/**
-	 * Update the unified space partition for the neightbourhood of particles to fuse spring
-	 */
-	void updateSpaceMap() {
-
-		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
-			springFuseMap[i].clear();
-		}
-
-		int fuseGridSize = ceil((playgroundHalfExtent * 2.0) / springFuseDist);
-
-		for (int i = 0; i < g_buffers->positions.size(); i++) {
-			Vec3 idxVecFuseMap = getMapIdx(i, fuseGridSize);
-
-			int idxFuseMap = idxVecFuseMap.z * fuseGridSize * fuseGridSize
-					+ idxVecFuseMap.y * fuseGridSize + idxVecFuseMap.x;
-
-			int group = i / numPartPerScene;
-
-			if (springFuseMap[group].count(idxFuseMap) == 0) {
-				std::vector<int> list;
-				list.resize(0);
-				springFuseMap[group].insert(
-						std::pair<int, std::vector<int>>(idxFuseMap, list));
-			}
-
-			springFuseMap[group][idxFuseMap].push_back(i);
-
-		}
-
-	}
-
-	/*
-	 * Get Map index of a particle
-	 */
-	Vec3 getMapIdx(int partIdx, int gridSize) {
-		int group = partIdx / (numPartPerScene);
-		Vec3 center = centers[group];
-		Vec3 pos = Vec3(g_buffers->positions[partIdx]) - center
-				+ Vec3(playgroundHalfExtent, 0, playgroundHalfExtent);
-		Vec3 mapIdx = Vec3(
-				int(pos.x / (playgroundHalfExtent * 2.0f) * gridSize),
-				int(pos.y / (playgroundHalfExtent * 2.0f) * gridSize),
-				int(pos.z / (playgroundHalfExtent * 2.0f) * gridSize));
-		return mapIdx;
-	}
-
-	bool cutParticles(Vec3 p, Vec3 q, int group, int ghost) {
-		if (ghost > 0) {
-			return false;
-		}
-
-		Vec3 barPose = currPoses[group];
-		Vec3 barRot = currRots[group];
-		Quat quat = QuatFromAxisAngle(Vec3(0, 1, 0), barRot.y)
-				* QuatFromAxisAngle(Vec3(1, 0, 0), barRot.x);
-
-		Vec3 bar_u = Rotate(quat, Vec3(1, 0, 0));
-		Vec3 bar_v = Rotate(quat, Vec3(0, 1, 0));
-
-		Vec3 uxv = Cross(bar_u, bar_v);
-
-		// Check if particles are on opposite side of bar
-		float val1 = Dot(uxv, Normalize(p - barPose));
-		float val2 = Dot(uxv, Normalize(q - barPose));
-
-		// If two particles are on same side, they are NOT cut by the bar. Else check if in range of the bar
-		if (val1 * val2 >= 0) {
-			return false;
-		} else {
-			Vec3 barCenter = barPose + barDim[1] * bar_v;
-			float t = -Dot((p - barCenter), uxv) / Dot(q - p, uxv);
-			Vec3 inter = p + t * (q - p);
-			float horProj = Dot((inter - barCenter), bar_u);
-			float vertProj = Dot((inter - barCenter), bar_v);
-
-			if (Abs(horProj) <= barDim[0] && Abs(vertProj) <= barDim[1]) {
-				return true;
-			} else {
-				return false;
-			}
-			return true;
-		}
-
-	}
-
-	/*
-	 * Fake the plastic behavior
-	 * Set the spring rest length beyond certain threshold
-	 */
-	float calNewSpringRestLength(float length, float currRestLength) {
-		float res = currRestLength;
-
-		float ratio = length / currRestLength;
-		if (ratio <= springCompressThreshold) {
-
-			res = fmax(length, minSpringDist);
-//			res = length;
-		} else if (ratio >= springStrechThreshold) {
-			res = length;
-		}
-		return res;
-	}
-
-	/*
-	 * Update the spring connectivity between particles
-	 */
-
-	void updateSprings(Eigen::VectorXd action) {
-
-		int fuseGridSize = ceil((playgroundHalfExtent * 2) / springFuseDist);
-
-		std::vector<int> mConstraintIndices;
-		std::vector<float> mConstraintCoefficients;
-		std::vector<float> mConstraintRestLengths;
-		mConstraintIndices.resize(0);
-		mConstraintCoefficients.resize(0);
-		mConstraintRestLengths.resize(0);
-		perPartSpringCnt.setZero();
-
-		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
-			bidirSpringMap[i].clear();
-		}
-
-		// Keep all springs that are within break distance or not cut by the bar
-		for (int i = 0; i < g_buffers->springLengths.size(); i++) {
-
-			//Get the pair of particles of the spring
-			int a = g_buffers->springIndices[i * 2];
-			int b = g_buffers->springIndices[i * 2 + 1];
-
-			Vec3 p = Vec3(g_buffers->positions[a]);
-			Vec3 q = Vec3(g_buffers->positions[b]);
-
-			int group = a / (numPartPerScene);
-
-			float length = Length(p - q);
-			if (length <= springBreakDist
-					&& !cutParticles(p, q, group,
-							action(group * actionDim + 6))) {
-				mConstraintIndices.push_back(a);
-				mConstraintIndices.push_back(b);
-				mConstraintCoefficients.push_back(stiffness);
-
-				mConstraintRestLengths.push_back(
-						calNewSpringRestLength(length,
-								g_buffers->springLengths[i]));
-
-				std::pair<int, int> ab = std::pair<int, int>(a, b);
-				std::pair<int, int> ba = std::pair<int, int>(b, a);
-
-				bidirSpringMap[group][ab] = 1;
-				bidirSpringMap[group][ba] = 1;
-				perPartSpringCnt[a]++;
-				perPartSpringCnt[b]++;
-
-			}
-		}
-
-		//For all particles
-		for (int i = 0; i < g_buffers->positions.size(); i++) {
-			int group = i / (numPartPerScene);
-			Vec3 idxVecFuseMap = getMapIdx(i, fuseGridSize);
-
-//			int remainning_spring = maxSpringPerPart - perPartSpringCnt[i];
-			//Look at surrounding 27 neighbours
-			for (int x = -1; x <= 1; x++) {
-				for (int y = -1; y <= 1; y++) {
-					for (int z = -1; z <= 1; z++) {
-						Vec3 neighbourIdx = idxVecFuseMap + Vec3(x, y, z);
-						//If neighbour index is not out of bound
-						if (neighbourIdx.x >= 0 && neighbourIdx.x < fuseGridSize
-								&& neighbourIdx.y >= 0
-								&& neighbourIdx.y < fuseGridSize
-								&& neighbourIdx.z >= 0
-								&& neighbourIdx.z < fuseGridSize) {
-							int idx = neighbourIdx.z * fuseGridSize
-									* fuseGridSize
-									+ neighbourIdx.y * fuseGridSize
-									+ neighbourIdx.x;
-							//If cell contains particles is not empty
-							if (springFuseMap[group].count(idx) > 0) {
-								// For all particles in the cell, form a spring between particles i and j
-								for (int k = 0;
-										k < springFuseMap[group][idx].size();
-										k++) {
-
-									int j = springFuseMap[group][idx][k];
-
-//									std::cout<<i<<"Particle: "<<j<<" Remaining Springs: "<<maxSpringPerPart - perPartSpringCnt[i]<<std::endl;
-
-									if (i != j
-											&& maxSpringPerPart
-													- perPartSpringCnt[i] > 0
-											&& maxSpringPerPart
-													- perPartSpringCnt[j] > 0) {
-										Vec3 p = Vec3(g_buffers->positions[i]);
-										Vec3 q = Vec3(g_buffers->positions[j]);
-										float length = Length(p - q);
-										std::pair<int, int> ij = std::pair<int,
-												int>(i, j);
-										std::pair<int, int> ji = std::pair<int,
-												int>(j, i);
-
-										//If spring pair is not already created and not cut by the bar, form new spring
-										if (bidirSpringMap[group].count(ij) == 0
-												&& length <= springFuseDist
-												&& !cutParticles(p, q, group,
-														action(
-																group
-																		* actionDim
-																		+ 6))) {
-
-											bidirSpringMap[group][ij] = 1;
-											bidirSpringMap[group][ji] = 1;
-
-											mConstraintIndices.push_back(i);
-											mConstraintIndices.push_back(j);
-											mConstraintCoefficients.push_back(
-													stiffness);
-											mConstraintRestLengths.push_back(
-													Length(p - q));
-
-											perPartSpringCnt[i]++;
-											perPartSpringCnt[j]++;
-
-										}
-									}
-								}
-
-							}
-						}
-					}
-				}
-			}
-		}
-
-		int numSprings = mConstraintCoefficients.size();
-		g_buffers->springIndices.assign(&mConstraintIndices[0], numSprings * 2);
-		g_buffers->springStiffness.assign(&mConstraintCoefficients[0],
-				numSprings);
-		g_buffers->springLengths.assign(&mConstraintRestLengths[0], numSprings);
-
-	}
 
 	Eigen::MatrixXd Update(Eigen::VectorXd action) {
 		using namespace Eigen;
@@ -673,17 +393,13 @@ public:
 
 		UpdateShapes();
 
-//		if (g_frame % 10 == 0) {
-//			updateSpaceMap();
-//			updateSprings(action);
-//		}
-
 		int phase2 = NvFlexMakePhaseWithChannels(1,
 				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 				eNvFlexPhaseShapeChannel0);
 		int phase1 = NvFlexMakePhaseWithChannels(0,
 				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 				eNvFlexPhaseShapeChannel0);
+
 		for (int k = 0; k < g_buffers->positions.size(); k++) {
 			if (abs(g_buffers->positions[k].y) < 0.11) {
 				g_buffers->phases[k] = phase2;

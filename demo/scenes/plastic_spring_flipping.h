@@ -84,7 +84,6 @@ public:
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
 
-
 //		allMeshId.resize(numSceneDim * numSceneDim);
 		allMeshId.resize(0);
 
@@ -141,12 +140,10 @@ public:
 				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 				eNvFlexPhaseShapeChannel0);
 
-
-		cout<<"MeshIdSize: "<<allMeshId.size()<<endl;
+		cout << "MeshIdSize: " << allMeshId.size() << endl;
 		for (int i = 0; i < numSceneDim; i++) {
 			for (int j = 0; j < numSceneDim; j++) {
 				angVelAx.push_back(Vec3(0.0));
-
 
 				int idx = i * numSceneDim + j;
 //				allMeshId[idx] = (CreateTriangleMesh(mPanMesh));
@@ -171,7 +168,7 @@ public:
 					CreateSpringCubeAroundCenter(center + offsetPos,
 							clusterDimx, clusterDimy, clusterDimz,
 							springFuseDist / sqrt(3), phases[0], stiffness,
-							stiffness, stiffness, 0.0f, 2.0f);
+							stiffness, stiffness, Vec3(0.0f), 1.0f);
 //					CreateGranularCubeAroundCenter(center + offsetPos,
 //												clusterDimx, clusterDimy, clusterDimz,
 //												radius * 1.7f, phase1, Vec3(0.0, 0.0, 0.0), 1.0f,0.0f);
@@ -248,24 +245,25 @@ public:
 		return getState();
 	}
 
-	void UpdateGUI(Eigen::MatrixXd info){
+	void UpdateGUI(Eigen::MatrixXd info) {
 		for (int i = 0; i < centers.size(); i++) {
-			Vec3 ax(info.row(i)[0],info.row(i)[1],info.row(i)[2]);
-			angVelAx[i] =ax;
+			Vec3 ax(info.row(i)[0], info.row(i)[1], info.row(i)[2]);
+			angVelAx[i] = ax;
 		}
 	}
 
-	void Draw(int pass){
+	void Draw(int pass) {
 		for (int i = 0; i < centers.size(); i++) {
-			Vec3 O(centers[i].x,0.5,centers[i].z-5);
+			Vec3 O(centers[i].x, 0.5, centers[i].z - 5);
 
 			Vec3 dir = angVelAx[i];
 
 			BeginLines();
-			DrawLine(O,O+dir,Vec4(1,0,0,1));
+			DrawLine(O, O + dir, Vec4(1, 0, 0, 1));
 			EndLines();
 
-			AddSphere(0.1,O,Quat(),eNvFlexPhaseShapeChannel0 << 1,Vec3(1,0,0));
+			AddSphere(0.1, O, Quat(), eNvFlexPhaseShapeChannel0 << 1,
+					Vec3(1, 0, 0));
 
 		}
 
@@ -535,12 +533,13 @@ public:
 
 			Vec3 vxu = Cross(v, u);
 
-			Vec3 diff = pos-panPos;
+			Vec3 diff = pos - panPos;
 
-			float uComp = Dot(diff,u);
-			float vComp = Dot(diff,v);
-			Vec2 planarVec = Vec2(uComp,vComp);
-			if (Dot(diff, vxu) > 0 && Dot(diff, vxu) < 0.11 && Length(planarVec)<barDim[0]) {
+			float uComp = Dot(diff, u);
+			float vComp = Dot(diff, v);
+			Vec2 planarVec = Vec2(uComp, vComp);
+			if (Dot(diff, vxu) > 0 && Dot(diff, vxu) < 0.11
+					&& Length(planarVec) < barDim[0]) {
 
 				particleTemperature[k] += heatRate * g_dt;
 
@@ -693,18 +692,18 @@ public:
 //			updateSpaceMap();
 //			updateSprings(action);
 //		}
-		updateParticleTemperature();
-		for (int k = 0; k < g_buffers->positions.size(); k++) {
-			float temperature = particleTemperature[k];
-			if (temperature < 0.7) {
-				g_buffers->phases[k] = phases[0];
-			} else if (temperature >= 0.7 && temperature < 1.3) {
-				g_buffers->phases[k] = phases[1];
-			} else {
-				g_buffers->phases[k] = phases[2];
-			}
-
-		}
+//		updateParticleTemperature();
+//		for (int k = 0; k < g_buffers->positions.size(); k++) {
+//			float temperature = particleTemperature[k];
+//			if (temperature < 0.7) {
+//				g_buffers->phases[k] = phases[0];
+//			} else if (temperature >= 0.7 && temperature < 1.3) {
+//				g_buffers->phases[k] = phases[1];
+//			} else {
+//				g_buffers->phases[k] = phases[2];
+//			}
+//
+//		}
 
 		return getState();
 	}
@@ -744,8 +743,9 @@ public:
 						- Vector3d(cent.x, cent.y, cent.z);
 
 				state.row(i * (numPartInScene * 2 + 4) + numPartInScene + j + 4) =
-						Vector3d(particleTemperature[i * numPartInScene + j], 0,
-								0);
+						Vector3d(g_buffers->velocities[i * numPartInScene + j].x,
+								g_buffers->velocities[i * numPartInScene + j].y,
+								g_buffers->velocities[i * numPartInScene + j].z);
 			}
 
 			state.row(i * (2 * numPartInScene + 4)) = Vector3d(currPoses[i].x,

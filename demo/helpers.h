@@ -884,7 +884,7 @@ void AddTriangleMesh(NvFlexTriangleMeshId mesh, Vec3 translation, Quat rotation,
 	g_buffers->shapeColors.push_back(color);
 }
 
-NvFlexDistanceFieldId CreateSDF (const char* meshFile, int dim, float margin =
+NvFlexDistanceFieldId CreateSDF(const char* meshFile, int dim, float margin =
 		0.1f, float expand = 0.0f) {
 	Mesh* mesh = ImportMesh(meshFile);
 
