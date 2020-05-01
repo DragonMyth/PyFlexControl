@@ -2481,7 +2481,7 @@ Eigen::Vector3d getParticleAngularVelocity(Eigen::MatrixXd allPartPos, Eigen::Ma
 		Eigen::Vector3d r1(partPos-COM);
 
 		Eigen::Vector3d axisOfRotation(r1.cross(pattVel));
-
+		axisOfRotation/= r1.norm()*r1.norm();
 		angVel+=axisOfRotation;
 	}
 	angVel/=(1.0f*allPartPos.rows());
