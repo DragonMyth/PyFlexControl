@@ -75,9 +75,9 @@ public:
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
 
-		allMeshId.resize(numSceneDim * numSceneDim);
+//		allMeshId.resize(numSceneDim * numSceneDim);
 
-//		allMeshId.resize(0);
+		allMeshId.resize(0);
 
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
 			partInitialization(i, 3) = 5;

@@ -78,9 +78,7 @@ build/flexDemoCUDA_debug/main.cpp.o: ../../main.cpp ../../../core/types.h \
  ../../scenes/tearing.h ../../scenes/thinbox.h \
  ../../scenes/trianglecollision.h ../../scenes/triggervolume.h \
  ../../scenes/viscosity.h ../../scenes/waterballoon.h \
- ../../scenes/granularsweep.h ../../scenes/fluidsweep.h \
- ../../scenes/granularsweep_torque_control.h \
- ../../scenes/granularsweep_three_bars.h ../../scenes/granular_flipping.h \
+ ../../scenes/fluidsweep.h ../../scenes/granular_flipping.h \
  ../../scenes/granular_flipping_manual_control.h \
  ../../scenes/granularsweep_controllable_ghost.h \
  ../../scenes/granularsweep_controllable_ghost_manual_control.h \
@@ -172,9 +170,7 @@ build/flexDemoCUDA_debug/main.cpp.o: ../../main.cpp ../../../core/types.h \
  ../../scenes/tearing.h ../../scenes/thinbox.h :
  ../../scenes/trianglecollision.h ../../scenes/triggervolume.h :
  ../../scenes/viscosity.h ../../scenes/waterballoon.h :
- ../../scenes/granularsweep.h ../../scenes/fluidsweep.h :
- ../../scenes/granularsweep_torque_control.h :
- ../../scenes/granularsweep_three_bars.h ../../scenes/granular_flipping.h :
+ ../../scenes/fluidsweep.h ../../scenes/granular_flipping.h :
  ../../scenes/granular_flipping_manual_control.h :
  ../../scenes/granularsweep_controllable_ghost.h :
  ../../scenes/granularsweep_controllable_ghost_manual_control.h :
