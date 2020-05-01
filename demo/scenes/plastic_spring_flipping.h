@@ -202,7 +202,15 @@ public:
 			}
 
 		}
+		for (int k = 0; k < g_buffers->positions.size(); k++) {
+			float height =  g_buffers->positions[k].y;
+			if (height < 6.2) {
+				g_buffers->phases[k] = phases[0];
+			} else {
+				g_buffers->phases[k] = phases[1];
+			}
 
+		}
 		particleTemperature.resize(g_buffers->positions.size());
 		fill(particleTemperature.begin(), particleTemperature.end(), 0);
 
@@ -694,17 +702,17 @@ public:
 //			updateSprings(action);
 //		}
 		updateParticleTemperature();
-		for (int k = 0; k < g_buffers->positions.size(); k++) {
-			float temperature = particleTemperature[k];
-			if (temperature < 0.7) {
-				g_buffers->phases[k] = phases[0];
-			} else if (temperature >= 0.7 && temperature < 1.3) {
-				g_buffers->phases[k] = phases[1];
-			} else {
-				g_buffers->phases[k] = phases[2];
-			}
-
-		}
+//		for (int k = 0; k < g_buffers->positions.size(); k++) {
+//			float temperature = particleTemperature[k];
+//			if (temperature < 0.7) {
+//				g_buffers->phases[k] = phases[0];
+//			} else if (temperature >= 0.7 && temperature < 1.3) {
+//				g_buffers->phases[k] = phases[1];
+//			} else {
+//				g_buffers->phases[k] = phases[2];
+//			}
+//
+//		}
 
 		return getState();
 	}
