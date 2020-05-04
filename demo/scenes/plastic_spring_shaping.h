@@ -89,8 +89,8 @@ public:
 
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
 
-		mBarMesh = CreateDoubleSidedQuadMesh(barDim[0],barDim[1]);
-		mBarMesh->CalculateNormals();
+//		mBarMesh = CreateDoubleSidedQuadMesh(barDim[0],barDim[1]);
+//		mBarMesh->CalculateNormals();
 		springFuseMap = new map<int, std::vector<int>> [numSceneDim
 				* numSceneDim];
 		bidirSpringMap = new map<std::pair<int, int>, int> [numSceneDim
@@ -113,7 +113,7 @@ public:
 
 		int channel = eNvFlexPhaseShapeChannel0;
 		int group = 0;
-		cout<<"AllMeshSize: "<<allMeshId.size()<<endl;
+//		cout<<"AllMeshSize: "<<allMeshId.size()<<endl;
 		for (int i = 0; i < numSceneDim; i++) {
 			for (int j = 0; j < numSceneDim; j++) {
 
@@ -121,7 +121,7 @@ public:
 				int idx = i * numSceneDim + j;
 //				allMeshId[idx] = (CreateTriangleMesh(mBarMesh));
 
-				allMeshId.push_back(CreateTriangleMesh(mBarMesh));
+//				allMeshId.push_back(CreateTriangleMesh(mBarMesh));
 
 				Eigen::VectorXd particleClusterParam = partInitialization.row(
 						idx);
@@ -216,7 +216,7 @@ public:
 		g_drawMesh = false;
 		g_warmup = false;
 
-		delete mBarMesh;
+//		delete mBarMesh;
 		return getState();
 	}
 
@@ -578,6 +578,13 @@ public:
 			newRot[0] = minf(maxf(newRot[0], -EIGEN_PI / 2),
 			EIGEN_PI / 2);
 
+			newPos.x = minf(
+					maxf(newPos.x - centers[i].x, -playgroundHalfExtent),
+					playgroundHalfExtent) + centers[i].x;
+			newPos.y = minf(maxf(newPos.y - centers[i].y, 0), 3) + centers[i].y;
+			newPos.z = minf(
+					maxf(newPos.z - centers[i].z, -playgroundHalfExtent),
+					playgroundHalfExtent) + centers[i].z;
 
 			if(newPos.x-centers[i].x<-playgroundHalfExtent || newPos.x-centers[i].x>playgroundHalfExtent ){
 				currVels[i].x = 0;
@@ -589,13 +596,7 @@ public:
 				currVels[i].y = 0;
 			}
 
-			newPos.x = minf(
-					maxf(newPos.x - centers[i].x, -playgroundHalfExtent),
-					playgroundHalfExtent) + centers[i].x;
-			newPos.y = minf(maxf(newPos.y - centers[i].y, 0), 3) + centers[i].y;
-			newPos.z = minf(
-					maxf(newPos.z - centers[i].z, -playgroundHalfExtent),
-					playgroundHalfExtent) + centers[i].z;
+
 
 
 
@@ -628,9 +629,9 @@ public:
 			Vec3 oldRotatedVec = Rotate(oldQuat, Vec3(0, 1, 0));
 
 
-//			AddBox(barDim,newPos + barDim[1] * rotatedVec, quat,false,channel)
-			AddTriangleMesh(allMeshId[i+numSceneDim*numSceneDim], newPos + barDim[1] * rotatedVec, quat, Vec3(1.0f),
-					Vec3(0.3, 0.3, 1.0));
+			AddBox(barDim,newPos + barDim[1] * rotatedVec, quat,false,channel,Vec3(0.3f,0.3f,1.0f));
+//			AddTriangleMesh(allMeshId[i+numSceneDim*numSceneDim], newPos + barDim[1] * rotatedVec, quat, Vec3(1.0f),
+//					Vec3(0.3, 0.3, 1.0));
 
 			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
 					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
