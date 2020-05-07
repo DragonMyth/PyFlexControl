@@ -2850,12 +2850,12 @@ int main(int argc, char* argv[]) {
 //	g_scenes.push_back(new GranularFlipping("Granular Flipping"));
 //	g_scenes.push_back(new GranularFlippingManualControl("Granular Flipping Single Instance"));
 
-	g_scenes.push_back(
-				new PlasticSpringFlipping(
-						"Plastic Flipping Using Springs"));
 //	g_scenes.push_back(
-//				new PlasticSpringFlippingManualControl(
-//						"Plastic Flipping Using Springs Single Instance"));
+//				new PlasticSpringFlipping(
+//						"Plastic Flipping Using Springs"));
+	g_scenes.push_back(
+				new PlasticSpringFlippingManualControl(
+						"Plastic Flipping Using Springs Single Instance"));
 
 	// init graphics
 

@@ -1185,9 +1185,12 @@ void CreateSpringCube(Vec3 lower, int dx, int dy, int dz, float radius,
 
 void CreateSpringCubeAroundCenter(Vec3 center, int dx, int dy, int dz,
 		float radius, int phase, float stretchStiffness, float bendStiffness,
-		float shearStiffness, Vec3 velocity, float invMass) {
+		float shearStiffness, Vec3 velocity, float invMass,
+		bool rigid = false) {
 	int baseIndex = int(g_buffers->positions.size());
 
+	if (rigid && g_buffers->rigidIndices.empty())
+		g_buffers->rigidOffsets.push_back(0);
 //	float lengthx = dx*radius;
 //	float lengthy = dy*radius;
 //	float lengthz = dz*radius;
@@ -1196,6 +1199,10 @@ void CreateSpringCubeAroundCenter(Vec3 center, int dx, int dy, int dz,
 	for (int z = 0; z < dz; ++z) {
 		for (int y = 0; y < dy; ++y) {
 			for (int x = 0; x < dx; ++x) {
+
+				if (rigid)
+					g_buffers->rigidIndices.push_back(
+							int(g_buffers->positions.size()));
 
 				Vec3 position = center - length / 2
 						+ radius * Vec3(float(x), float(y), float(z));
@@ -1208,6 +1215,11 @@ void CreateSpringCubeAroundCenter(Vec3 center, int dx, int dy, int dz,
 
 			}
 		}
+	}
+
+	if (rigid) {
+		g_buffers->rigidCoefficients.push_back(1.0f);
+		g_buffers->rigidOffsets.push_back(int(g_buffers->rigidIndices.size()));
 	}
 
 }

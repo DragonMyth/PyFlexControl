@@ -686,7 +686,7 @@ public:
 				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 				eNvFlexPhaseShapeChannel0);
 		for (int k = 0; k < g_buffers->positions.size(); k++) {
-			if (abs(g_buffers->positions[k].y) < 0.11) {
+			if (abs(g_buffers->positions[k].y) < radius*1.5) {
 				g_buffers->phases[k] = phase2;
 //				cout<<g_buffers->positions[k].y<<endl;
 			} else {
