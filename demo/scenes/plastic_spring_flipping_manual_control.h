@@ -10,7 +10,7 @@ class PlasticSpringFlippingManualControl: public Scene {
 public:
 
 	// General Param for the simulation
-	int numSceneDim = 7;
+	int numSceneDim = 1;
 	int seed = -1;
 //	int dimx = 10;
 //	int dimy = 2;
@@ -99,8 +99,8 @@ public:
 
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
 
-		mPanMesh = CreatePanMesh(barDim[0], barDim[1], barDim[2], 50);
-//mPanMesh = ImportMesh(GetFilePathByPlatform("/home/yzhang/FleX_PyBind11/data/pan_recentered.obj").c_str());
+//		mPanMesh = CreatePanMesh(barDim[0], barDim[1], barDim[2], 50);
+		mPanMesh = ImportMesh(GetFilePathByPlatform("/home/yzhang/FleX_PyBind11/data/pan_policy.obj").c_str());
 
 		mPanMesh->CalculateNormals();
 
