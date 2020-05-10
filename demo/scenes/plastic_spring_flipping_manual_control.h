@@ -10,7 +10,7 @@ class PlasticSpringFlippingManualControl: public Scene {
 public:
 
 	// General Param for the simulation
-	int numSceneDim = 7;
+	int numSceneDim = 1;
 	int seed = -1;
 //	int dimx = 10;
 //	int dimy = 2;
