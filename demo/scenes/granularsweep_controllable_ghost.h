@@ -41,9 +41,6 @@ public:
 	float kd_rot = 1;
 	Vec3 barDim = Vec3(0.7, 1.0, 0.01);
 
-	Mesh* mBarMesh;
-
-	vector<NvFlexTriangleMeshId> allMeshId;
 	GranularSweepShaping(const char* name) :
 			Scene(name) {
 
@@ -52,7 +49,6 @@ public:
 		partInitialization = Eigen::MatrixXd(numSceneDim * numSceneDim, 6);
 		partInitialization.setZero();
 
-		allMeshId.resize(numSceneDim * numSceneDim);
 
 //		allMeshId.resize(0);
 
@@ -65,9 +61,6 @@ public:
 	}
 
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
-
-		mBarMesh = CreateDoubleSidedQuadMesh(barDim[0],barDim[1]);
-		mBarMesh->CalculateNormals();
 
 		g_lightDistance *= 100.5f;
 		centers.resize(0);
@@ -87,15 +80,12 @@ public:
 
 		int channel = eNvFlexPhaseShapeChannel0;
 		int group = 0;
-		cout<<"AllMeshSize: "<<allMeshId.size()<<endl;
 		for (int i = 0; i < numSceneDim; i++) {
 			for (int j = 0; j < numSceneDim; j++) {
 
 
 				int idx = i * numSceneDim + j;
 //				allMeshId[idx] = (CreateTriangleMesh(mBarMesh));
-
-				allMeshId.push_back(CreateTriangleMesh(mBarMesh));
 
 				Eigen::VectorXd particleClusterParam = partInitialization.row(
 						idx);
@@ -180,7 +170,6 @@ public:
 		g_drawMesh = false;
 		g_warmup = false;
 
-		delete mBarMesh;
 		return getState();
 	}
 
@@ -348,9 +337,9 @@ public:
 			Vec3 oldRotatedVec = Rotate(oldQuat, Vec3(0, 1, 0));
 
 
-//			AddBox(barDim,newPos + barDim[1] * rotatedVec, quat,false,channel)
-			AddTriangleMesh(allMeshId[i+numSceneDim*numSceneDim], newPos + barDim[1] * rotatedVec, quat, Vec3(1.0f),
-					Vec3(0.3, 0.3, 1.0));
+			AddBox(barDim,newPos + barDim[1] * rotatedVec, quat,false,channel,Vec3(0.3f,0.3f,1.0f));
+//			AddTriangleMesh(allMeshId[i+numSceneDim*numSceneDim], newPos + barDim[1] * rotatedVec, quat, Vec3(1.0f),
+//					Vec3(0.3, 0.3, 1.0));
 
 			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
 					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
