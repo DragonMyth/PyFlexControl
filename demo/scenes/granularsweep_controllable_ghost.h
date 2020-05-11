@@ -39,7 +39,7 @@ public:
 	float kd_pos = 1.2;
 	float kp_rot = 0.7;
 	float kd_rot = 1;
-	Vec3 barDim = Vec3(0.7, 1.0, 0.01);
+	Vec3 barDim = Vec3(0.7, 0.5, 0.01);
 
 	GranularSweepShaping(const char* name) :
 			Scene(name) {
@@ -53,9 +53,9 @@ public:
 //		allMeshId.resize(0);
 
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
-			partInitialization(i, 3) = 5;
-			partInitialization(i, 4) = 5;
-			partInitialization(i, 5) = 5;
+			partInitialization(i, 3) = 10;
+			partInitialization(i, 4) = 2;
+			partInitialization(i, 5) = 10;
 		}
 
 	}
@@ -86,6 +86,7 @@ public:
 
 				int idx = i * numSceneDim + j;
 //				allMeshId[idx] = (CreateTriangleMesh(mBarMesh));
+
 
 				Eigen::VectorXd particleClusterParam = partInitialization.row(
 						idx);
@@ -124,7 +125,7 @@ public:
 //					}
 //				}
 
-				Vec3 currPos = center + Vec3(0, 0, 0);
+				Vec3 currPos = center + Vec3(0, 0, -2);
 
 				Vec3 currRotEuler = Vec3(0, 0, 0);
 //				std::cout << currRotEuler.x << " , " << currRotEuler.y << " , "
@@ -152,14 +153,16 @@ public:
 		g_params.radius = radius;
 		g_params.staticFriction = 1.8f;
 		g_params.dynamicFriction = 1.3f;
+//		g_params.particleFriction = 1.5f;
+		g_params.numIterations = 3;
+//		g_params.dissipation = 0.01f;
 
-		g_params.viscosity = 0.0f;
-		g_params.numIterations = 7;
-		g_params.sleepThreshold = g_params.radius * 0.25f;
+//		g_params.sleepThreshold = g_params.radius * 0.25f;
 //		g_params.collisionDistance = radius*0.5f;
 //		g_params.relaxationMode = eNvFlexRelaxationGlobal;
-		g_params.relaxationFactor = 1.0f;
-		g_params.damping = 0.24f;
+//		g_params.relaxationFactor = 1.0f;
+		g_params.damping = 1.5f;
+		g_params.shockPropagation = 1.5f;
 		g_params.particleCollisionMargin = g_params.radius * 0.1f;
 		g_params.shapeCollisionMargin = g_params.radius * 0.1f;
 		g_params.numPlanes = 1;
