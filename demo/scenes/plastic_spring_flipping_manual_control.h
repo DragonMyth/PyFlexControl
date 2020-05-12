@@ -99,8 +99,8 @@ public:
 
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
 
-//		mPanMesh = CreatePanMesh(barDim[0], barDim[1], barDim[2], 50);
-		mPanMesh = ImportMesh(GetFilePathByPlatform("/home/yzhang/FleX_PyBind11/data/pan_policy.obj").c_str());
+		mPanMesh = CreatePanMesh(barDim[0], barDim[1], barDim[2], 50);
+//		mPanMesh = ImportMesh(GetFilePathByPlatform("/home/yzhang/FleX_PyBind11/data/pan_policy.obj").c_str());
 
 		mPanMesh->CalculateNormals();
 
@@ -128,28 +128,18 @@ public:
 		int channel = eNvFlexPhaseShapeChannel0;
 		int group = 0;
 
-//		phases[0] = NvFlexMakePhaseWithChannels(0,
-//				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
-//				eNvFlexPhaseShapeChannel0);
-//
-//		phases[1] = NvFlexMakePhaseWithChannels(1,
-//				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
-//				eNvFlexPhaseShapeChannel0);
-//
-//		phases[2] = NvFlexMakePhaseWithChannels(2,
-//				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
-//				eNvFlexPhaseShapeChannel0);
 		phases[0] = NvFlexMakePhaseWithChannels(0,
-				0,
+				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 				eNvFlexPhaseShapeChannel0);
 
 		phases[1] = NvFlexMakePhaseWithChannels(1,
-				0,
+				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 				eNvFlexPhaseShapeChannel0);
 
 		phases[2] = NvFlexMakePhaseWithChannels(2,
-				0,
+				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 				eNvFlexPhaseShapeChannel0);
+
 		cout << "MeshIdSize: " << allMeshId.size() << endl;
 		for (int i = 0; i < numSceneDim; i++) {
 			for (int j = 0; j < numSceneDim; j++) {
@@ -178,7 +168,7 @@ public:
 					CreateSpringCubeAroundCenter(center + offsetPos,
 							clusterDimx, clusterDimy, clusterDimz,
 							springFuseDist / sqrt(3), phases[0], stiffness,
-							stiffness, stiffness, Vec3(0.0f), 1.0f,true);
+							stiffness, stiffness, Vec3(0.0f), 1.0f);
 //					CreateGranularCubeAroundCenter(center + offsetPos,
 //												clusterDimx, clusterDimy, clusterDimz,
 //												radius * 1.7f, phase1, Vec3(0.0, 0.0, 0.0), 1.0f,0.0f);
@@ -229,7 +219,7 @@ public:
 
 		Eigen::VectorXd tempAct(numSceneDim * numSceneDim * actionDim);
 		tempAct.setZero();
-//		updateSprings(tempAct);
+		updateSprings(tempAct);
 
 		g_numSubsteps = 5;
 
