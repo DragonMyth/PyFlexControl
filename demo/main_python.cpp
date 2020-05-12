@@ -2476,6 +2476,7 @@ Eigen::Vector3d getParticleAngularVelocity(Eigen::MatrixXd allPartPos, Eigen::Ma
 	Eigen::Vector3d angVel(0);
 	for (int i = 0; i < allPartVel.rows(); i++) {
 		Eigen::Vector3d partPos(allPartPos.row(i));
+
 		Eigen::Vector3d pattVel(allPartVel.row(i));
 
 		Eigen::Vector3d r1(partPos-COM);
