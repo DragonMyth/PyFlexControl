@@ -2166,8 +2166,8 @@ Eigen::MatrixXd UpdateFrame() {
 //				act[i*7+0] = 4;
 //				act[i*7+1] = 10;
 
-				act[i*7+2] = 2;
-//				act[i*7+3]=  -EIGEN_PI/3;
+//				act[i*7+2] = 2;
+				act[i*7+3]=  -EIGEN_PI/6;
 //				act[i*7+3]=  -EIGEN_PI/3;
 //				if(g_frame>300){
 //					act[i*7+1] = 20;

@@ -16,7 +16,7 @@ public:
 //	int dimy = 2;
 //	int dimz = 10;
 	float radius = 0.2f;
-	int actionDim = 1;
+	int actionDim = 7;
 	float playgroundHalfExtent = 4;
 
 	int numPartPerScene = 0;
