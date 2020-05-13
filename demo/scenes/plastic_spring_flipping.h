@@ -16,7 +16,7 @@ public:
 //	int dimy = 2;
 //	int dimz = 10;
 	float radius = 0.2f;
-	int actionDim = 7;
+	int actionDim = 1;
 	float playgroundHalfExtent = 4;
 
 	int numPartPerScene = 0;
@@ -50,7 +50,7 @@ public:
 
 	// Stores the number of spings connected to each particle. Used for limiting the max spring connection
 	Eigen::VectorXi perPartSpringCnt;
-	float stiffness = 0.5f;
+	float stiffness = 0.2f;
 
 	float springFuseDist = radius * 2.0f;
 	float springBreakDist = radius * 3.0f;
@@ -62,7 +62,7 @@ public:
 //	float springStrechThreshold = radius * 2.0f;
 	float minSpringDist = radius * 1.1;
 
-	int maxSpringPerPart = 8;
+	int maxSpringPerPart = 27;
 
 	float coolDownRate = 0.03f;
 	float heatRate = 0.2f;
@@ -146,14 +146,13 @@ public:
 				angVelAx.push_back(Vec3(0.0));
 
 				int idx = i * numSceneDim + j;
-//				allMeshId[idx] = (CreateTriangleMesh(mPanMesh));
+
 				allMeshId.push_back(CreateTriangleMesh(mPanMesh));
 
 				Eigen::VectorXd particleClusterParam = partInitialization.row(
 						idx);
 
 				Vec3 center = Vec3(i * 15, 0, j * 15);
-//				int group = centers.size();
 
 				for (int cluster = 0; cluster < particleClusterParam.size();
 						cluster += 6) {
@@ -182,8 +181,7 @@ public:
 				Vec3 currPos = center + Vec3(0, 0, 0);
 
 				Vec3 currRotEuler = Vec3(0, 0, 0);
-//				std::cout << currRotEuler.x << " , " << currRotEuler.y << " , "
-//						<< currRotEuler.z << std::endl;
+
 				Vec3 currVel = Vec3(0, 0, 0);
 				Vec3 currAngVel = Vec3(0, 0, 0);
 
@@ -219,7 +217,7 @@ public:
 
 		Eigen::VectorXd tempAct(numSceneDim * numSceneDim * actionDim);
 		tempAct.setZero();
-		updateSprings(tempAct);
+		updateSpringsForm(tempAct);
 
 		g_numSubsteps = 5;
 
@@ -324,7 +322,6 @@ public:
 	void setMapHalfExtent(float mapHalfExtent) {
 		playgroundHalfExtent = mapHalfExtent;
 	}
-
 	/**
 	 * Update the unified space partition for the neightbourhood of particles to fuse spring
 	 */
@@ -372,6 +369,76 @@ public:
 		return mapIdx;
 	}
 
+	bool cutParticles(Vec3 pp, Vec3 qq, int group, int ghost) {
+		if (ghost > 0) {
+			return false;
+		}
+
+		Vec3 panPose = currPoses[group];
+		Vec3 panRot = currRots[group];
+		Quat panQuat = QuatFromAxisAngle(Vec3(0, 1, 0), panRot.y)
+				* QuatFromAxisAngle(Vec3(1, 0, 0), panRot.x);
+
+
+		Vec3 p = RotateInv(panQuat,pp-panPose);
+		Vec3 q = RotateInv(panQuat,qq-panPose);
+
+		Vec3 pq = q-p;
+
+
+		//Detect if cut by base
+		float t = -p.y/pq.y;
+		float hitGround = false;
+		float hitSide = false;
+		if(t>=0 && t<=1){
+			hitGround = Length(p+t*pq)<= barDim[0];
+		}else{
+
+			hitGround = false;
+		}
+
+		//Detect if cut by side
+		float rl = barDim[0];
+		float rh = barDim[1];
+		float invh = 1.0f/barDim[2];
+		float a = pq.x*pq.x+pq.z*pq.z-invh*invh*(pq.y*pq.y)*(rh-rl)*(rh-rl);
+		float b = 2*p.x*pq.x+2*p.z*pq.z-2*invh*rl*pq.y*(rh-rl)-2*invh*invh*p.y*pq.y*(rh-rl)*(rh-rl);
+		float c = p.x*p.x+p.z*p.z-rl*rl-2*invh*rl*p.y*(rh-rl)-invh*invh*(p.y*p.y)*(rh-rl)*(rh-rl);
+
+		float det = b*b-4*a*c;
+		if(det<0){
+			hitSide = false;
+		}else{
+			float t1 = (-b+sqrt(det))/(2.0*a);
+			float t2 = (-b-sqrt(det))/(2.0*a);
+			float t;
+			if(t2<0){
+				t = t1;
+			}else{
+				t = t2;
+			}
+
+			if(t>1 || t<0){
+				hitSide = false;
+			}else{
+				Vec3 hit = p+t*pq;
+				if(hit.y>0 && hit.y<barDim[2]){
+					hitSide = true;
+				}else{
+					hitSide = false;
+				}
+				hitSide = true;
+			}
+		}
+
+		return (hitGround || hitSide);
+
+
+
+
+
+	}
+
 	/*
 	 * Fake the plastic behavior
 	 * Set the spring rest length beyond certain threshold
@@ -389,11 +456,6 @@ public:
 		}
 		return res;
 	}
-
-	/*
-	 * Update the spring connectivity between particles
-	 */
-
 	void updateSprings(Eigen::VectorXd action) {
 
 		int fuseGridSize = ceil((playgroundHalfExtent * 2) / springFuseDist);
@@ -423,7 +485,73 @@ public:
 			int group = a / (numPartPerScene);
 
 			float length = Length(p - q);
-			if (length <= springBreakDist) {
+			if (length <= springBreakDist
+					&& !cutParticles(p, q, group,
+							action(group * actionDim + 6))) {
+				mConstraintIndices.push_back(a);
+				mConstraintIndices.push_back(b);
+				mConstraintCoefficients.push_back(stiffness);
+
+				mConstraintRestLengths.push_back(
+						calNewSpringRestLength(length,
+								g_buffers->springLengths[i]));
+
+				std::pair<int, int> ab = std::pair<int, int>(a, b);
+				std::pair<int, int> ba = std::pair<int, int>(b, a);
+
+				bidirSpringMap[group][ab] = 1;
+				bidirSpringMap[group][ba] = 1;
+				perPartSpringCnt[a]++;
+				perPartSpringCnt[b]++;
+
+			}
+		}
+
+
+		int numSprings = mConstraintCoefficients.size();
+		g_buffers->springIndices.assign(&mConstraintIndices[0], numSprings * 2);
+		g_buffers->springStiffness.assign(&mConstraintCoefficients[0],
+				numSprings);
+		g_buffers->springLengths.assign(&mConstraintRestLengths[0], numSprings);
+
+	}
+
+	/*
+	 * Update the spring connectivity between particles
+	 */
+
+	void updateSpringsForm(Eigen::VectorXd action) {
+
+		int fuseGridSize = ceil((playgroundHalfExtent * 2) / springFuseDist);
+
+		std::vector<int> mConstraintIndices;
+		std::vector<float> mConstraintCoefficients;
+		std::vector<float> mConstraintRestLengths;
+		mConstraintIndices.resize(0);
+		mConstraintCoefficients.resize(0);
+		mConstraintRestLengths.resize(0);
+		perPartSpringCnt.setZero();
+
+		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
+			bidirSpringMap[i].clear();
+		}
+
+		// Keep all springs that are within break distance or not cut by the bar
+		for (int i = 0; i < g_buffers->springLengths.size(); i++) {
+
+			//Get the pair of particles of the spring
+			int a = g_buffers->springIndices[i * 2];
+			int b = g_buffers->springIndices[i * 2 + 1];
+
+			Vec3 p = Vec3(g_buffers->positions[a]);
+			Vec3 q = Vec3(g_buffers->positions[b]);
+
+			int group = a / (numPartPerScene);
+
+			float length = Length(p - q);
+			if (length <= springBreakDist
+					&& !cutParticles(p, q, group,
+							action(group * actionDim + 6))) {
 				mConstraintIndices.push_back(a);
 				mConstraintIndices.push_back(b);
 				mConstraintCoefficients.push_back(stiffness);
@@ -490,7 +618,12 @@ public:
 
 										//If spring pair is not already created and not cut by the bar, form new spring
 										if (bidirSpringMap[group].count(ij) == 0
-												&& length <= springFuseDist) {
+												&& length <= springFuseDist
+												&& !cutParticles(p, q, group,
+														action(
+																group
+																		* actionDim
+																		+ 6))) {
 
 											bidirSpringMap[group][ij] = 1;
 											bidirSpringMap[group][ji] = 1;
@@ -696,10 +829,10 @@ public:
 		}
 
 		UpdateShapes();
-//		if (g_frame % 10 == 0) {
-//			updateSpaceMap();
-//			updateSprings(action);
-//		}
+		if (g_frame % 10 == 0) {
+			updateSpaceMap();
+			updateSprings(action);
+		}
 //		updateParticleTemperature();
 
 //		for (int k = 0; k < g_buffers->positions.size(); k++) {

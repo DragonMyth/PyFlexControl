@@ -16,7 +16,7 @@ public:
 //	int dimy = 2;
 //	int dimz = 10;
 	float radius = 0.2f;
-	int actionDim = 7;
+	int actionDim = 1;
 	float playgroundHalfExtent = 4;
 
 	int numPartPerScene = 0;
@@ -99,8 +99,8 @@ public:
 
 	virtual Eigen::MatrixXd Initialize(int placeholder = 0) {
 
-//		mPanMesh = CreatePanMesh(barDim[0], barDim[1], barDim[2], 50);
-		mPanMesh = ImportMesh(GetFilePathByPlatform("/home/yzhang/FleX_PyBind11/data/pan_policy.obj").c_str());
+		mPanMesh = CreatePanMesh(barDim[0], barDim[1], barDim[2], 50);
+//		mPanMesh = ImportMesh(GetFilePathByPlatform("/home/yzhang/FleX_PyBind11/data/pan_policy.obj").c_str());
 
 		mPanMesh->CalculateNormals();
 
@@ -128,28 +128,18 @@ public:
 		int channel = eNvFlexPhaseShapeChannel0;
 		int group = 0;
 
-//		phases[0] = NvFlexMakePhaseWithChannels(0,
-//				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
-//				eNvFlexPhaseShapeChannel0);
-//
-//		phases[1] = NvFlexMakePhaseWithChannels(1,
-//				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
-//				eNvFlexPhaseShapeChannel0);
-//
-//		phases[2] = NvFlexMakePhaseWithChannels(2,
-//				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
-//				eNvFlexPhaseShapeChannel0);
 		phases[0] = NvFlexMakePhaseWithChannels(0,
-				0,
+				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 				eNvFlexPhaseShapeChannel0);
 
 		phases[1] = NvFlexMakePhaseWithChannels(1,
-				0,
+				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 				eNvFlexPhaseShapeChannel0);
 
 		phases[2] = NvFlexMakePhaseWithChannels(2,
-				0,
+				eNvFlexPhaseSelfCollide | eNvFlexPhaseSelfCollideFilter,
 				eNvFlexPhaseShapeChannel0);
+
 		cout << "MeshIdSize: " << allMeshId.size() << endl;
 		for (int i = 0; i < numSceneDim; i++) {
 			for (int j = 0; j < numSceneDim; j++) {
@@ -178,7 +168,7 @@ public:
 					CreateSpringCubeAroundCenter(center + offsetPos,
 							clusterDimx, clusterDimy, clusterDimz,
 							springFuseDist / sqrt(3), phases[0], stiffness,
-							stiffness, stiffness, Vec3(0.0f), 1.0f,true);
+							stiffness, stiffness, Vec3(0.0f), 1.0f);
 //					CreateGranularCubeAroundCenter(center + offsetPos,
 //												clusterDimx, clusterDimy, clusterDimz,
 //												radius * 1.7f, phase1, Vec3(0.0, 0.0, 0.0), 1.0f,0.0f);
@@ -229,7 +219,7 @@ public:
 
 		Eigen::VectorXd tempAct(numSceneDim * numSceneDim * actionDim);
 		tempAct.setZero();
-//		updateSprings(tempAct);
+		updateSprings(tempAct);
 
 		g_numSubsteps = 5;
 
@@ -334,7 +324,6 @@ public:
 	void setMapHalfExtent(float mapHalfExtent) {
 		playgroundHalfExtent = mapHalfExtent;
 	}
-
 	/**
 	 * Update the unified space partition for the neightbourhood of particles to fuse spring
 	 */
@@ -380,6 +369,76 @@ public:
 				int(pos.y / (playgroundHalfExtent * 2.0f) * gridSize),
 				int(pos.z / (playgroundHalfExtent * 2.0f) * gridSize));
 		return mapIdx;
+	}
+
+	bool cutParticles(Vec3 pp, Vec3 qq, int group, int ghost) {
+		if (ghost > 0) {
+			return false;
+		}
+
+		Vec3 panPose = currPoses[group];
+		Vec3 panRot = currRots[group];
+		Quat panQuat = QuatFromAxisAngle(Vec3(0, 1, 0), panRot.y)
+				* QuatFromAxisAngle(Vec3(1, 0, 0), panRot.x);
+
+
+		Vec3 p = RotateInv(panQuat,pp-panPose);
+		Vec3 q = RotateInv(panQuat,qq-panPose);
+
+		Vec3 pq = q-p;
+
+
+		//Detect if cut by base
+		float t = -p.y/pq.y;
+		float hitGround = false;
+		float hitSide = false;
+		if(t>=0 && t<=1){
+			hitGround = Length(p+t*pq)<= barDim[0];
+		}else{
+
+			hitGround = false;
+		}
+
+		//Detect if cut by side
+		float rl = barDim[0];
+		float rh = barDim[1];
+		float invh = 1.0f/barDim[2];
+		float a = pq.x*pq.x+pq.z*pq.z-invh*invh*(pq.y*pq.y)*(rh-rl)*(rh-rl);
+		float b = 2*p.x*pq.x+2*p.z*pq.z-2*invh*rl*pq.y*(rh-rl)-2*invh*invh*p.y*pq.y*(rh-rl)*(rh-rl);
+		float c = p.x*p.x+p.z*p.z-rl*rl-2*invh*rl*p.y*(rh-rl)-invh*invh*(p.y*p.y)*(rh-rl)*(rh-rl);
+
+		float det = b*b-4*a*c;
+		if(det<0){
+			hitSide = false;
+		}else{
+			float t1 = (-b+sqrt(det))/(2.0*a);
+			float t2 = (-b-sqrt(det))/(2.0*a);
+			float t;
+			if(t2<0){
+				t = t1;
+			}else{
+				t = t2;
+			}
+
+			if(t>1 || t<0){
+				hitSide = false;
+			}else{
+				Vec3 hit = p+t*pq;
+				if(hit.y>0 && hit.y<barDim[2]){
+					hitSide = true;
+				}else{
+					hitSide = false;
+				}
+				hitSide = true;
+			}
+		}
+
+		return (hitGround || hitSide);
+
+
+
+
+
 	}
 
 	/*
@@ -433,7 +492,9 @@ public:
 			int group = a / (numPartPerScene);
 
 			float length = Length(p - q);
-			if (length <= springBreakDist) {
+			if (length <= springBreakDist
+					&& !cutParticles(p, q, group,
+							action(group * actionDim + 6))) {
 				mConstraintIndices.push_back(a);
 				mConstraintIndices.push_back(b);
 				mConstraintCoefficients.push_back(stiffness);
@@ -500,7 +561,12 @@ public:
 
 										//If spring pair is not already created and not cut by the bar, form new spring
 										if (bidirSpringMap[group].count(ij) == 0
-												&& length <= springFuseDist) {
+												&& length <= springFuseDist
+												&& !cutParticles(p, q, group,
+														action(
+																group
+																		* actionDim
+																		+ 6))) {
 
 											bidirSpringMap[group][ij] = 1;
 											bidirSpringMap[group][ji] = 1;
@@ -706,10 +772,10 @@ public:
 		}
 
 		UpdateShapes();
-//		if (g_frame % 10 == 0) {
-//			updateSpaceMap();
-//			updateSprings(action);
-//		}
+		if (g_frame % 10 == 0) {
+			updateSpaceMap();
+			updateSprings(action);
+		}
 //		updateParticleTemperature();
 
 //		for (int k = 0; k < g_buffers->positions.size(); k++) {
