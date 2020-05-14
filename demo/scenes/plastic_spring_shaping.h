@@ -612,7 +612,7 @@ public:
 				Vec2 goal_target = Vec2(goals[t], goals[t + 1])
 						+ Vec2(centers[i][0], centers[i][2]);
 				AddSphere(0.3, Vec3(goal_target.x, 0, goal_target.y), Quat(),
-						eNvFlexPhaseShapeChannel0 << 1);
+						eNvFlexPhaseShapeChannel0 << 1,Vec3(1.0f,0,0));
 			}
 
 			AddBox(Vec3(playgroundHalfExtent, 0.01, playgroundHalfExtent),
