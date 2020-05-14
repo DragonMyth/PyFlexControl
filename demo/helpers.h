@@ -1198,8 +1198,8 @@ void CreateSpringCubeAroundCenter(Vec3 center, int dx, int dy, int dz,
 	Vec3 length = Vec3((dx - 1) * radius, 0, (dz - 1) * radius);
 	for (int z = 0; z < dz; ++z) {
 		for (int y = 0; y < dy; ++y) {
-			for (int x = 0; x < dx; ++x) {
-
+			for (int x =0; x < dx; ++x) {
+				if((z==0 && x==0)||(z==0 && x==dx-1)||(z==dz-1 && x==0)||(z==dz-1 && x==dz-1)) continue;
 				if (rigid)
 					g_buffers->rigidIndices.push_back(
 							int(g_buffers->positions.size()));

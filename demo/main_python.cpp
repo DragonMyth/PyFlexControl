@@ -2466,27 +2466,32 @@ Eigen::MatrixXd getParticleDensity(Eigen::MatrixXd particles, int resolution,
 }
 
 Eigen::Vector3d getParticleAngularVelocity(Eigen::MatrixXd allPartPos, Eigen::MatrixXd allPartVel){
-	Eigen::Vector3d COM(0);
-	for (int i = 0; i < allPartPos.rows(); i++) {
-		Eigen::Vector3d partPos(allPartPos.row(i));
-		COM+=partPos;
-	}
-	COM/=(1.0f*allPartPos.rows());
-
 	Eigen::Vector3d angVel(0);
-	for (int i = 0; i < allPartVel.rows(); i++) {
-		Eigen::Vector3d partPos(allPartPos.row(i));
+	if(allPartPos.rows()>1){
 
-		Eigen::Vector3d pattVel(allPartVel.row(i));
+		Eigen::Vector3d COM(0);
+		for (int i = 0; i < allPartPos.rows(); i++) {
+			Eigen::Vector3d partPos(allPartPos.row(i));
+			COM+=partPos;
+		}
+		COM/=(1.0f*allPartPos.rows());
 
-		Eigen::Vector3d r1(partPos-COM);
+		for (int i = 0; i < allPartVel.rows(); i++) {
+			Eigen::Vector3d partPos(allPartPos.row(i));
 
-		Eigen::Vector3d axisOfRotation(r1.cross(pattVel));
-		axisOfRotation/= r1.norm()*r1.norm();
-		angVel+=axisOfRotation;
+			Eigen::Vector3d pattVel(allPartVel.row(i));
+
+			Eigen::Vector3d r1(partPos-COM);
+
+			Eigen::Vector3d axisOfRotation(r1.cross(pattVel));
+			if(r1.norm()<0.001f){
+				axisOfRotation/= r1.norm()*r1.norm();
+			}
+
+			angVel+=axisOfRotation;
+		}
+		angVel/=(1.0f*allPartPos.rows());
 	}
-	angVel/=(1.0f*allPartPos.rows());
-
 
 
 	return angVel;
