@@ -947,10 +947,10 @@ public:
 		}
 
 		UpdateShapes();
-//		if (g_frame % 10 == 0) {
-//			updateSpaceMap();
-//			updateSprings(action);
-//		}
+		if (g_frame % 10 == 0) {
+			updateSpaceMap();
+			updateSprings(action);
+		}
 //		updateParticleTemperature();
 
 //		for (int k = 0; k < g_buffers->positions.size(); k++) {
