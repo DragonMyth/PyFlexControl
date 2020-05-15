@@ -54,7 +54,7 @@ public:
 
 		for (int i = 0; i < numSceneDim * numSceneDim; i++) {
 			partInitialization(i, 3) = 10;
-			partInitialization(i, 4) = 1;
+			partInitialization(i, 4) = 2;
 			partInitialization(i, 5) = 10;
 		}
 
@@ -147,38 +147,31 @@ public:
 		}
 		cout << "Number of Particles Per instance: " << numPartPerScene << endl;
 
-		g_numSubsteps = 3;
-		g_params.radius = radius;
-		g_params.staticFriction = 10.5f;
-		g_params.dynamicFriction = 1.2f;
 
-		g_params.numIterations = 4;
-		g_params.particleCollisionMargin = g_params.radius * 0.05f;	// 5% collision margin
-		g_params.sleepThreshold = g_params.radius * 0.25f;
+		g_numSubsteps = 3;
+
+		g_params.radius = radius;
+
+		g_params.staticFriction = 1.8f;
+		g_params.dynamicFriction = 1.3f;
+		g_params.particleFriction = 1.5f;
+//		g_params.particleFriction = 1.5f;
+		g_params.numIterations = 3;
+//		g_params.dissipation = 0.01f;
+
+//		g_params.sleepThreshold = g_params.radius * 0.25f;
+//		g_params.collisionDistance = radius*0.5f;
+//		g_params.relaxationMode = eNvFlexRelaxationGlobal;
+//		g_params.relaxationFactor = 1.0f;
+		g_params.particleCollisionMargin = g_params.radius * 0.1f;
+		g_params.shapeCollisionMargin = g_params.radius * 0.1f;
+		g_params.numPlanes = 1;
+
+		g_params.sleepThreshold = g_params.radius*0.25f;
 		g_params.shockPropagation = 6.f;
 		g_params.restitution = 0.2f;
 		g_params.relaxationFactor = 1.f;
 		g_params.damping = 0.14f;
-		g_params.numPlanes = 1;
-//		g_numSubsteps = 3;
-//
-//		g_params.radius = radius;
-//		g_params.staticFriction = 1.8f;
-//		g_params.dynamicFriction = 1.3f;
-////		g_params.particleFriction = 1.5f;
-//		g_params.numIterations = 3;
-////		g_params.dissipation = 0.01f;
-//
-////		g_params.sleepThreshold = g_params.radius * 0.25f;
-////		g_params.collisionDistance = radius*0.5f;
-////		g_params.relaxationMode = eNvFlexRelaxationGlobal;
-////		g_params.relaxationFactor = 1.0f;
-//		g_params.damping = 1.5f;
-//		g_params.shockPropagation = 1.5f;
-//		g_params.particleCollisionMargin = g_params.radius * 0.1f;
-//		g_params.shapeCollisionMargin = g_params.radius * 0.1f;
-//		g_params.numPlanes = 1;
-
 		// draw options
 		g_drawPoints = true;
 //		g_drawSprings = true;
@@ -356,13 +349,13 @@ public:
 //			AddTriangleMesh(allMeshId[i+numSceneDim*numSceneDim], newPos + barDim[1] * rotatedVec, quat, Vec3(1.0f),
 //					Vec3(0.3, 0.3, 1.0));
 
-//			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
-//					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
-//			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
-//					- 1] = oldQuat;
-//
-//
-//			float linearVelThresh = 0.0f;
+			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
+					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
+			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
+					- 1] = oldQuat;
+
+
+			float linearVelThresh = 0.9f;
 //			float angVelThresh = 0.5f;
 //			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
 //					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
@@ -373,17 +366,17 @@ public:
 //				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
 //						- 1] = oldQuat;
 //			}
-//			if (Length(currVels[i]) > linearVelThresh) {
-//
-//
-////				float t = maxf(1-(Length(currVels[i])-linearVelThresh)/linearVelThresh,0);
-//				float t = 0.999;
-//
-//				Vec3 interpPos = (oldPos * t + newPos * (1 - t));
-//				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
-//						- 1] = Vec4(interpPos + barDim[1] * oldRotatedVec,
-//						0.0f);
-//			}
+			if (Length(currVels[i]) > linearVelThresh) {
+
+
+//				float t = maxf(1-(Length(currVels[i])-linearVelThresh)/linearVelThresh,0);
+				float t = 0.6;
+
+				Vec3 interpPos = (oldPos * t + newPos * (1 - t));
+				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
+						- 1] = Vec4(interpPos + barDim[1] * oldRotatedVec,
+						0.0f);
+			}
 
 			if (ghost) {
 				AddBox(Vec3(1, 1, 1),
