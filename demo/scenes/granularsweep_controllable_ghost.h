@@ -152,9 +152,9 @@ public:
 
 		g_params.radius = radius;
 
-		g_params.staticFriction = 1.8f;
+		g_params.staticFriction = 10.8f;
 		g_params.dynamicFriction = 1.3f;
-		g_params.particleFriction = 1.5f;
+//		g_params.particleFriction = 1.5f;
 //		g_params.particleFriction = 1.5f;
 		g_params.numIterations = 3;
 //		g_params.dissipation = 0.01f;
@@ -349,34 +349,34 @@ public:
 //			AddTriangleMesh(allMeshId[i+numSceneDim*numSceneDim], newPos + barDim[1] * rotatedVec, quat, Vec3(1.0f),
 //					Vec3(0.3, 0.3, 1.0));
 
-			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
-					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
-			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
-					- 1] = oldQuat;
-
-
-			float linearVelThresh = 0.9f;
-//			float angVelThresh = 0.5f;
-//			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
-//					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
-//					|| abs(currAngVels[i].y) > angVelThresh
-//					|| abs(currAngVels[i].z) > angVelThresh)) {
+//			g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
+//					- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
+//			g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
+//					- 1] = oldQuat;
+//
+//
+//			float linearVelThresh = 0.9f;
+////			float angVelThresh = 0.5f;
+////			if (!(abs(currVels[i].x) > linearVelThresh || abs(currVels[i].y) > linearVelThresh
+////					|| abs(currVels[i].z) > linearVelThresh || abs(currAngVels[i].x) > angVelThresh
+////					|| abs(currAngVels[i].y) > angVelThresh
+////					|| abs(currAngVels[i].z) > angVelThresh)) {
+////				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
+////						- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
+////				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
+////						- 1] = oldQuat;
+////			}
+//			if (Length(currVels[i]) > linearVelThresh) {
+//
+//
+////				float t = maxf(1-(Length(currVels[i])-linearVelThresh)/linearVelThresh,0);
+//				float t = 0.6;
+//
+//				Vec3 interpPos = (oldPos * t + newPos * (1 - t));
 //				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
-//						- 1] = Vec4(oldPos + barDim[1] * oldRotatedVec, 0.0f);
-//				g_buffers->shapePrevRotations[g_buffers->shapePrevPositions.size()
-//						- 1] = oldQuat;
+//						- 1] = Vec4(interpPos + barDim[1] * oldRotatedVec,
+//						0.0f);
 //			}
-			if (Length(currVels[i]) > linearVelThresh) {
-
-
-//				float t = maxf(1-(Length(currVels[i])-linearVelThresh)/linearVelThresh,0);
-				float t = 0.6;
-
-				Vec3 interpPos = (oldPos * t + newPos * (1 - t));
-				g_buffers->shapePrevPositions[g_buffers->shapePrevPositions.size()
-						- 1] = Vec4(interpPos + barDim[1] * oldRotatedVec,
-						0.0f);
-			}
 
 			if (ghost) {
 				AddBox(Vec3(1, 1, 1),
