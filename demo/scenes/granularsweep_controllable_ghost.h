@@ -111,7 +111,7 @@ public:
 
 					CreateGranularCubeAroundCenter(center + offsetPos,
 												clusterDimx, clusterDimy, clusterDimz,
-												radius * 1.3f, phase1, Vec3(0.0, 0.0, 0.0), 1.0f,0.05f);
+												radius * 1.7f, phase1, Vec3(0.0, 0.0, 0.0), 1.0f);
 				}
 				if (i == 0 && j == 0) {
 					numPartPerScene = g_buffers->positions.size();
@@ -125,7 +125,7 @@ public:
 //					}
 //				}
 
-				Vec3 currPos = center + Vec3(0, 0, -2);
+				Vec3 currPos = center + Vec3(0, 0, 0);
 
 				Vec3 currRotEuler = Vec3(0, 0, 0);
 //				std::cout << currRotEuler.x << " , " << currRotEuler.y << " , "
@@ -170,7 +170,7 @@ public:
 //
 //		g_params.radius = radius;
 //
-//		g_params.staticFriction = 10.8f;
+//		g_params.staticFriction = 1.8f;
 //		g_params.dynamicFriction = 1.3f;
 ////		g_params.particleFriction = 1.5f;
 ////		g_params.particleFriction = 1.5f;
