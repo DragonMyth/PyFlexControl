@@ -389,8 +389,8 @@ public:
 		float t = -p.y/pq.y;
 		float hitGround = false;
 		float hitSide = false;
-		if(t>0.05 && t<0.95f){
-			hitGround = Length(p+t*pq)<= barDim[0]*0.95f;
+		if(t>0.1 && t<0.9f){
+			hitGround = Length(p+t*pq)<= barDim[0]*0.9;
 		}else{
 
 			hitGround = false;
@@ -417,17 +417,18 @@ public:
 				t = t2;
 			}
 
-			if(t>0.95 || t<0.05){
+			if(t>1 || t<0){
 				hitSide = false;
 			}else{
 				Vec3 hit = p+t*pq;
-				if(hit.y>0 && hit.y<barDim[2]*0.95){
+				if(hit.y>0 && hit.y<barDim[2]){
 					hitSide = true;
 				}else{
 					hitSide = false;
 				}
 			}
 		}
+
 //		//Detect if cut by base
 //		float t = -p.y/pq.y;
 //		float hitGround = false;
@@ -526,7 +527,7 @@ public:
 			int group = a / (numPartPerScene);
 
 			float length = Length(p - q);
-			if (length <= springBreakDist&& !cutParticles(p, q, group,
+			if (!cutParticles(p, q, group,
 							action(group * actionDim + 6))) {
 				mConstraintIndices.push_back(a);
 				mConstraintIndices.push_back(b);
@@ -546,85 +547,85 @@ public:
 
 			}
 		}
-
-
-		//For all particles
-		for (int i = 0; i < g_buffers->positions.size(); i++) {
-			int group = i / (numPartPerScene);
-			Vec3 idxVecFuseMap = getMapIdx(i, fuseGridSize);
-
-//			int remainning_spring = maxSpringPerPart - perPartSpringCnt[i];
-			//Look at surrounding 27 neighbours
-			for (int x = -1; x <= 1; x++) {
-				for (int y = -1; y <= 1; y++) {
-					for (int z = -1; z <= 1; z++) {
-						Vec3 neighbourIdx = idxVecFuseMap + Vec3(x, y, z);
-						//If neighbour index is not out of bound
-						if (neighbourIdx.x >= 0 && neighbourIdx.x < fuseGridSize
-								&& neighbourIdx.y >= 0
-								&& neighbourIdx.y < fuseGridSize
-								&& neighbourIdx.z >= 0
-								&& neighbourIdx.z < fuseGridSize) {
-							int idx = neighbourIdx.z * fuseGridSize
-									* fuseGridSize
-									+ neighbourIdx.y * fuseGridSize
-									+ neighbourIdx.x;
-							//If cell contains particles is not empty
-							if (springFuseMap[group].count(idx) > 0) {
-								// For all particles in the cell, form a spring between particles i and j
-								for (int k = 0;
-										k < springFuseMap[group][idx].size();
-										k++) {
-
-									int j = springFuseMap[group][idx][k];
-
-//									std::cout<<i<<"Particle: "<<j<<" Remaining Springs: "<<maxSpringPerPart - perPartSpringCnt[i]<<std::endl;
-
-									if (i != j
-											&& maxSpringPerPart
-													- perPartSpringCnt[i] > 0
-											&& maxSpringPerPart
-													- perPartSpringCnt[j] > 0) {
-										Vec3 p = Vec3(g_buffers->positions[i]);
-										Vec3 q = Vec3(g_buffers->positions[j]);
-										float length = Length(p - q);
-										std::pair<int, int> ij = std::pair<int,
-												int>(i, j);
-										std::pair<int, int> ji = std::pair<int,
-												int>(j, i);
-
-										//If spring pair is not already created and not cut by the bar, form new spring
-										if (bidirSpringMap[group].count(ij) == 0
-												&& length <= springFuseDist
-												&& !cutParticles(p, q, group,
-														action(
-																group
-																		* actionDim
-																		+ 6))) {
-
-											bidirSpringMap[group][ij] = 1;
-											bidirSpringMap[group][ji] = 1;
-
-											mConstraintIndices.push_back(i);
-											mConstraintIndices.push_back(j);
-											mConstraintCoefficients.push_back(
-													stiffness);
-											mConstraintRestLengths.push_back(
-													Length(p - q));
-
-											perPartSpringCnt[i]++;
-											perPartSpringCnt[j]++;
-
-										}
-									}
-								}
-
-							}
-						}
-					}
-				}
-			}
-		}
+//
+//
+//		//For all particles
+//		for (int i = 0; i < g_buffers->positions.size(); i++) {
+//			int group = i / (numPartPerScene);
+//			Vec3 idxVecFuseMap = getMapIdx(i, fuseGridSize);
+//
+////			int remainning_spring = maxSpringPerPart - perPartSpringCnt[i];
+//			//Look at surrounding 27 neighbours
+//			for (int x = -1; x <= 1; x++) {
+//				for (int y = -1; y <= 1; y++) {
+//					for (int z = -1; z <= 1; z++) {
+//						Vec3 neighbourIdx = idxVecFuseMap + Vec3(x, y, z);
+//						//If neighbour index is not out of bound
+//						if (neighbourIdx.x >= 0 && neighbourIdx.x < fuseGridSize
+//								&& neighbourIdx.y >= 0
+//								&& neighbourIdx.y < fuseGridSize
+//								&& neighbourIdx.z >= 0
+//								&& neighbourIdx.z < fuseGridSize) {
+//							int idx = neighbourIdx.z * fuseGridSize
+//									* fuseGridSize
+//									+ neighbourIdx.y * fuseGridSize
+//									+ neighbourIdx.x;
+//							//If cell contains particles is not empty
+//							if (springFuseMap[group].count(idx) > 0) {
+//								// For all particles in the cell, form a spring between particles i and j
+//								for (int k = 0;
+//										k < springFuseMap[group][idx].size();
+//										k++) {
+//
+//									int j = springFuseMap[group][idx][k];
+//
+////									std::cout<<i<<"Particle: "<<j<<" Remaining Springs: "<<maxSpringPerPart - perPartSpringCnt[i]<<std::endl;
+//
+//									if (i != j
+//											&& maxSpringPerPart
+//													- perPartSpringCnt[i] > 0
+//											&& maxSpringPerPart
+//													- perPartSpringCnt[j] > 0) {
+//										Vec3 p = Vec3(g_buffers->positions[i]);
+//										Vec3 q = Vec3(g_buffers->positions[j]);
+//										float length = Length(p - q);
+//										std::pair<int, int> ij = std::pair<int,
+//												int>(i, j);
+//										std::pair<int, int> ji = std::pair<int,
+//												int>(j, i);
+//
+//										//If spring pair is not already created and not cut by the bar, form new spring
+//										if (bidirSpringMap[group].count(ij) == 0
+//												&& length <= springFuseDist
+//												&& !cutParticles(p, q, group,
+//														action(
+//																group
+//																		* actionDim
+//																		+ 6))) {
+//
+//											bidirSpringMap[group][ij] = 1;
+//											bidirSpringMap[group][ji] = 1;
+//
+//											mConstraintIndices.push_back(i);
+//											mConstraintIndices.push_back(j);
+//											mConstraintCoefficients.push_back(
+//													stiffness);
+//											mConstraintRestLengths.push_back(
+//													Length(p - q));
+//
+//											perPartSpringCnt[i]++;
+//											perPartSpringCnt[j]++;
+//
+//										}
+//									}
+//								}
+//
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
 		int numSprings = mConstraintCoefficients.size();
 		g_buffers->springIndices.assign(&mConstraintIndices[0], numSprings * 2);
 		g_buffers->springStiffness.assign(&mConstraintCoefficients[0],
@@ -946,10 +947,10 @@ public:
 		}
 
 		UpdateShapes();
-		if (g_frame % 10 == 0) {
-			updateSpaceMap();
-			updateSprings(action);
-		}
+//		if (g_frame % 10 == 0) {
+//			updateSpaceMap();
+//			updateSprings(action);
+//		}
 //		updateParticleTemperature();
 
 //		for (int k = 0; k < g_buffers->positions.size(); k++) {

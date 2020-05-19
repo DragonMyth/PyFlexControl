@@ -151,8 +151,10 @@ public:
 		g_numSubsteps = 3;
 
 		g_params.radius = radius;
+
 		g_params.staticFriction = 1.8f;
 		g_params.dynamicFriction = 1.3f;
+		g_params.particleFriction = 1.5f;
 //		g_params.particleFriction = 1.5f;
 		g_params.numIterations = 3;
 //		g_params.dissipation = 0.01f;
@@ -161,12 +163,15 @@ public:
 //		g_params.collisionDistance = radius*0.5f;
 //		g_params.relaxationMode = eNvFlexRelaxationGlobal;
 //		g_params.relaxationFactor = 1.0f;
-		g_params.damping = 1.5f;
-		g_params.shockPropagation = 1.5f;
 		g_params.particleCollisionMargin = g_params.radius * 0.1f;
 		g_params.shapeCollisionMargin = g_params.radius * 0.1f;
 		g_params.numPlanes = 1;
 
+		g_params.sleepThreshold = g_params.radius*0.25f;
+		g_params.shockPropagation = 6.f;
+		g_params.restitution = 0.2f;
+		g_params.relaxationFactor = 1.f;
+		g_params.damping = 0.14f;
 		// draw options
 		g_drawPoints = true;
 //		g_drawSprings = true;
